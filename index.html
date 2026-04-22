@@ -12,8 +12,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
 <style>
-:root{--fs:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;--bg:#fff;--bg2:#f5f5f4;--bg3:#f0ede8;--bgi:#e6f1fb;--bgs:#eaf3de;--bgw:#faeeda;--bgd:#fcebeb;--tx:#1a1a1a;--tx2:#666;--tx3:#aaa;--txi:#185fa5;--txs:#3b6d11;--txw:#854f0b;--txd:#a32d2d;--bo:rgba(0,0,0,0.1);--bo2:rgba(0,0,0,0.15);--bo3:rgba(0,0,0,0.07);--r:10px;--rl:14px}
-@media(prefers-color-scheme:dark){:root{--bg:#1c1c1e;--bg2:#2c2c2e;--bg3:#242426;--bgi:#0c2a45;--bgs:#0f2a05;--bgw:#2a1a05;--bgd:#2a0f0f;--tx:#f2f2f7;--tx2:#aeaeb2;--tx3:#636366;--txi:#85b7eb;--txs:#97c459;--txw:#ef9f27;--txd:#f09595;--bo:rgba(255,255,255,0.1);--bo2:rgba(255,255,255,0.15);--bo3:rgba(255,255,255,0.07)}}
+:root{--fs:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;--bg:#fff;--bg2:#f5f5f4;--bg3:#f0ede8;--bgi:#e6f1fb;--bgs:#eaf3de;--bgw:#faeeda;--bgd:#fcebeb;--tx:#1a1a1a;--tx2:#666;--tx3:#aaa;--txi:#185fa5;--txs:#3b6d11;--txw:#854f0b;--txd:#a32d2d;--bo:rgba(0,0,0,0.1);--bo2:rgba(0,0,0,0.15);--bo3:rgba(0,0,0,0.07);--r:10px;--rl:14px;--accent:#2d7a4f;--accent-tx:#fff}
+@media(prefers-color-scheme:dark){:root{--accent:#3a9e68;--accent-tx:#fff;--bg:#1c1c1e;--bg2:#2c2c2e;--bg3:#242426;--bgi:#0c2a45;--bgs:#0f2a05;--bgw:#2a1a05;--bgd:#2a0f0f;--tx:#f2f2f7;--tx2:#aeaeb2;--tx3:#636366;--txi:#85b7eb;--txs:#97c459;--txw:#ef9f27;--txd:#f09595;--bo:rgba(255,255,255,0.1);--bo2:rgba(255,255,255,0.15);--bo3:rgba(255,255,255,0.07)}}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;font-family:var(--fs);background:var(--bg3)}
 body{display:flex;justify-content:center}
@@ -84,7 +84,7 @@ body{display:flex;justify-content:center}
 .sz.low{background:var(--bgw);color:var(--txw)}
 .sz.out{color:var(--tx3);text-decoration:line-through;background:none;border:0.5px solid var(--bo3)}
 .ca{display:flex;align-items:center;gap:8px;padding:10px 12px 11px;border-top:0.5px solid var(--bo3)}
-.bsell{flex:1;padding:9px 0;background:var(--tx);color:var(--bg);border:none;border-radius:var(--r);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--fs)}
+.bsell{flex:1;padding:9px 0;background:var(--accent);color:var(--accent-tx);border:none;border-radius:var(--r);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--fs)}
 .bsell:disabled{opacity:.22;cursor:not-allowed}
 .badge-total{position:absolute;top:-7px;right:-7px;min-width:22px;height:22px;border-radius:11px;background:#22c55e;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 5px;border:2px solid var(--bg);z-index:2;line-height:1}
 .card-wrap{position:relative}
@@ -144,7 +144,7 @@ body{display:flex;justify-content:center}
 /* NAV */
 .nav{display:flex;position:fixed;bottom:calc(12px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--bg);border-radius:24px;padding:6px 8px;gap:4px;box-shadow:0 4px 24px rgba(0,0,0,0.13),0 1px 4px rgba(0,0,0,0.08);z-index:50;border:0.5px solid var(--bo3);width:auto;max-width:380px}
 .nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 16px;cursor:pointer;font-size:10px;color:var(--tx2);border:none;background:none;font-family:var(--fs);font-weight:500;border-radius:18px;transition:background .15s,color .15s;white-space:nowrap}
-.nb.on{background:var(--tx);color:var(--bg);font-weight:600}
+.nb.on{background:var(--accent);color:var(--accent-tx);font-weight:600}
 .nb.on svg{stroke:var(--bg)}
 /* MODALS */
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center;z-index:100}
@@ -195,7 +195,7 @@ input[type=file]{display:none}
 <div class="fld"><label>Correo electrónico</label><input id="li-e" type="email" autocomplete="email" placeholder="correo@empresa.com"></div>
 <div class="fld"><label>Contraseña</label><input id="li-p" type="password" autocomplete="current-password" placeholder="••••••••"></div>
 <div class="err" id="li-err"></div>
-<button class="btn" id="btn-login">Iniciar sesión</button>
+<button class="btn" id="btn-login" style="">Iniciar sesión</button>
 <p class="hint">¿Olvidaste tu contraseña? Contacta al Super Admin.</p>
 </div>
 </div>
@@ -235,15 +235,42 @@ input[type=file]{display:none}
 <div class="tb"><div><h2>Historial</h2><span>Ventas y reposiciones</span></div></div>
 <div class="hw" id="hw-wrap">
   <div style="display:flex;gap:8px;padding:10px 1rem 8px;background:var(--bg);border-bottom:0.5px solid var(--bo3);flex-shrink:0">
-    <button id="htab-out" onclick="switchHTab('out')" style="flex:1;padding:9px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;text-align:center;border:none;font-family:var(--fs);background:var(--tx);color:var(--bg);transition:all .15s">↘ Salidas</button>
+    <button id="htab-out" onclick="switchHTab('out')" style="flex:1;padding:9px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;text-align:center;border:none;font-family:var(--fs);background:var(--accent);color:var(--accent-tx);transition:all .15s">↘ Salidas</button>
     <button id="htab-in" onclick="switchHTab('in')" style="flex:1;padding:9px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;text-align:center;border:none;font-family:var(--fs);background:var(--bg2);color:var(--tx2);transition:all .15s">↗ Entradas</button>
+  </div>
+  <div class="dftabs" id="hist-dftabs" style="padding:6px 1rem 6px">
+    <button class="dftab on" onclick="setHp('all')">Todo</button>
+    <button class="dftab" onclick="setHp('today')">Hoy</button>
+    <button class="dftab" onclick="setHp('yesterday')">Ayer</button>
+    <button class="dftab" onclick="setHp('week')">Esta semana</button>
+    <button class="dftab" onclick="setHp('month')">Este mes</button>
+    <button class="dftab" onclick="setHp('30days')">Últimos 30 días</button>
+    <button class="dftab" onclick="setHp('custom')">Personalizado</button>
+  </div>
+  <div class="dfcustom" id="hist-custom">
+    <input type="date" id="hist-from"><input type="date" id="hist-to">
+    <button onclick="applyCustomHist()">Ver</button>
   </div>
   <div id="hist-list" style="padding:8px 1rem;display:flex;flex-direction:column;gap:8px"></div>
 </div>
 </div>
 <div id="t-stats" style="display:none;flex-direction:column;flex:1;overflow:hidden">
 <div class="tb"><div><h2>Estadísticas</h2><span>Resumen de ventas</span></div></div>
-<div class="stw" id="stats-cnt"></div>
+<div class="stw" id="stats-wrap">
+  <div class="dftabs" id="stats-dftabs">
+    <button class="dftab on" onclick="setSp('today')">Hoy</button>
+    <button class="dftab" onclick="setSp('yesterday')">Ayer</button>
+    <button class="dftab" onclick="setSp('week')">Esta semana</button>
+    <button class="dftab" onclick="setSp('month')">Este mes</button>
+    <button class="dftab" onclick="setSp('30days')">Últimos 30 días</button>
+    <button class="dftab" onclick="setSp('custom')">Personalizado</button>
+  </div>
+  <div class="dfcustom" id="stats-custom">
+    <input type="date" id="stats-from"><input type="date" id="stats-to">
+    <button onclick="applyCustomStats()">Ver</button>
+  </div>
+  <div id="stats-cnt" class="stats-body"></div>
+</div>
 </div>
 <div id="t-cfg" style="display:none;flex-direction:column;flex:1;overflow:hidden">
 <div class="tb"><div><h2>Configuración</h2><span>Super usuario</span></div></div>
@@ -302,7 +329,7 @@ input[type=file]{display:none}
 <div class="fld"><label>Color</label><select id="ap-color"></select></div>
 <div class="fld"><label>Talla (EU)</label><input type="number" id="ap-sz" placeholder="40" min="30" max="48"></div>
 <div class="fld"><label>Stock inicial</label><input type="number" id="ap-stk" placeholder="0" min="0"></div>
-<div class="brow"><button class="bcl" id="x-addp" onclick="closeAll()">Cancelar</button><button class="bok" id="ok-addp">Agregar a Firebase</button></div>
+<div class="brow"><button class="bcl" id="x-addp" onclick="closeAll()">Cancelar</button><button class="bok" id="ok-addp" style="background:var(--accent);color:var(--accent-tx)">Agregar a Firebase</button></div>
 </div></div>
 
 <!-- PHOTO -->
@@ -632,15 +659,19 @@ let histTab='out';
 window.switchHTab=function(t){
   histTab=t;
   const outBtn=$('htab-out'),inBtn=$('htab-in');
-  outBtn.style.background=t==='out'?'var(--tx)':'var(--bg2)';
-  outBtn.style.color=t==='out'?'var(--bg)':'var(--tx2)';
-  inBtn.style.background=t==='in'?'var(--tx)':'var(--bg2)';
-  inBtn.style.color=t==='in'?'var(--bg)':'var(--tx2)';
+  outBtn.style.background=t==='out'?'var(--accent)':'var(--bg2)';
+  outBtn.style.color=t==='out'?'var(--accent-tx)':'var(--tx2)';
+  inBtn.style.background=t==='in'?'var(--accent)':'var(--bg2)';
+  inBtn.style.color=t==='in'?'var(--accent-tx)':'var(--tx2)';
   renderHist();
 };
 function renderHist(){
   const el=$('hist-list');
-  const filtered=txns.filter(h=>histTab==='out'?h.type==='sale':h.type==='restock');
+  const now=new Date(),todayStart=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
+  const yesterdayStart=todayStart-86400000;
+  const hStart=hp==='all'?0:hp==='today'?todayStart:hp==='yesterday'?yesterdayStart:hp==='week'?pStart('week'):hp==='month'?pStart('month'):hp==='30days'?pStart('30days'):hCustomFrom;
+  const hEnd=hp==='yesterday'?todayStart-1:hp==='custom'?hCustomTo:Date.now();
+  const filtered=txns.filter(h=>(histTab==='out'?h.type==='sale':h.type==='restock')&&h.ts>=hStart&&h.ts<=hEnd);
   if(!filtered.length){el.innerHTML=`<div class="empty" style="padding:2rem 0"><p>${histTab==='out'?'Sin ventas registradas':'Sin entradas de stock'}</p></div>`;return;}
   el.innerHTML=filtered.map(h=>{
     const is=h.type==='sale',bs=is&&h.buyer?` → <b>${h.buyer}</b>`:'',nn=h.note?`<div class="hn">💬 ${h.note}</div>`:'';
@@ -667,9 +698,47 @@ window.delSaleOnly=async function(txId){
   }catch(e){alert('Error: '+e.message);}
 };
 // ══ STATS ════════════════════════════════════════════════
-function pStart(p){const n=new Date();if(p==='today')return new Date(n.getFullYear(),n.getMonth(),n.getDate()).getTime();if(p==='week'){const d=new Date(n),dy=d.getDay()||7;d.setDate(d.getDate()-(dy-1));d.setHours(0,0,0,0);return d.getTime();}return new Date(n.getFullYear(),n.getMonth(),1).getTime();}
+// Date filter state
+let hp = 'all', hCustomFrom = 0, hCustomTo = Date.now();
+let spCustomFrom = 0, spCustomTo = Date.now();
+
+window.setSp = function(p){
+  sp = p;
+  document.querySelectorAll('#stats-dftabs .dftab').forEach((b,i)=>{
+    b.classList.toggle('on', ['today','yesterday','week','month','30days','custom'][i]===p);
+  });
+  document.getElementById('stats-custom').style.display = p==='custom'?'flex':'none';
+  if(p!=='custom') renderStats();
+};
+
+window.applyCustomStats = function(){
+  const f=document.getElementById('stats-from').value, t=document.getElementById('stats-to').value;
+  if(!f||!t){alert('Selecciona fecha inicio y fin');return;}
+  spCustomFrom=new Date(f).getTime();
+  spCustomTo=new Date(t).getTime()+86399999;
+  renderStats();
+};
+
+window.setHp = function(p){
+  hp = p;
+  document.querySelectorAll('#hist-dftabs .dftab').forEach((b,i)=>{
+    b.classList.toggle('on', ['all','today','yesterday','week','month','30days','custom'][i]===p);
+  });
+  document.getElementById('hist-custom').style.display = p==='custom'?'flex':'none';
+  if(p!=='custom') renderHist();
+};
+
+window.applyCustomHist = function(){
+  const f=document.getElementById('hist-from').value, t=document.getElementById('hist-to').value;
+  if(!f||!t){alert('Selecciona fecha inicio y fin');return;}
+  hCustomFrom=new Date(f).getTime();
+  hCustomTo=new Date(t).getTime()+86399999;
+  renderHist();
+};
+
+function pStart(p){const n=new Date();if(p==='custom')return spCustomFrom;if(p==='yesterday'){const d=new Date(n.getFullYear(),n.getMonth(),n.getDate()-1);return d.getTime();}if(p==='30days'){const d=new Date(n);d.setDate(d.getDate()-30);return d.getTime();}if(p==='today')return new Date(n.getFullYear(),n.getMonth(),n.getDate()).getTime();if(p==='week'){const d=new Date(n),dy=d.getDay()||7;d.setDate(d.getDate()-(dy-1));d.setHours(0,0,0,0);return d.getTime();}return new Date(n.getFullYear(),n.getMonth(),1).getTime();}
 function renderStats(){
-  const el=$('stats-cnt'),sales=txns.filter(h=>h.type==='sale'),fc=p=>sales.filter(h=>h.ts>=pStart(p)),tod=fc('today'),wk=fc('week'),mo=fc('month'),cur=fc(sp),tp=cur.reduce((s,h)=>s+h.quantity,0),bm={},bb={};
+  const el=$('stats-cnt'),sales=txns.filter(h=>h.type==='sale'),fc=p=>sales.filter(h=>h.ts>=pStart(p)&&(p!=='yesterday'&&p!=='custom'||h.ts<=(p==='yesterday'?new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()).getTime()-1:spCustomTo))),tod=fc('today'),wk=fc('week'),mo=fc('month'),cur=fc(sp),tp=cur.reduce((s,h)=>s+h.quantity,0),bm={},bb={};
   cur.forEach(h=>{bm[h.model]=(bm[h.model]||0)+h.quantity;const b=h.buyer||'Sin asignar';bb[b]=(bb[b]||0)+h.quantity;});
   const mm=Math.max(1,...Object.values(bm)),mb=Math.max(1,...Object.values(bb));
   const pts=['today','week','month'].map(k=>`<button class="pt ${sp===k?'on':''}" onclick="setSP('${k}')">${{today:'Hoy',week:'Semana',month:'Mes'}[k]}</button>`).join('');
