@@ -265,12 +265,12 @@ input[type=file]{display:none}
       <span id="stats-drop-label">Hoy</span> <span style="font-size:10px">▼</span>
     </button>
     <div id="stats-dropdown" style="display:none;position:absolute;top:52px;left:1rem;background:var(--bg);border:0.5px solid var(--bo2);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.12);z-index:100;min-width:200px;overflow:hidden">
-      <button class="sdrop-item on" onclick="setSp2('today','Hoy')">Hoy</button>
-      <button class="sdrop-item" onclick="setSp2('yesterday','Ayer')">Ayer</button>
-      <button class="sdrop-item" onclick="setSp2('week','Esta semana')">Esta semana</button>
-      <button class="sdrop-item" onclick="setSp2('month','Este mes')">Este mes</button>
-      <button class="sdrop-item" onclick="setSp2('30days','Últimos 30 días')">Últimos 30 días</button>
-      <button class="sdrop-item" onclick="setSp2('custom','Personalizado')">Personalizado ›</button>
+      <button class="sdrop-item on" onclick="setSp2('today','Hoy',this)">Hoy</button>
+      <button class="sdrop-item" onclick="setSp2('yesterday','Ayer',this)">Ayer</button>
+      <button class="sdrop-item" onclick="setSp2('week','Esta semana',this)">Esta semana</button>
+      <button class="sdrop-item" onclick="setSp2('month','Este mes',this)">Este mes</button>
+      <button class="sdrop-item" onclick="setSp2('30days','Últimos 30 días',this)">Últimos 30 días</button>
+      <button class="sdrop-item" onclick="setSp2('custom','Personalizado',this)">Personalizado ›</button>
     </div>
   </div>
   <div class="dfcustom" id="stats-custom">
@@ -714,11 +714,11 @@ window.toggleStatsDrop = function(){
   const d=document.getElementById('stats-dropdown');
   d.style.display=d.style.display==='none'?'block':'none';
 };
-window.setSp2 = function(p, label){
+window.setSp2 = function(p, label, el){
   document.getElementById('stats-drop-label').textContent=label;
   document.getElementById('stats-dropdown').style.display='none';
   document.querySelectorAll('.sdrop-item').forEach(b=>b.classList.remove('on'));
-  event.target.classList.add('on');
+  if(el)el.classList.add('on');
   setSp(p);
 };
 // Close dropdown when clicking outside
