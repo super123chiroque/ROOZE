@@ -16,24 +16,23 @@ messaging.onBackgroundMessage(payload => {
   const {title, body} = payload.notification;
   self.registration.showNotification(title, {
     body,
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
-    image: '/icon-192.png'
+    icon: 'https://super123chiroque.github.io/ROOZE/icon-192.png',
+    badge: 'https://super123chiroque.github.io/ROOZE/icon-192.png'
   });
 });
 
-const CACHE = 'stockcalzado-v3';
+const CACHE = 'stockcalzado-v4';
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(['./index.html', './manifest.json'])).then(() => self.skipWaiting())
+    caches.open(CACHE).then(c => c.addAll(['./index.html','./manifest.json'])).then(()=>self.skipWaiting())
   );
 });
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())
+    caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())
   );
 });
 self.addEventListener('fetch', e => {
-  if(e.request.url.includes('firebase') || e.request.url.includes('googleapis')) return;
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match('./index.html'))));
+  if(e.request.url.includes('firebase')||e.request.url.includes('googleapis'))return;
+  e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>caches.match('./index.html'))));
 });
