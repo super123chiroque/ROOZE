@@ -123,9 +123,10 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
 .zbar{height:100%;border-radius:3px}
 .zcount{font-size:13px;font-weight:700;width:24px;text-align:right}
 /* FILTER DROPDOWN */
-.drop-wrap{position:relative}
+.drop-wrap{position:relative;display:inline-block}
 .drop-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;background:var(--accent);color:var(--accent-tx);border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fs)}
 .drop-menu{display:none;position:absolute;top:44px;left:0;background:var(--bg);border:0.5px solid var(--bo2);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.14);z-index:200;min-width:200px;overflow:hidden}
+.drop-menu.left{left:0;right:auto}
 .drop-menu.open{display:block}
 .di{display:block;width:100%;padding:13px 18px;font-size:14px;color:var(--tx);cursor:pointer;border:none;background:none;font-family:var(--fs);text-align:left;border-bottom:0.5px solid var(--bo)}
 .di:last-child{border:none}
@@ -201,12 +202,12 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
         <div class="av" id="ventas-av"></div>
       </div>
     </div>
-    <div style="display:flex;gap:6px;padding:8px 14px;background:var(--bg);border-bottom:0.5px solid var(--bo);overflow-x:auto;flex-shrink:0">
-      <button class="tag on" id="f-all" onclick="setFilt('all')" style="cursor:pointer;font-weight:600;background:var(--accent);color:var(--accent-tx)">Todos</button>
-      <button class="tag" id="f-pend" onclick="setFilt('pendiente')" style="cursor:pointer">Pendiente</button>
-      <button class="tag" id="f-env" onclick="setFilt('enviado')" style="cursor:pointer">Enviado</button>
-      <button class="tag" id="f-ent" onclick="setFilt('entregado')" style="cursor:pointer">Entregado</button>
-      <button class="tag" id="f-anul" onclick="setFilt('anulado')" style="cursor:pointer">Anulado</button>
+    <div style="display:flex;gap:6px;padding:8px 14px;background:var(--bg);border-bottom:0.5px solid var(--bo);overflow-x:auto;flex-shrink:0;scrollbar-width:none">
+      <button id="f-all" onclick="setFilt('all')" style="cursor:pointer;font-weight:600;background:var(--accent);color:var(--accent-tx);border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--fs);flex-shrink:0">Todos</button>
+      <button id="f-pend" onclick="setFilt('pendiente')" style="cursor:pointer;font-weight:500;background:#e8e8e8;color:#555;border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--fs);flex-shrink:0">Pendiente</button>
+      <button id="f-env" onclick="setFilt('enviado')" style="cursor:pointer;font-weight:500;background:#e8e8e8;color:#555;border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--fs);flex-shrink:0">Enviado</button>
+      <button id="f-ent" onclick="setFilt('entregado')" style="cursor:pointer;font-weight:500;background:#e8e8e8;color:#555;border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--fs);flex-shrink:0">Entregado</button>
+      <button id="f-anul" onclick="setFilt('anulado')" style="cursor:pointer;font-weight:500;background:#e8e8e8;color:#555;border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--fs);flex-shrink:0">Anulado</button>
     </div>
     <div class="body" id="ventas-list"><div class="spin"></div></div>
     <button class="fab" onclick="openNueva()">+</button>
@@ -313,6 +314,7 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
           <button class="sopt ent" onclick="selectStatus('entregado',this)">Entregado</button>
         </div>
       </div>
+      <div class="fld"><label>Fecha de la venta</label><input type="date" id="nv-fecha"></div>
       <div class="fld"><label>Nota (opcional)</label><textarea id="nv-nota" placeholder="Observaciones del pedido..."></textarea></div>
       <div class="err" id="nv-err"></div>
       <button class="btn" id="btn-nueva">Registrar venta</button>
@@ -515,6 +517,12 @@ function periodEnd(p){
   if(p==='custom')return resCustomTo;
   return Date.now();
 }
+function formatFecha(f){
+  if(!f)return'';
+  const [y,m,d]=f.split('-');
+  const meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  return`${d} ${meses[parseInt(m)-1]}`;
+}
 function ago(ts){
   const d=Date.now()-ts,m=Math.floor(d/60000),h=Math.floor(d/3600000),dy=Math.floor(d/86400000);
   if(d<60000)return'Ahora';if(m<60)return`Hace ${m}m`;if(h<24)return`Hace ${h}h`;if(dy===1)return'Ayer';return`Hace ${dy} días`;
@@ -552,7 +560,7 @@ function renderVentas(){
         <span class="tag">S/ ${(o.cobrar||0).toFixed(2)}</span>
       </div>
       <div class="row" style="margin-top:8px">
-        <span style="font-size:11px;color:var(--tx3)">${ago(o.ts)}</span>
+        <span style="font-size:11px;color:var(--tx3)">${o.fechaVenta?formatFecha(o.fechaVenta)+' · ':''} ${ago(o.ts)}</span>
         ${isAdmin()?`<span style="font-size:11px;color:var(--accent);font-weight:600">${o.vendedor||''}</span>`:''}
       </div>
     </div>`).join('');
@@ -561,7 +569,7 @@ function renderVentas(){
 function setFilt(f){
   curFilt=f;
   document.querySelectorAll('[id^="f-"]').forEach(b=>{
-    b.style.background='var(--bg2)';b.style.color='var(--tx2)';b.style.fontWeight='500';
+    b.style.background='#e8e8e8';b.style.color='#555';b.style.fontWeight='500';
   });
   const map={all:'f-all',pendiente:'f-pend',enviado:'f-env',entregado:'f-ent',anulado:'f-anul'};
   if($(map[f])){$(map[f]).style.background='var(--accent)';$(map[f]).style.color='var(--accent-tx)';$(map[f]).style.fontWeight='700';}
@@ -622,6 +630,7 @@ function openDetalle(id){
       <div class="dr"><span class="dl">Cobrar</span><span class="dv green">S/ ${(o.cobrar||0).toFixed(2)}</span></div>
       ${isAdmin()?`<div class="dr"><span class="dl">Vendedor</span><span class="dv green">${o.vendedor||'—'}</span></div>`:''}
       ${o.nota?`<div class="dr"><span class="dl">Nota</span><span class="dv" style="font-size:12px">${o.nota}</span></div>`:''}
+      <div class="dr"><span class="dl">Fecha de venta</span><span class="dv">${o.fechaVenta||formatFecha(new Date(o.ts).toISOString().split('T')[0])}</span></div>
       <div class="dr"><span class="dl">Registrado</span><span class="dv">${ago(o.ts)}</span></div>
     </div>
     ${finHtml}
@@ -643,6 +652,10 @@ function openNueva(){
   const sel=$('nv-producto');
   sel.innerHTML='<option value="">Seleccionar producto...</option>'+(cfg.productos||[]).map(p=>`<option value="${p.nombre}">${p.nombre}</option>`).join('');
   $('nv-err').style.display='none';
+  // Default date = today
+  const hoy=new Date();
+  const yyyy=hoy.getFullYear(),mm=String(hoy.getMonth()+1).padStart(2,'0'),dd=String(hoy.getDate()).padStart(2,'0');
+  $('nv-fecha').value=`${yyyy}-${mm}-${dd}`;
   openOv('ov-nueva');
 }
 
@@ -663,10 +676,14 @@ $('btn-nueva').onclick=async()=>{
   if(!cliente||!celular||!cobrar||!producto){err.textContent='Completa: producto, cliente, celular y monto.';err.style.display='block';return;}
   const btn=$('btn-nueva');btn.disabled=true;btn.textContent='Registrando...';
   try{
+    const fechaVal=$('nv-fecha').value;
+    const fechaMs=fechaVal?new Date(fechaVal+'T12:00:00').getTime():Date.now();
     await db.collection('orders').add({
       vendedorId:cu.id,vendedor:cu.name||cu.email,
       cliente,celular,cobrar,producto,zona,ciudad,direccion,
       nota:$('nv-nota').value.trim(),estado:newStatus,
+      fechaVenta:fechaVal||new Date().toISOString().split('T')[0],
+      fechaMs,
       timestamp:firebase.firestore.FieldValue.serverTimestamp()
     });
     closeOv('ov-nueva');toast('✓ Venta registrada');
