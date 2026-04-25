@@ -306,7 +306,6 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
         </select>
       </div>
       <div class="fld"><label>Ciudad / Distrito</label><input id="nv-ciudad" placeholder="Ej: Arequipa · Cercado"></div>
-      <div class="fld"><label>Dirección exacta</label><input id="nv-direccion" placeholder="Av. / Calle / Referencia"></div>
       <div class="fld"><label>Estado inicial</label>
         <div class="status-opts">
           <button class="sopt pend on" onclick="selectStatus('pendiente',this)">Pendiente</button>
@@ -315,7 +314,6 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
         </div>
       </div>
       <div class="fld"><label>Fecha de la venta</label><input type="date" id="nv-fecha"></div>
-      <div class="fld"><label>Nota (opcional)</label><textarea id="nv-nota" placeholder="Observaciones del pedido..."></textarea></div>
       <div class="err" id="nv-err"></div>
       <button class="btn" id="btn-nueva">Registrar venta</button>
       <button class="btn gray" onclick="closeOv('ov-nueva')">Cancelar</button>
@@ -643,7 +641,7 @@ function openDetalle(id){
 function openNueva(){
   $('nv-vendedor').value=cu?.name||'';
   $('nv-cliente').value='';$('nv-celular').value='';$('nv-cobrar').value='';
-  $('nv-ciudad').value='';$('nv-direccion').value='';$('nv-nota').value='';
+  $('nv-ciudad').value='';
   $('nv-zona').value='Lima';
   newStatus='pendiente';
   document.querySelectorAll('.sopt').forEach(b=>b.classList.remove('on'));
@@ -671,7 +669,7 @@ $('btn-nueva').onclick=async()=>{
   const cliente=$('nv-cliente').value.trim(),celular=$('nv-celular').value.trim();
   const cobrar=parseFloat($('nv-cobrar').value)||0;
   const producto=$('nv-producto').value,zona=$('nv-zona').value;
-  const ciudad=$('nv-ciudad').value.trim(),direccion=$('nv-direccion').value.trim();
+  const ciudad=$('nv-ciudad').value.trim();
   const err=$('nv-err');err.style.display='none';
   if(!cliente||!celular||!cobrar||!producto){err.textContent='Completa: producto, cliente, celular y monto.';err.style.display='block';return;}
   const btn=$('btn-nueva');btn.disabled=true;btn.textContent='Registrando...';
@@ -680,8 +678,8 @@ $('btn-nueva').onclick=async()=>{
     const fechaMs=fechaVal?new Date(fechaVal+'T12:00:00').getTime():Date.now();
     await db.collection('orders').add({
       vendedorId:cu.id,vendedor:cu.name||cu.email,
-      cliente,celular,cobrar,producto,zona,ciudad,direccion,
-      nota:$('nv-nota').value.trim(),estado:newStatus,
+      cliente,celular,cobrar,producto,zona,ciudad,
+      estado:newStatus,
       fechaVenta:fechaVal||new Date().toISOString().split('T')[0],
       fechaMs,
       timestamp:firebase.firestore.FieldValue.serverTimestamp()
