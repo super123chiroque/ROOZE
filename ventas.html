@@ -50,11 +50,11 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
 .tag{font-size:11px;color:var(--tx2);background:var(--bg2);padding:3px 8px;border-radius:6px}
 .divider{height:0.5px;background:var(--bo);margin:9px 0}
 /* BADGES */
-.badge{padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;flex-shrink:0}
-.badge.pend{background:var(--pend-bg);color:var(--pend-tx)}
-.badge.env{background:var(--env-bg);color:var(--env-tx)}
-.badge.ent{background:var(--ent-bg);color:var(--ent-tx)}
-.badge.anul{background:var(--anul-bg);color:var(--anul-tx)}
+.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;flex-shrink:0}
+.badge.pend{background:#fef3c7;color:#92400e}
+.badge.env{background:#dbeafe;color:#1e40af}
+.badge.ent{background:#dcfce7;color:#166534}
+.badge.anul{background:#fee2e2;color:#991b1b}
 /* DETAIL ROWS */
 .dr{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:0.5px solid var(--bo)}
 .dr:last-child{border:none}
@@ -123,10 +123,9 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
 .zbar{height:100%;border-radius:3px}
 .zcount{font-size:13px;font-weight:700;width:24px;text-align:right}
 /* FILTER DROPDOWN */
-.drop-wrap{position:relative;display:inline-block}
+.drop-wrap{position:static;display:inline-block}
 .drop-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;background:var(--accent);color:var(--accent-tx);border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fs)}
-.drop-menu{display:none;position:absolute;top:44px;left:0;background:var(--bg);border:0.5px solid var(--bo2);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.14);z-index:200;min-width:200px;overflow:hidden}
-.drop-menu.left{left:0;right:auto}
+.drop-menu{display:none;position:fixed;top:auto;left:14px;right:14px;background:var(--bg);border:0.5px solid var(--bo2);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.14);z-index:200;overflow:hidden}
 .drop-menu.open{display:block}
 .di{display:block;width:100%;padding:13px 18px;font-size:14px;color:var(--tx);cursor:pointer;border:none;background:none;font-family:var(--fs);text-align:left;border-bottom:0.5px solid var(--bo)}
 .di:last-child{border:none}
@@ -150,11 +149,11 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
 .fin-card{background:var(--accent2);border:1px solid rgba(45,122,79,0.3);border-radius:var(--r);padding:13px 14px}
 /* STATUS SELECTOR */
 .status-opts{display:flex;gap:6px;flex-wrap:wrap}
-.sopt{padding:8px 14px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--bo2);background:var(--bg2);color:var(--tx2);font-family:var(--fs)}
-.sopt.pend.on{background:var(--pend-bg);color:var(--pend-tx);border-color:var(--pend-tx)}
-.sopt.env.on{background:var(--env-bg);color:var(--env-tx);border-color:var(--env-tx)}
-.sopt.ent.on{background:var(--ent-bg);color:var(--ent-tx);border-color:var(--ent-tx)}
-.sopt.anul.on{background:var(--anul-bg);color:var(--anul-tx);border-color:var(--anul-tx)}
+.sopt{padding:8px 14px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:#e8e8e8;color:#888;font-family:var(--fs)}
+.sopt.pend.on{background:#fef3c7;color:#92400e}
+.sopt.env.on{background:#dbeafe;color:#1e40af}
+.sopt.ent.on{background:#dcfce7;color:#166534}
+.sopt.anul.on{background:#fee2e2;color:#991b1b}
 /* TOAST */
 .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .2s;white-space:nowrap}
 .toast.show{opacity:1}
@@ -481,10 +480,10 @@ const isVendedor=()=>cu?.role==='vendedor';
 function startListeners(){
   listeners.forEach(u=>u());listeners=[];
   // Orders - vendedor only sees own, admins see all
-  let q=db.collection('orders').orderBy('timestamp','desc');
+  let q=db.collection('orders');
   if(isVendedor())q=q.where('vendedorId','==',cu.id);
   const u1=q.onSnapshot(snap=>{
-    orders=snap.docs.map(d=>({id:d.id,...d.data(),ts:d.data().timestamp?.toMillis()||0}));
+    orders=snap.docs.map(d=>{const dat=d.data();return{id:d.id,...dat,ts:dat.timestamp?.toMillis()||(dat.fechaMs||Date.now())};});
     if(curTab==='ventas')renderVentas();
     if(curTab==='meta')renderMeta();
     if(curTab==='resumen')renderResumen();
@@ -541,6 +540,8 @@ function renderVentas(){
   $('ventas-title').textContent=isAdmin()?'Todas las ventas':'Mis ventas';
   $('ventas-sub').textContent=cu?.name||'';
   const filtered=orders.filter(o=>curFilt==='all'||o.estado===curFilt);
+  // Sort by ts descending client-side as backup
+  filtered.sort((a,b)=>b.ts-a.ts);
   if(!filtered.length){el.innerHTML=`<div class="empty"><div style="font-size:32px;margin-bottom:8px">📋</div><p>Sin ventas ${curFilt==='all'?'':'con estado '+statusLabel(curFilt)}</p></div>`;return;}
   el.innerHTML=filtered.map(o=>`
     <div class="card" onclick="openDetalle('${o.id}')" style="cursor:pointer">
@@ -956,7 +957,16 @@ async function saveDelivery(){
 // ═══ PERIOD FILTERS ═══
 function toggleDrop(id){
   document.querySelectorAll('.drop-menu').forEach(d=>{if(d.id!==id)d.classList.remove('open');});
-  $(id).classList.toggle('open');
+  const menu=$(id);
+  if(!menu.classList.contains('open')){
+    // Position below the topbar
+    const tb=menu.closest('.tb')||menu.parentElement.closest('.tb');
+    if(tb){
+      const rect=tb.getBoundingClientRect();
+      menu.style.top=(rect.bottom+4)+'px';
+    }
+  }
+  menu.classList.toggle('open');
 }
 document.addEventListener('click',e=>{
   if(!e.target.closest('.drop-wrap'))document.querySelectorAll('.drop-menu').forEach(d=>d.classList.remove('open'));
