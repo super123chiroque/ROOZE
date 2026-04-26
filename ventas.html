@@ -553,7 +553,14 @@ function startListeners(){
   let q=db.collection('orders');
   if(isVendedor())q=q.where('vendedorId','==',cu.id);
   const u1=q.onSnapshot(snap=>{
-    orders=snap.docs.map(d=>{const dat=d.data();return{id:d.id,...dat,ts:dat.timestamp?.toMillis()||(dat.fechaMs||Date.now())};});
+    orders=snap.docs.map(d=>{
+      const dat=d.data();
+      const regTs=dat.timestamp?.toMillis()||Date.now();
+      // fv = fecha de venta elegida por vendedor (para filtros)
+      // ts = fecha de registro real (para mostrar "hace X tiempo")
+      const fv=dat.fechaMs||regTs;
+      return{id:d.id,...dat,ts:regTs,fv:fv};
+    });
     if(curTab==='ventas')renderVentas();
     if(curTab==='meta')renderMeta();
     if(curTab==='resumen')renderResumen();
@@ -620,7 +627,7 @@ function renderVentas(){
   const {start:vStart,end:vEnd}=getVentasDateRange();
   const filtered=orders
     .filter(o=>curFilt==='all'||o.estado===curFilt)
-    .filter(o=>ventasDatePeriod==='all'||(o.ts>=vStart&&o.ts<=vEnd))
+    .filter(o=>ventasDatePeriod==='all'||(o.fv>=vStart&&o.fv<=vEnd))
     .sort((a,b)=>b.ts-a.ts);
   if(!filtered.length){el.innerHTML=`<div class="empty"><div style="font-size:32px;margin-bottom:8px">📋</div><p>Sin ventas registradas</p></div>`;return;}
   el.innerHTML=filtered.map(o=>`
@@ -628,7 +635,7 @@ function renderVentas(){
       <div class="row">
         <div style="flex:1;min-width:0">
           <div class="card-title">${o.cliente||'—'}</div>
-          <div class="card-sub">📱 ${o.celular||'—'}</div>
+          <div class="card-sub" style="display:flex;align-items:center;gap:6px">📱 ${o.celular||'—'}${o.celular?'<a href="https://wa.me/51'+o.celular.replace(/\D/g,'')+'" target="_blank" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:#25D366;border-radius:50%;text-decoration:none;flex-shrink:0"><svg viewBox="0 0 24 24" width="12" height="12" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.507 3.934 1.399 5.61L0 24l6.545-1.376A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.368l-.36-.214-3.724.783.838-3.63-.234-.374A9.818 9.818 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182S21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/></svg></a>':''}</div>
         </div>
         ${statusBadge(o.estado||'pendiente')}
       </div>
@@ -766,7 +773,12 @@ function openDetalle(id){
     <div class="card" style="margin-bottom:8px">
       <div class="section-label">Cliente</div>
       <div class="dr"><span class="dl">Nombre</span><span class="dv">${o.cliente||'—'}</span></div>
-      <div class="dr"><span class="dl">Celular</span><span class="dv">${o.celular||'—'}</span></div>
+      <div class="dr"><span class="dl">Celular</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="dv">${o.celular||'—'}</span>
+          ${o.celular?'<a href="https://wa.me/51'+o.celular.replace(/\D/g,'')+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#25D366;color:#fff;border-radius:8px;text-decoration:none;font-size:12px;font-weight:600"><svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.507 3.934 1.399 5.61L0 24l6.545-1.376A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.368l-.36-.214-3.724.783.838-3.63-.234-.374A9.818 9.818 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182S21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/></svg> WhatsApp</a>':''}
+        </div>
+      </div>
       <div class="dr"><span class="dl">Zona</span><span class="dv ${o.zona==='Lima'?'blue':''}">${o.zona||'—'}</span></div>
       <div class="dr"><span class="dl">Ciudad</span><span class="dv">${o.ciudad||'—'}</span></div>
       ${o.nota?'<div class="dr"><span class="dl">Nota</span><span class="dv" style="font-size:12px;font-style:italic">'+o.nota+'</span></div>':''}
@@ -967,7 +979,7 @@ function getNextLevel(ventas){
 function renderMeta(){
   const el=$('meta-body');
   const now=Date.now(),wStart=weekStart();
-  const myOrders=orders.filter(o=>o.vendedorId===cu.id&&o.ts>=wStart&&o.estado!=='anulado');
+  const myOrders=orders.filter(o=>o.vendedorId===cu.id&&o.fv>=wStart&&o.estado!=='anulado');
   const ventasSemana=myOrders.length;
   const sueldo=getSueldo(ventasSemana);
   const next=getNextLevel(ventasSemana);
@@ -1028,27 +1040,40 @@ function renderMeta(){
           ${sueldo>0?`Basado en<br><strong style="color:var(--accent)">${ventasSemana} ventas</strong>`:'Registra al menos<br><strong>10 ventas</strong>'}
         </div>
       </div>
+    </div>
+    <div class="card">
+      <div class="section-label">Detalle de unidades vendidas</div>
+      <div class="dr"><span class="dl">Total ventas esta semana</span><span class="dv green">${ventasSemana}</span></div>
+      ${(()=>{
+        const byCant={};
+        myOrders.forEach(function(o){const q=o.totalCantidad||1;byCant[q]=(byCant[q]||0)+1;});
+        const rows=Object.entries(byCant).sort(function(a,b){return Number(a[0])-Number(b[0]);}).map(function(e){
+          const k=e[0],v=e[1];
+          return '<div class="dr"><span class="dl">'+v+' venta'+(v!==1?'s':'')+' de '+k+' unidad'+(k!=='1'?'es':'')+'</span><span class="dv" style="color:var(--accent)">'+(v*parseInt(k))+' un. total</span></div>';
+        });
+        return rows.join('');
+      })()}
     </div>`;
 }
 
 // ═══ RESUMEN (admin/super) ═══
 function getCostoReal(o){
-  // Calcula costo real segun cantidad de productos vendidos
   var prod=cfg.productos?cfg.productos.find(function(x){return x.nombre===o.producto;}):null;
   var ppc=prod&&prod.preciosPorCantidad?prod.preciosPorCantidad:{};
   var qty=o.totalCantidad||1;
-  // precio venta configurado segun cantidad
-  var precioConfig=ppc[qty]||ppc[1]||prod&&prod.precioVenta||0;
   var costo=(prod?prod.costo:0)||0;
   var delivery=(cfg.deliveryCostos&&cfg.deliveryCostos[o.zona||'Lima'])||10;
-  // ganancia = cobrado - (costo*qty) - delivery
+  // Anulado: solo se pierde el costo de delivery
+  if(o.estado==='anulado'){
+    return {costo:0, delivery:delivery, ganancia:-delivery};
+  }
   return {costo:costo*qty, delivery:delivery, ganancia:(o.cobrar||0)-(costo*qty)-delivery};
 }
 
 function renderResumen(){
   var el=$('resumen-body');
   var start=periodStart(resPeriod),end2=periodEnd(resPeriod);
-  var allPeriod=orders.filter(function(o){return o.ts>=start&&o.ts<=end2;});
+  var allPeriod=orders.filter(function(o){return o.fv>=start&&o.fv<=end2;});
   var filtered=allPeriod.filter(function(o){return o.estado!=='anulado';});
   var totalCobrado=filtered.reduce(function(s,o){return s+(o.cobrar||0);},0);
 
@@ -1127,7 +1152,7 @@ function renderResumen(){
   } else {
     vendEntries.forEach(function(entry){
       var name=entry[0], d=entry[1];
-      var wVentas=orders.filter(function(o){return o.vendedor===name&&o.ts>=weekStart()&&o.estado!=='anulado';}).length;
+      var wVentas=orders.filter(function(o){return o.vendedor===name&&o.fv>=weekStart()&&o.estado!=='anulado';}).length;
       var sueldo=getSueldo(wVentas);
       var next=getNextLevel(wVentas);
       // Products list
@@ -1207,8 +1232,8 @@ function renderHistorial(){
     else end=periodEnd(histPeriod);
   }
   const source=isVendedor()?orders.filter(o=>o.vendedorId===cu.id):orders;
-  let filtered=histPeriod==='all'?[...source]:source.filter(o=>o.ts>=start&&o.ts<=end);
-  filtered.sort((a,b)=>b.ts-a.ts);
+  let filtered=histPeriod==='all'?[...source]:source.filter(o=>o.fv>=start&&o.fv<=end);
+  filtered.sort((a,b)=>b.fv-a.fv);
   if(!filtered.length){el.innerHTML=`<div class="empty"><div style="font-size:32px;margin-bottom:8px">📋</div><p>Sin ventas en este período</p></div>`;return;}
   el.innerHTML=filtered.map(o=>`
     <div class="card" onclick="openDetalle('${o.id}')" style="cursor:pointer">
@@ -1349,10 +1374,16 @@ async function saveScale(){
   toast('✓ Escala guardada');renderConfig();
 }
 async function saveDelivery(){
-  const Lima=parseFloat($('cost-lima')?.value)||10;
-  const Provincia=parseFloat($('cost-prov')?.value)||20;
-  await db.collection('config').doc('ventas').set({deliveryCostos:{Lima,Provincia}},{merge:true});
-  cfg.deliveryCostos={Lima,Provincia};toast('✓ Costos guardados');
+  var limaEl=document.getElementById('cost-lima');
+  var provEl=document.getElementById('cost-prov');
+  var Lima=parseFloat(limaEl?limaEl.value:10)||10;
+  var Provincia=parseFloat(provEl?provEl.value:20)||20;
+  var newCostos={Lima:Lima,Provincia:Provincia};
+  try{
+    await db.collection('config').doc('ventas').set({deliveryCostos:newCostos},{merge:true});
+    cfg.deliveryCostos=newCostos;
+    toast('✓ Costos guardados: Lima S/'+Lima+' · Provincia S/'+Provincia);
+  }catch(e){toast('Error al guardar: '+e.message);}
 }
 
 // ═══ PERIOD FILTERS ═══
@@ -1413,12 +1444,29 @@ function updateVendedoresList(){
   if(wrap)wrap.style.display='inline-block';
   var drop=document.getElementById('vend-drop');
   if(!drop)return;
-  var names={};
-  orders.forEach(function(o){if(o.vendedor)names[o.vendedor]=1;});
-  drop.innerHTML='<div class="di '+(histVendedor==='all'?'on':'')+'" onclick="setHistVend(\'all\',this)">Todos</div>'+
-    Object.keys(names).map(function(n){
-      return '<div class="di '+(histVendedor===n?'on':'')+'" onclick="setHistVend(\''+n+'\',this)">'+n+'</div>';
-    }).join('');
+  // Load from users collection for complete list
+  db.collection('users').where('role','in',['vendedor','admin']).get().then(function(snap){
+    var names=[];
+    snap.forEach(function(doc){
+      var d=doc.data();
+      if(d.name)names.push(d.name);
+    });
+    // Also add any from existing orders not in users
+    orders.forEach(function(o){if(o.vendedor&&names.indexOf(o.vendedor)===-1)names.push(o.vendedor);});
+    names.sort();
+    drop.innerHTML='<div class="di '+(histVendedor==='all'?'on':'')+'" onclick="setHistVend(\'all\',this)">Todos</div>'+
+      names.map(function(n){
+        return '<div class="di '+(histVendedor===n?'on':'')+'" onclick="setHistVend(\''+n+'\',this)">'+n+'</div>';
+      }).join('');
+  }).catch(function(e){
+    // Fallback to orders
+    var names={};
+    orders.forEach(function(o){if(o.vendedor)names[o.vendedor]=1;});
+    drop.innerHTML='<div class="di on" onclick="setHistVend(\'all\',this)">Todos</div>'+
+      Object.keys(names).map(function(n){
+        return '<div class="di" onclick="setHistVend(\''+n+'\',this)">'+n+'</div>';
+      }).join('');
+  });
 }
 
 function setHistPeriod(p,label,el){
