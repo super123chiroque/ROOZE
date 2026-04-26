@@ -325,27 +325,30 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
     <h3>Nueva venta</h3>
     <div style="display:flex;flex-direction:column;gap:12px">
       <div class="fld"><label>Vendedor</label><input id="nv-vendedor" readonly style="color:var(--accent);font-weight:600"></div>
-      <div class="fld"><label>Producto</label>
-        <select id="nv-producto"><option value="">Seleccionar...</option></select>
+      <div class="fld">
+        <label>Productos del pedido</label>
+        <div id="nv-productos-list" style="display:flex;flex-direction:column;gap:8px"></div>
+        <button type="button" onclick="addProductLine()" style="margin-top:6px;padding:9px;border-radius:9px;background:var(--accent2);color:var(--accent);border:1px dashed var(--accent);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fs);width:100%">+ Agregar otro producto</button>
       </div>
       <div class="fld"><label>Cliente</label><input id="nv-cliente" placeholder="Nombre completo"></div>
       <div class="fld"><label>Celular</label><input id="nv-celular" type="tel" placeholder="+51 9XX XXX XXX"></div>
       <div class="fld"><label>Cobrar (S/)</label><input id="nv-cobrar" type="number" step="0.50" placeholder="0.00"></div>
-      <div class="fld"><label>Zona de destino</label>
-        <select id="nv-zona" onchange="updateDelivery()">
+      <div class="fld"><label>Zona</label>
+        <select id="nv-zona">
           <option value="Lima">Lima</option>
           <option value="Provincia">Provincia</option>
         </select>
       </div>
       <div class="fld"><label>Ciudad / Distrito</label><input id="nv-ciudad" placeholder="Ej: Arequipa · Cercado"></div>
-      <div class="fld"><label>Estado inicial</label>
-        <div class="status-opts">
+      <div class="fld"><label>Estado</label>
+        <div class="status-opts" id="nv-status-opts">
           <button class="sopt pend on" onclick="selectStatus('pendiente',this)">Pendiente</button>
           <button class="sopt env" onclick="selectStatus('enviado',this)">Enviado</button>
           <button class="sopt ent" onclick="selectStatus('entregado',this)">Entregado</button>
         </div>
       </div>
       <div class="fld"><label>Fecha de la venta</label><input type="date" id="nv-fecha"></div>
+      <div class="fld"><label>Nota (opcional)</label><textarea id="nv-nota" placeholder="Observaciones del pedido..." rows="3" style="background:var(--bg2);border:0.5px solid rgba(0,0,0,0.12);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--tx);font-family:inherit;resize:none;width:100%;outline:none"></textarea></div>
       <div class="err" id="nv-err"></div>
       <button class="btn" id="btn-nueva">Registrar venta</button>
       <button class="btn gray" onclick="closeOv('ov-nueva')">Cancelar</button>
@@ -603,13 +606,12 @@ function renderVentas(){
   $('ventas-av').textContent=cu?.ini||'?';
   $('ventas-title').textContent=isAdmin()?'Todas las ventas':'Mis ventas';
   $('ventas-sub').textContent=cu?.name||'';
-  const filtered=orders.filter(o=>curFilt==='all'||o.estado===curFilt);
-  // Apply date filter
   const {start:vStart,end:vEnd}=getVentasDateRange();
-  let filteredByDate=filtered.filter(o=>ventasDatePeriod==='all'||(o.ts>=vStart&&o.ts<=vEnd));
-  filteredByDate.sort((a,b)=>b.ts-a.ts);
-  if(!filteredByDate.length){el.innerHTML=`<div class="empty"><div style="font-size:32px;margin-bottom:8px">📋</div><p>Sin ventas ${curFilt==='all'?'':'con estado '+statusLabel(curFilt)}</p></div>`;return;}
-  filtered=filteredByDate;
+  const filtered=orders
+    .filter(o=>curFilt==='all'||o.estado===curFilt)
+    .filter(o=>ventasDatePeriod==='all'||(o.ts>=vStart&&o.ts<=vEnd))
+    .sort((a,b)=>b.ts-a.ts);
+  if(!filtered.length){el.innerHTML=`<div class="empty"><div style="font-size:32px;margin-bottom:8px">📋</div><p>Sin ventas registradas</p></div>`;return;}
   el.innerHTML=filtered.map(o=>`
     <div class="card" onclick="openDetalle('${o.id}')" style="cursor:pointer">
       <div class="row">
@@ -756,6 +758,7 @@ function openDetalle(id){
       <div class="dr"><span class="dl">Celular</span><span class="dv">${o.celular||'—'}</span></div>
       <div class="dr"><span class="dl">Zona</span><span class="dv ${o.zona==='Lima'?'blue':''}">${o.zona||'—'}</span></div>
       <div class="dr"><span class="dl">Ciudad</span><span class="dv">${o.ciudad||'—'}</span></div>
+      \${o.nota?'<div class="dr"><span class="dl">Nota</span><span class="dv" style="font-size:12px;font-style:italic">'+o.nota+'</span></div>':''}
       <div class="dr"><span class="dl">Dirección</span><span class="dv" style="font-size:12px">${o.direccion||'—'}</span></div>
       ${o.productos&&o.productos.length>1?
         o.productos.map(p=>`<div class="dr"><span class="dl">Producto</span><span class="dv">${p.nombre} × ${p.cantidad}</span></div>`).join('')
@@ -778,66 +781,98 @@ function openDetalle(id){
 let prodLineCount=0;
 function addProductLine(){
   prodLineCount++;
-  const lineId='pl-'+prodLineCount;
-  const div=document.createElement('div');
-  div.id=lineId;
-  div.style.cssText='display:flex;gap:6px;align-items:center;margin-bottom:4px';
-  const opts=(cfg.productos||[]).map(function(p){return '<option value="'+p.nombre+'">'+p.nombre+'</option>';}).join('');
-  const sel=document.createElement('select');
-  sel.style.cssText='flex:2;padding:9px 10px;border:0.5px solid rgba(0,0,0,0.12);border-radius:8px;background:#f5f5f4;color:#1a1a1a;font-family:var(--fs);font-size:13px';
-  sel.innerHTML='<option value="">Selecciona producto...</option>'+opts;
-  const inp=document.createElement('input');
+  var lineId='pl-'+prodLineCount;
+  var list=document.getElementById('nv-productos-list');
+  if(!list)return;
+  var row=document.createElement('div');
+  row.id=lineId;
+  row.style.display='flex';row.style.gap='6px';row.style.alignItems='center';
+  // Product select
+  var sel=document.createElement('select');
+  sel.style.flex='2';sel.style.padding='9px 10px';
+  sel.style.border='0.5px solid rgba(0,0,0,0.12)';sel.style.borderRadius='8px';
+  sel.style.background='#f5f5f4';sel.style.color='#1a1a1a';
+  sel.style.fontFamily='inherit';sel.style.fontSize='13px';
+  var defOpt=document.createElement('option');defOpt.value='';defOpt.textContent='Selecciona...';
+  sel.appendChild(defOpt);
+  (cfg.productos||[]).forEach(function(p){
+    var opt=document.createElement('option');opt.value=p.nombre;opt.textContent=p.nombre;sel.appendChild(opt);
+  });
+  // Quantity input
+  var inp=document.createElement('input');
   inp.type='number';inp.min='1';inp.value='1';
-  inp.style.cssText='width:60px;padding:9px 8px;border:0.5px solid rgba(0,0,0,0.12);border-radius:8px;background:#f5f5f4;color:#1a1a1a;font-family:var(--fs);font-size:13px;text-align:center';
-  div.appendChild(sel);
-  div.appendChild(inp);
-  if(prodLineCount>1){
-    const btn=document.createElement('button');
-    btn.textContent='✕';
-    btn.style.cssText='padding:8px;border:none;background:#fee2e2;color:#991b1b;border-radius:8px;cursor:pointer;font-size:14px;flex-shrink:0';
-    btn.onclick=function(){div.remove();};
-    div.appendChild(btn);
+  inp.style.width='58px';inp.style.padding='9px 6px';inp.style.textAlign='center';
+  inp.style.border='0.5px solid rgba(0,0,0,0.12)';inp.style.borderRadius='8px';
+  inp.style.background='#f5f5f4';inp.style.color='#1a1a1a';inp.style.fontFamily='inherit';inp.style.fontSize='13px';
+  function autofillPrice(){
+    var pName=sel.value; var qty=parseInt(inp.value)||1;
+    var prod=(cfg.productos||[]).find(function(px){return px.nombre===pName;});
+    if(!prod)return;
+    var ppc=prod.preciosPorCantidad||{};
+    var price=ppc[qty]||ppc[1]||prod.precioVenta||0;
+    if(price>0&&document.getElementById('nv-cobrar'))document.getElementById('nv-cobrar').value=price;
   }
-  var list=$('nv-productos-list');
-  if(list)list.appendChild(div);
+  sel.addEventListener('change',autofillPrice);
+  inp.addEventListener('change',autofillPrice);
+  row.appendChild(sel);row.appendChild(inp);
+  // Remove button (not first)
+  if(prodLineCount>1){
+    var rmBtn=document.createElement('button');
+    rmBtn.type='button';rmBtn.textContent='✕';
+    rmBtn.style.padding='8px';rmBtn.style.border='none';
+    rmBtn.style.background='#fee2e2';rmBtn.style.color='#991b1b';
+    rmBtn.style.borderRadius='8px';rmBtn.style.cursor='pointer';rmBtn.style.fontSize='14px';
+    rmBtn.onclick=function(){row.remove();};
+    row.appendChild(rmBtn);
+  }
+  list.appendChild(row);
 }
 function getProductLines(){
   var lines=[];
-  var list=$('nv-productos-list');
+  var list=document.getElementById('nv-productos-list');
   if(!list)return lines;
-  var divs=list.querySelectorAll('div[id^="pl-"]');
-  divs.forEach(function(div){
-    var sel=div.querySelector('select');
-    var inp=div.querySelector('input[type="number"]');
-    if(sel&&sel.value&&inp){
-      lines.push({nombre:sel.value,cantidad:parseInt(inp.value)||1});
+  var rows=list.querySelectorAll('div');
+  rows.forEach(function(row){
+    var sel=row.querySelector('select');
+    var inp=row.querySelector('input[type="number"]');
+    if(sel&&sel.value){
+      lines.push({nombre:sel.value,cantidad:parseInt((inp&&inp.value)||'1')||1});
     }
   });
   return lines;
 }
 function openNueva(){
-  $('nv-vendedor').value=cu?.name||'';
-  $('nv-cliente').value='';$('nv-celular').value='';$('nv-cobrar').value='';
-  $('nv-ciudad').value='';
-  // Init product lines
-  $('nv-productos-list').innerHTML='';
-  addProductLine();
-  $('nv-zona').value='Lima';
+  // Reset form fields
+  if($('nv-vendedor'))$('nv-vendedor').value=cu?cu.name||cu.email:'';
+  if($('nv-cliente'))$('nv-cliente').value='';
+  if($('nv-celular'))$('nv-celular').value='';
+  if($('nv-cobrar'))$('nv-cobrar').value='';
+  if($('nv-ciudad'))$('nv-ciudad').value='';
+  if($('nv-zona'))$('nv-zona').value='Lima';
+  if($('nv-err'))$('nv-err').style.display='none';
+  if(document.getElementById('nv-nota'))document.getElementById('nv-nota').value='';
+  // Reset product lines
+  prodLineCount=0;
+  var list=$('nv-productos-list');
+  if(list){list.innerHTML='';addProductLine();}
+  // Reset status
   newStatus='pendiente';
-  document.querySelectorAll('.sopt').forEach(b=>b.classList.remove('on'));
-  document.querySelector('.sopt.pend').classList.add('on');
-  $('nv-err').style.display='none';
-  // Default date = today
-  const hoy=new Date();
-  const yyyy=hoy.getFullYear(),mm=String(hoy.getMonth()+1).padStart(2,'0'),dd=String(hoy.getDate()).padStart(2,'0');
-  $('nv-fecha').value=`${yyyy}-${mm}-${dd}`;
+  document.querySelectorAll('#nv-status-opts .sopt').forEach(function(b){b.classList.remove('on');});
+  var pBtn=document.querySelector('#nv-status-opts .sopt.pend');
+  if(pBtn)pBtn.classList.add('on');
+  // Set today's date
+  var today=new Date();
+  var yyyy=today.getFullYear();
+  var mm=String(today.getMonth()+1).padStart(2,'0');
+  var dd=String(today.getDate()).padStart(2,'0');
+  if($('nv-fecha'))$('nv-fecha').value=yyyy+'-'+mm+'-'+dd;
   openOv('ov-nueva');
 }
 
 function selectStatus(s,el){
   newStatus=s;
-  document.querySelectorAll('.sopt').forEach(b=>b.classList.remove('on'));
-  el.classList.add('on');
+  document.querySelectorAll('#nv-status-opts .sopt').forEach(function(b){b.classList.remove('on');});
+  if(el)el.classList.add('on');
 }
 
 function updateDelivery(){}
@@ -874,6 +909,7 @@ $('btn-nueva').onclick=async function(){
       totalCantidad:totalCantidad,
       zona:zona,
       ciudad:ciudad,
+      nota:(document.getElementById('nv-nota')?document.getElementById('nv-nota').value.trim():''),
       estado:newStatus||'pendiente',
       fechaVenta:fechaVal,
       fechaMs:fechaMs,
@@ -905,7 +941,7 @@ function openEditEstado(id,status){
 function selectStatusEdit(s,el){
   editStatus=s;
   document.querySelectorAll('#ov-estado .sopt').forEach(b=>b.classList.remove('on'));
-  el.classList.add('on');
+  if(el)el.classList.add('on');
 }
 $('btn-estado').onclick=async()=>{
   const id=$('edit-order-id').value;
@@ -1116,9 +1152,9 @@ function renderHistorial(){
     else end=periodEnd(histPeriod);
   }
   const source=isVendedor()?orders.filter(o=>o.vendedorId===cu.id):orders;
-  const filtered=histPeriod==='all'?source:source.filter(o=>o.ts>=start&&o.ts<=end);
+  let filtered=histPeriod==='all'?[...source]:source.filter(o=>o.ts>=start&&o.ts<=end);
+  filtered.sort((a,b)=>b.ts-a.ts);
   if(!filtered.length){el.innerHTML=`<div class="empty"><div style="font-size:32px;margin-bottom:8px">📋</div><p>Sin ventas en este período</p></div>`;return;}
-  filtered=filteredByDate;
   el.innerHTML=filtered.map(o=>`
     <div class="card" onclick="openDetalle('${o.id}')" style="cursor:pointer">
       <div class="row">
@@ -1142,19 +1178,27 @@ async function renderConfig(){
   el.innerHTML=`
     <div class="card">
       <div class="section-label">Productos y costos</div>
-      ${(cfg.productos||[]).map((p,i)=>`
-        <div class="dr" style="align-items:flex-start;gap:8px">
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600">${p.nombre}</div>
-            <div style="display:flex;gap:8px;margin-top:4px">
-              <span style="font-size:11px;color:var(--tx3)">Costo:</span>
-              <input type="number" value="${p.costo}" id="pc-${i}" step="0.5" style="width:70px;padding:3px 6px;border:0.5px solid var(--bo2);border-radius:6px;background:var(--bg2);color:var(--tx);font-size:12px;font-family:var(--fs)" onchange="updateProdCosto(${i},this.value)">
-              <span style="font-size:11px;color:var(--tx3)">Venta:</span>
-              <input type="number" value="${p.precioVenta||''}" id="pv-${i}" step="0.5" placeholder="0" style="width:70px;padding:3px 6px;border:0.5px solid var(--bo2);border-radius:6px;background:var(--bg2);color:var(--accent);font-size:12px;font-weight:600;font-family:var(--fs)" onchange="updateProdVenta(${i},this.value)">
-            </div>
-          </div>
-          <button onclick="delProducto(${i})" style="background:none;border:none;color:var(--tx3);cursor:pointer;font-size:16px;padding:4px">✕</button>
-        </div>`).join('')||'<div style="font-size:13px;color:var(--tx3);padding:8px 0">Sin productos</div>'}
+      ${(cfg.productos||[]).map(function(p,i){
+        var ppc=p.preciosPorCantidad||{};
+        var inpS='width:50px;padding:4px 4px;border:0.5px solid rgba(0,0,0,0.12);border-radius:6px;background:var(--bg2);color:var(--accent);font-size:11px;font-weight:600;text-align:center;font-family:inherit';
+        return '<div style="padding:10px 0;border-bottom:0.5px solid var(--bo)">'+
+          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'+
+            '<div style="font-size:13px;font-weight:700">'+p.nombre+'</div>'+
+            '<button onclick="delProducto('+i+')" style="background:none;border:none;color:var(--tx3);cursor:pointer;font-size:15px;padding:2px 6px">✕</button>'+
+          '</div>'+
+          '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">'+
+            '<span style="font-size:11px;color:var(--tx3)">Costo S/</span>'+
+            '<input type="number" value="'+(p.costo||0)+'" step="0.5" style="width:65px;padding:4px 6px;border:0.5px solid rgba(0,0,0,0.12);border-radius:6px;background:var(--bg2);color:var(--tx);font-size:12px;font-family:inherit" onchange="updateProdField('+i+','costo',this.value)">'+
+          '</div>'+
+          '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Precio venta por cantidad</div>'+
+          '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+            [1,2,3,4,5,6].map(function(n){return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">'+
+              '<span style="font-size:9px;color:var(--tx3);font-weight:600">×'+n+'</span>'+
+              '<input type="number" value="'+(ppc[n]||'')+'" placeholder="-" step="0.5" style="'+inpS+'" onchange="updateProdPPC('+i+','+n+',this.value)">'+
+            '</div>';}).join('')+
+          '</div>'+
+        '</div>';
+      }).join('')||'<div style="font-size:13px;color:var(--tx3);padding:8px 0">Sin productos</div>'}
       <button class="btn" style="margin-top:10px" onclick="openAddProd()">+ Agregar producto</button>
     </div>
     <div class="card">
@@ -1217,17 +1261,20 @@ $('btn-prod').onclick=async()=>{
   }catch(e){err.textContent='Error: '+e.message;err.style.display='block';}
 };
 
-async function updateProdCosto(i,val){
+async function updateProdField(i,field,val){
   if(!cfg.productos[i])return;
-  cfg.productos[i].costo=parseFloat(val)||0;
+  cfg.productos[i][field]=parseFloat(val)||0;
   await db.collection('config').doc('ventas').set({productos:cfg.productos},{merge:true});
-  toast('✓ Costo actualizado');
+  toast('✓ Guardado');
 }
-async function updateProdVenta(i,val){
+async function updateProdPPC(i,qty,val){
   if(!cfg.productos[i])return;
-  cfg.productos[i].precioVenta=parseFloat(val)||0;
+  if(!cfg.productos[i].preciosPorCantidad)cfg.productos[i].preciosPorCantidad={};
+  const v=parseFloat(val)||0;
+  if(v>0)cfg.productos[i].preciosPorCantidad[qty]=v;
+  else delete cfg.productos[i].preciosPorCantidad[qty];
   await db.collection('config').doc('ventas').set({productos:cfg.productos},{merge:true});
-  toast('✓ Precio de venta actualizado');
+  toast('✓ Precio x'+qty+' guardado');
 }
 async function delProducto(i){
   if(!confirm('¿Eliminar este producto?'))return;
