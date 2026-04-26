@@ -1225,13 +1225,18 @@ function renderResumen(){
 // ═══ HISTORIAL ═══
 function renderHistorial(){
   const el=$('hist-list');
+  // Step 1: base source by role
+  let source=isVendedor()?orders.filter(o=>o.vendedorId===cu.id):[...orders];
+  // Step 2: apply vendedor filter (admin/super only)
+  if(isAdmin()&&histVendedor!=='all'){
+    source=source.filter(o=>o.vendedor===histVendedor);
+  }
+  // Step 3: apply date filter using fv (fecha venta)
   let start=0,end=Date.now();
   if(histPeriod!=='all'){
-    start=periodStart(histPeriod==='custom'?'custom':histPeriod);
     if(histPeriod==='custom'){start=histCustomFrom;end=histCustomTo;}
-    else end=periodEnd(histPeriod);
+    else{start=periodStart(histPeriod);end=periodEnd(histPeriod);}
   }
-  const source=isVendedor()?orders.filter(o=>o.vendedorId===cu.id):orders;
   let filtered=histPeriod==='all'?[...source]:source.filter(o=>o.fv>=start&&o.fv<=end);
   filtered.sort((a,b)=>b.fv-a.fv);
   if(!filtered.length){el.innerHTML=`<div class="empty"><div style="font-size:32px;margin-bottom:8px">📋</div><p>Sin ventas en este período</p></div>`;return;}
@@ -1260,25 +1265,37 @@ async function renderConfig(){
       <div class="section-label">Productos y costos</div>
       ${(cfg.productos||[]).map(function(p,i){
         var ppc=p.preciosPorCantidad||{};
-        var inpS='width:50px;padding:4px 4px;border:0.5px solid rgba(0,0,0,0.12);border-radius:6px;background:var(--bg2);color:var(--accent);font-size:11px;font-weight:600;text-align:center;font-family:inherit';
-        return '<div style="padding:10px 0;border-bottom:0.5px solid var(--bo)">'+
-          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'+
-            '<div style="font-size:13px;font-weight:700">'+p.nombre+'</div>'+
-            '<button onclick="delProducto('+i+')" style="background:none;border:none;color:var(--tx3);cursor:pointer;font-size:15px;padding:2px 6px">✕</button>'+
+        var inpS='width:54px;padding:5px 6px;border:0.5px solid rgba(0,0,0,0.12);border-radius:6px;background:var(--bg2);color:var(--accent);font-size:12px;font-weight:600;text-align:center;font-family:inherit';
+        return '<div style="border-bottom:0.5px solid var(--bo)">'+
+          // Header - always visible, clickable
+          '<div onclick="toggleProd('+i+')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;cursor:pointer">'+
+            '<div>'+
+              '<div style="font-size:13px;font-weight:700">'+p.nombre+'</div>'+
+              '<div style="font-size:11px;color:var(--tx3);margin-top:2px">Costo: S/'+(p.costo||0)+'</div>'+
+            '</div>'+
+            '<div style="display:flex;align-items:center;gap:8px">'+
+              '<span id="prod-arrow-'+i+'" style="font-size:12px;color:var(--tx3);transition:transform .2s">▶</span>'+
+              '<button onclick="event.stopPropagation();delProducto('+i+')" style="background:none;border:none;color:var(--tx3);cursor:pointer;font-size:15px;padding:2px 4px">✕</button>'+
+            '</div>'+
           '</div>'+
-          '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">'+
-            '<span style="font-size:11px;color:var(--tx3)">Costo S/</span>'+
-            '<input type="number" value="'+(p.costo||0)+'" step="0.5" style="width:65px;padding:4px 6px;border:0.5px solid rgba(0,0,0,0.12);border-radius:6px;background:var(--bg2);color:var(--tx);font-size:12px;font-family:inherit" onchange="updateProdField('+i+',\'costo\',this.value)">'+
-          '</div>'+
-          '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Precio venta por cantidad</div>'+
-          '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
-            [1,2,3,4,5,6].map(function(n){return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">'+
-              '<span style="font-size:9px;color:var(--tx3);font-weight:600">×'+n+'</span>'+
-              '<input type="number" value="'+(ppc[n]||'')+'" placeholder="-" step="0.5" style="'+inpS+'" onchange="updateProdPPC('+i+','+n+',this.value)">'+
-            '</div>';}).join('')+
+          // Body - collapsible
+          '<div id="prod-body-'+i+'" style="display:none;padding-bottom:12px">'+
+            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
+              '<span style="font-size:12px;color:var(--tx3)">Costo S/</span>'+
+              '<input type="number" value="'+(p.costo||0)+'" step="0.5" style="width:70px;padding:5px 8px;border:0.5px solid rgba(0,0,0,0.12);border-radius:7px;background:var(--bg2);color:var(--tx);font-size:13px;font-family:inherit" onchange="updateProdField('+i+',\'costo\',this.value)">'+
+            '</div>'+
+            '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Precio venta por cantidad</div>'+
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'+
+              [1,2,3,4,5,6].map(function(n){
+                return '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--bg2);border-radius:8px;padding:7px 5px">'+
+                  '<span style="font-size:10px;color:var(--tx3);font-weight:600">× '+n+' unid.</span>'+
+                  '<input type="number" value="'+(ppc[n]||'')+'" placeholder="-" step="0.5" style="'+inpS+';width:100%" onchange="updateProdPPC('+i+','+n+',this.value)">'+
+                '</div>';
+              }).join('')+
+            '</div>'+
           '</div>'+
         '</div>';
-      }).join('')||'<div style="font-size:13px;color:var(--tx3);padding:8px 0">Sin productos</div>'}
+      }).join('')||'<div style="font-size:13px;color:var(--tx3);padding:8px 0">Sin productos configurados</div>'}
       <button class="btn" style="margin-top:10px" onclick="openAddProd()">+ Agregar producto</button>
     </div>
     <div class="card">
@@ -1341,6 +1358,25 @@ $('btn-prod').onclick=async()=>{
   }catch(e){err.textContent='Error: '+e.message;err.style.display='block';}
 };
 
+function toggleProd(i){
+  var body=document.getElementById('prod-body-'+i);
+  var arrow=document.getElementById('prod-arrow-'+i);
+  if(!body)return;
+  var isOpen=body.style.display!=='none';
+  // Close all others
+  (cfg.productos||[]).forEach(function(_,j){
+    var b=document.getElementById('prod-body-'+j);
+    var a=document.getElementById('prod-arrow-'+j);
+    if(b){b.style.display='none';}
+    if(a){a.style.transform='';a.style.color='var(--tx3)';}
+  });
+  // Toggle clicked
+  if(!isOpen){
+    body.style.display='block';
+    if(arrow){arrow.style.transform='rotate(90deg)';arrow.style.color='var(--accent)';}
+  }
+}
+
 async function updateProdField(i,field,val){
   if(!cfg.productos[i])return;
   cfg.productos[i][field]=parseFloat(val)||0;
@@ -1376,14 +1412,30 @@ async function saveScale(){
 async function saveDelivery(){
   var limaEl=document.getElementById('cost-lima');
   var provEl=document.getElementById('cost-prov');
-  var Lima=parseFloat(limaEl?limaEl.value:10)||10;
-  var Provincia=parseFloat(provEl?provEl.value:20)||20;
-  var newCostos={Lima:Lima,Provincia:Provincia};
+  if(!limaEl||!provEl){toast('Error: campos no encontrados');return;}
+  var Lima=parseFloat(limaEl.value);
+  var Provincia=parseFloat(provEl.value);
+  if(isNaN(Lima)||Lima<=0)Lima=10;
+  if(isNaN(Provincia)||Provincia<=0)Provincia=20;
   try{
-    await db.collection('config').doc('ventas').set({deliveryCostos:newCostos},{merge:true});
-    cfg.deliveryCostos=newCostos;
-    toast('✓ Costos guardados: Lima S/'+Lima+' · Provincia S/'+Provincia);
-  }catch(e){toast('Error al guardar: '+e.message);}
+    // Use update with dot notation to ensure correct field saving
+    await db.collection('config').doc('ventas').update({
+      'deliveryCostos.Lima': Lima,
+      'deliveryCostos.Provincia': Provincia
+    });
+    cfg.deliveryCostos={Lima:Lima,Provincia:Provincia};
+    toast('✓ Lima S/'+Lima+' · Provincia S/'+Provincia+' guardados');
+    // Re-render config to confirm saved values
+    renderConfig();
+  }catch(e){
+    // If update fails (doc doesn't exist), use set
+    try{
+      await db.collection('config').doc('ventas').set({deliveryCostos:{Lima:Lima,Provincia:Provincia}},{merge:true});
+      cfg.deliveryCostos={Lima:Lima,Provincia:Provincia};
+      toast('✓ Lima S/'+Lima+' · Provincia S/'+Provincia+' guardados');
+      renderConfig();
+    }catch(e2){toast('Error al guardar: '+e2.message);}
+  }
 }
 
 // ═══ PERIOD FILTERS ═══
@@ -1471,12 +1523,13 @@ function updateVendedoresList(){
 
 function setHistPeriod(p,label,el){
   histPeriod=p;
-  $('hist-drop').classList.remove('open');
-  document.querySelectorAll('#hist-drop .di').forEach(b=>b.classList.remove('on'));
-  el.classList.add('on');
-  $('hist-custom').style.display=p==='custom'?'flex':'none';
-  $('hist-custom').className=p==='custom'?'custom-date open':'custom-date';
-  if(p!=='custom')renderHistorial();
+  var drop=document.getElementById('hist-drop');
+  if(drop)drop.style.display='none';
+  document.querySelectorAll('#hist-drop .di').forEach(function(b){b.classList.remove('on');});
+  if(el)el.classList.add('on');
+  var cd=document.getElementById('hist-custom');
+  if(cd){cd.style.display=p==='custom'?'flex':'none';cd.className=p==='custom'?'custom-date open':'custom-date';}
+  if(p!=='custom')renderHistorial(); // keeps histVendedor state
 }
 
 function applyCustomHist(){
