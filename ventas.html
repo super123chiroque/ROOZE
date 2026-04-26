@@ -225,7 +225,6 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
           </div>
         </div>
         <!-- Status filters -->
-        <button id="f-all" onclick="setFilt('all')" style="cursor:pointer;font-weight:700;background:var(--bg2);color:var(--tx2);border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--fs);flex-shrink:0;opacity:0.5">Estado</button>
         <button id="f-pend" onclick="setFilt('pendiente')" style="cursor:pointer;font-weight:600;background:#fef3c7;color:#92400e;border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--fs);flex-shrink:0">Pendiente</button>
         <button id="f-env" onclick="setFilt('enviado')" style="cursor:pointer;font-weight:600;background:#dbeafe;color:#1e40af;border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--fs);flex-shrink:0">Enviado</button>
         <button id="f-ent" onclick="setFilt('entregado')" style="cursor:pointer;font-weight:600;background:#dcfce7;color:#166534;border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--fs);flex-shrink:0">Entregado</button>
@@ -280,7 +279,14 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
     <div class="tb">
       <div class="row">
         <div><h2>Historial</h2><div class="tb-sub" id="hist-sub-label">Mis ventas</div></div>
-        <div class="drop-wrap">
+        <div style="display:flex;gap:6px">
+          <div class="drop-wrap" id="vend-drop-wrap" style="display:none">
+            <button class="drop-btn" style="font-size:12px;padding:7px 12px" onclick="toggleDrop('vend-drop')">Vendedor ▼</button>
+            <div class="drop-menu" id="vend-drop">
+              <div class="di on" onclick="setHistVend('all',this)">Todos</div>
+            </div>
+          </div>
+          <div class="drop-wrap">
           <button class="drop-btn" onclick="toggleDrop('hist-drop')">Filtrar <span style="font-size:10px">▼</span></button>
           <div class="drop-menu" id="hist-drop">
             <div class="di on" onclick="setHistPeriod('all','Todo',this)">Todo</div>
@@ -291,6 +297,7 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
             <div class="di" onclick="setHistPeriod('30days','Últimos 30 días',this)">Últimos 30 días</div>
             <div class="di" onclick="setHistPeriod('custom','Personalizado',this)">Personalizado</div>
           </div>
+        </div>
         </div>
       </div>
       <div class="custom-date" id="hist-custom">
@@ -391,13 +398,13 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
       <div class="fld"><label>Costo del producto (S/)</label><input id="prod-costo" type="number" step="0.50" placeholder="0.00"></div>
       <div style="background:var(--bg2);border-radius:10px;padding:12px">
         <div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Precios por cantidad (S/)</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-          <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;color:var(--tx3)">× 1 unid.</label><input type="number" id="prod-p1" step="0.50" placeholder="0.00" style="padding:7px 8px;border:0.5px solid var(--bo2);border-radius:7px;background:var(--bg);color:var(--tx);font-size:13px;font-family:var(--fs)"></div>
-          <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;color:var(--tx3)">× 2 unid.</label><input type="number" id="prod-p2" step="0.50" placeholder="0.00" style="padding:7px 8px;border:0.5px solid var(--bo2);border-radius:7px;background:var(--bg);color:var(--tx);font-size:13px;font-family:var(--fs)"></div>
-          <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;color:var(--tx3)">× 3 unid.</label><input type="number" id="prod-p3" step="0.50" placeholder="0.00" style="padding:7px 8px;border:0.5px solid var(--bo2);border-radius:7px;background:var(--bg);color:var(--tx);font-size:13px;font-family:var(--fs)"></div>
-          <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;color:var(--tx3)">× 4 unid.</label><input type="number" id="prod-p4" step="0.50" placeholder="0.00" style="padding:7px 8px;border:0.5px solid var(--bo2);border-radius:7px;background:var(--bg);color:var(--tx);font-size:13px;font-family:var(--fs)"></div>
-          <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;color:var(--tx3)">× 5 unid.</label><input type="number" id="prod-p5" step="0.50" placeholder="0.00" style="padding:7px 8px;border:0.5px solid var(--bo2);border-radius:7px;background:var(--bg);color:var(--tx);font-size:13px;font-family:var(--fs)"></div>
-          <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;color:var(--tx3)">× 6 unid.</label><input type="number" id="prod-p6" step="0.50" placeholder="0.00" style="padding:7px 8px;border:0.5px solid var(--bo2);border-radius:7px;background:var(--bg);color:var(--tx);font-size:13px;font-family:var(--fs)"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:11px;color:var(--tx3);font-weight:600">Venta × 1 unid.</label><input type="number" id="prod-p1" step="0.50" placeholder="0.00" style="padding:9px 10px;border:0.5px solid var(--bo2);border-radius:8px;background:var(--bg);color:var(--tx);font-size:14px;font-family:var(--fs);width:100%"></div>
+          <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:11px;color:var(--tx3);font-weight:600">Venta × 2 unid.</label><input type="number" id="prod-p2" step="0.50" placeholder="0.00" style="padding:9px 10px;border:0.5px solid var(--bo2);border-radius:8px;background:var(--bg);color:var(--tx);font-size:14px;font-family:var(--fs);width:100%"></div>
+          <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:11px;color:var(--tx3);font-weight:600">Venta × 3 unid.</label><input type="number" id="prod-p3" step="0.50" placeholder="0.00" style="padding:9px 10px;border:0.5px solid var(--bo2);border-radius:8px;background:var(--bg);color:var(--tx);font-size:14px;font-family:var(--fs);width:100%"></div>
+          <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:11px;color:var(--tx3);font-weight:600">Venta × 4 unid.</label><input type="number" id="prod-p4" step="0.50" placeholder="0.00" style="padding:9px 10px;border:0.5px solid var(--bo2);border-radius:8px;background:var(--bg);color:var(--tx);font-size:14px;font-family:var(--fs);width:100%"></div>
+          <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:11px;color:var(--tx3);font-weight:600">Venta × 5 unid.</label><input type="number" id="prod-p5" step="0.50" placeholder="0.00" style="padding:9px 10px;border:0.5px solid var(--bo2);border-radius:8px;background:var(--bg);color:var(--tx);font-size:14px;font-family:var(--fs);width:100%"></div>
+          <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:11px;color:var(--tx3);font-weight:600">Venta × 6 unid.</label><input type="number" id="prod-p6" step="0.50" placeholder="0.00" style="padding:9px 10px;border:0.5px solid var(--bo2);border-radius:8px;background:var(--bg);color:var(--tx);font-size:14px;font-family:var(--fs);width:100%"></div>
         </div>
       </div>
       <div class="err" id="prod-err"></div>
@@ -548,6 +555,7 @@ function startListeners(){
     if(curTab==='meta')renderMeta();
     if(curTab==='resumen')renderResumen();
     if(curTab==='historial')renderHistorial();
+    updateVendedoresList();
   });
   listeners.push(u1);
 }
@@ -804,16 +812,7 @@ function addProductLine(){
   inp.style.width='58px';inp.style.padding='9px 6px';inp.style.textAlign='center';
   inp.style.border='0.5px solid rgba(0,0,0,0.12)';inp.style.borderRadius='8px';
   inp.style.background='#f5f5f4';inp.style.color='#1a1a1a';inp.style.fontFamily='inherit';inp.style.fontSize='13px';
-  function autofillPrice(){
-    var pName=sel.value; var qty=parseInt(inp.value)||1;
-    var prod=(cfg.productos||[]).find(function(px){return px.nombre===pName;});
-    if(!prod)return;
-    var ppc=prod.preciosPorCantidad||{};
-    var price=ppc[qty]||ppc[1]||prod.precioVenta||0;
-    if(price>0&&document.getElementById('nv-cobrar'))document.getElementById('nv-cobrar').value=price;
-  }
-  sel.addEventListener('change',autofillPrice);
-  inp.addEventListener('change',autofillPrice);
+  // No autofill - vendedor ingresa precio manualmente
   row.appendChild(sel);row.appendChild(inp);
   // Remove button (not first)
   if(prodLineCount>1){
@@ -1030,116 +1029,169 @@ function renderMeta(){
 }
 
 // ═══ RESUMEN (admin/super) ═══
-function renderResumen(){
-  const el=$('resumen-body');
-  const start=periodStart(resPeriod),end=periodEnd(resPeriod);
-  const filtered=orders.filter(o=>o.ts>=start&&o.ts<=end&&o.estado!=='anulado');
-  const anuladas=orders.filter(o=>o.ts>=start&&o.ts<=end&&o.estado==='anulado').length;
-  const totalCobrado=filtered.reduce((s,o)=>s+(o.cobrar||0),0);
+function getCostoReal(o){
+  // Calcula costo real segun cantidad de productos vendidos
+  var prod=cfg.productos?cfg.productos.find(function(x){return x.nombre===o.producto;}):null;
+  var ppc=prod&&prod.preciosPorCantidad?prod.preciosPorCantidad:{};
+  var qty=o.totalCantidad||1;
+  // precio venta configurado segun cantidad
+  var precioConfig=ppc[qty]||ppc[1]||prod&&prod.precioVenta||0;
+  var costo=(prod?prod.costo:0)||0;
+  var delivery=(cfg.deliveryCostos&&cfg.deliveryCostos[o.zona||'Lima'])||10;
+  // ganancia = cobrado - (costo*qty) - delivery
+  return {costo:costo*qty, delivery:delivery, ganancia:(o.cobrar||0)-(costo*qty)-delivery};
+}
 
-  // Ganancia (only superuser has cost data)
-  let totalGanancia=0;
+function renderResumen(){
+  var el=$('resumen-body');
+  var start=periodStart(resPeriod),end2=periodEnd(resPeriod);
+  var allPeriod=orders.filter(function(o){return o.ts>=start&&o.ts<=end2;});
+  var filtered=allPeriod.filter(function(o){return o.estado!=='anulado';});
+  var totalCobrado=filtered.reduce(function(s,o){return s+(o.cobrar||0);},0);
+
+  // Totals
+  var totalGanancia=0;
   if(isSuper()){
-    filtered.forEach(o=>{
-      const p=cfg.productos?.find(x=>x.nombre===o.producto);
-      const costo=p?.costo||0;
-      const delivery=cfg.deliveryCostos?.[o.zona||'Lima']||10;
-      totalGanancia+=(o.cobrar||0)-costo-delivery;
+    filtered.forEach(function(o){totalGanancia+=getCostoReal(o).ganancia;});
+  }
+
+  // By zone
+  var lima=filtered.filter(function(o){return o.zona==='Lima';}).length;
+  var prov=filtered.filter(function(o){return o.zona==='Provincia';}).length;
+  var maxZone=Math.max(lima,prov)||1;
+
+  // Global status
+  var byStatus={pendiente:0,enviado:0,entregado:0,anulado:0};
+  allPeriod.forEach(function(o){if(byStatus[o.estado]!==undefined)byStatus[o.estado]++;});
+
+  // Build vendedor map with full details
+  var vendMap={};
+  allPeriod.forEach(function(o){
+    var name=o.vendedor||'Desconocido';
+    if(!vendMap[name])vendMap[name]={ventas:0,cobrado:0,ganancia:0,productos:{},estados:{pendiente:0,enviado:0,entregado:0,anulado:0}};
+    vendMap[name].ventas++;
+    vendMap[name].cobrado+=(o.cobrar||0);
+    if(vendMap[name].estados[o.estado]!==undefined)vendMap[name].estados[o.estado]++;
+    // Productos
+    var qty=o.totalCantidad||1;
+    if(o.productos&&o.productos.length){
+      o.productos.forEach(function(p){
+        var k=p.nombre;
+        vendMap[name].productos[k]=(vendMap[name].productos[k]||0)+(p.cantidad||1);
+      });
+    } else if(o.producto){
+      vendMap[name].productos[o.producto]=(vendMap[name].productos[o.producto]||0)+qty;
+    }
+    if(o.estado!=='anulado'&&isSuper()){
+      vendMap[name].ganancia+=getCostoReal(o).ganancia;
+    }
+  });
+
+  // Build HTML
+  var html='';
+
+  // ── Totals row ──────────────────────────────────────────────────────
+  html+='<div class="stats-row">'+
+    '<div class="stat"><div class="stat-n">'+allPeriod.length+'</div><div class="stat-l">Total ventas</div></div>'+
+    '<div class="stat"><div class="stat-n g">S/'+totalCobrado.toFixed(0)+'</div><div class="stat-l">Cobrado</div></div>'+
+    (isSuper()?'<div class="stat"><div class="stat-n g">S/'+totalGanancia.toFixed(0)+'</div><div class="stat-l">Ganancia</div></div>':'')+
+  '</div>';
+
+  // ── Ventas por zona ─────────────────────────────────────────────────
+  html+='<div class="card">'+
+    '<div class="section-label">Ventas por zona</div>'+
+    '<div class="zone-row"><div class="zdot" style="background:var(--accent)"></div><div class="zname">Lima</div>'+
+    '<div class="zwrap"><div class="zbar" style="width:'+Math.round(lima/maxZone*100)+'%;background:var(--accent)"></div></div>'+
+    '<div class="zcount" style="color:var(--accent)">'+lima+'</div></div>'+
+    '<div class="zone-row"><div class="zdot" style="background:#93c5fd"></div><div class="zname">Provincia</div>'+
+    '<div class="zwrap"><div class="zbar" style="width:'+Math.round(prov/maxZone*100)+'%;background:#93c5fd"></div></div>'+
+    '<div class="zcount" style="color:#1e40af">'+prov+'</div></div>'+
+  '</div>';
+
+  // ── Estado global ───────────────────────────────────────────────────
+  html+='<div class="card">'+
+    '<div class="section-label">Resumen por estado</div>'+
+    '<div class="dr"><span class="dl">✅ Entregado</span><span class="dv green">'+byStatus.entregado+'</span></div>'+
+    '<div class="dr"><span class="dl">📦 Enviado</span><span class="dv blue">'+byStatus.enviado+'</span></div>'+
+    '<div class="dr"><span class="dl">⏳ Pendiente</span><span class="dv" style="color:#92400e">'+byStatus.pendiente+'</span></div>'+
+    '<div class="dr"><span class="dl">✗ Anulado</span><span class="dv red">'+byStatus.anulado+'</span></div>'+
+  '</div>';
+
+  // ── Bloque por vendedor ─────────────────────────────────────────────
+  var vendEntries=Object.entries(vendMap).sort(function(a,b){return b[1].ventas-a[1].ventas;});
+  if(!vendEntries.length){
+    html+='<div class="empty"><p>Sin ventas en este período</p></div>';
+  } else {
+    vendEntries.forEach(function(entry){
+      var name=entry[0], d=entry[1];
+      var wVentas=orders.filter(function(o){return o.vendedor===name&&o.ts>=weekStart()&&o.estado!=='anulado';}).length;
+      var sueldo=getSueldo(wVentas);
+      var next=getNextLevel(wVentas);
+      // Products list
+      var prodRows='';
+      var prodEntries=Object.entries(d.productos).sort(function(a,b){return b[1]-a[1];});
+      prodEntries.forEach(function(pe){
+        prodRows+='<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:0.5px solid var(--bo)">'+
+          '<span style="font-size:12px;color:var(--tx)">'+pe[0]+'</span>'+
+          '<span style="font-size:12px;font-weight:700;color:var(--accent)">'+pe[1]+' un.</span>'+
+        '</div>';
+      });
+      html+=
+        '<div class="card" style="border-left:3px solid var(--accent)">'+
+          // Header
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
+            '<div>'+
+              '<div style="font-size:15px;font-weight:800;color:var(--accent)">'+name+'</div>'+
+              '<div style="font-size:11px;color:var(--tx3)">'+d.ventas+' ventas · S/'+d.cobrado.toFixed(0)+' cobrado</div>'+
+            '</div>'+
+            '<span style="font-size:11px;font-weight:600;color:'+(next?'#f59e0b':'#166534')+'">'+(next?'🎯 −'+(next.ventas-wVentas)+' meta':'✅ Meta')+'</span>'+
+          '</div>'+
+          // Estados
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">'+
+            '<div style="background:#dcfce7;border-radius:8px;padding:7px 10px;text-align:center">'+
+              '<div style="font-size:16px;font-weight:800;color:#166534">'+d.estados.entregado+'</div>'+
+              '<div style="font-size:9px;color:#166534;font-weight:600">ENTREGADO</div>'+
+            '</div>'+
+            '<div style="background:#dbeafe;border-radius:8px;padding:7px 10px;text-align:center">'+
+              '<div style="font-size:16px;font-weight:800;color:#1e40af">'+d.estados.enviado+'</div>'+
+              '<div style="font-size:9px;color:#1e40af;font-weight:600">ENVIADO</div>'+
+            '</div>'+
+            '<div style="background:#fef3c7;border-radius:8px;padding:7px 10px;text-align:center">'+
+              '<div style="font-size:16px;font-weight:800;color:#92400e">'+d.estados.pendiente+'</div>'+
+              '<div style="font-size:9px;color:#92400e;font-weight:600">PENDIENTE</div>'+
+            '</div>'+
+            '<div style="background:#fee2e2;border-radius:8px;padding:7px 10px;text-align:center">'+
+              '<div style="font-size:16px;font-weight:800;color:#991b1b">'+d.estados.anulado+'</div>'+
+              '<div style="font-size:9px;color:#991b1b;font-weight:600">ANULADO</div>'+
+            '</div>'+
+          '</div>'+
+          // Productos vendidos
+          (prodRows?'<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Productos vendidos</div>'+prodRows:'')+
+          // Sueldo proyectado
+          '<div style="margin-top:8px;padding:8px 10px;background:var(--accent2);border-radius:8px;display:flex;justify-content:space-between;align-items:center">'+
+            '<span style="font-size:11px;color:var(--tx2)">Sueldo semana</span>'+
+            '<span style="font-size:14px;font-weight:800;color:var(--accent)">S/ '+sueldo+'</span>'+
+          '</div>'+
+          // Ganancia (super only)
+          (isSuper()?'<div style="margin-top:6px;padding:8px 10px;background:#f0fdf4;border-radius:8px;display:flex;justify-content:space-between;align-items:center">'+
+            '<span style="font-size:11px;color:var(--tx2)">Ganancia real</span>'+
+            '<span style="font-size:14px;font-weight:800;color:#166534">S/ '+d.ganancia.toFixed(0)+'</span>'+
+          '</div>':'')+
+        '</div>';
     });
   }
 
-  // By vendedor
-  const byVend={};
-  filtered.forEach(o=>{
-    if(!byVend[o.vendedor])byVend[o.vendedor]={ventas:0,cobrado:0};
-    byVend[o.vendedor].ventas++;byVend[o.vendedor].cobrado+=o.cobrar||0;
-  });
+  // ── Finanzas globales (super only) ──────────────────────────────────
+  if(isSuper()&&filtered.length){
+    html+='<div class="fin-card">'+
+      '<div class="section-label" style="color:var(--accent)">💰 Finanzas del período</div>'+
+      '<div class="dr"><span class="dl">Total cobrado</span><span class="dv">S/ '+totalCobrado.toFixed(2)+'</span></div>'+
+      '<div class="dr"><span class="dl">Costos totales</span><span class="dv red">− S/ '+(totalCobrado-totalGanancia).toFixed(2)+'</span></div>'+
+      '<div class="dr"><span class="dl" style="font-weight:700;color:var(--tx)">Ganancia neta</span><span class="dv green" style="font-size:16px">S/ '+totalGanancia.toFixed(2)+'</span></div>'+
+    '</div>';
+  }
 
-  // By zone
-  const lima=filtered.filter(o=>o.zona==='Lima').length;
-  const prov=filtered.filter(o=>o.zona==='Provincia').length;
-  const maxZone=Math.max(lima,prov)||1;
-
-  // By status
-  const byStatus={pendiente:0,enviado:0,entregado:0};
-  filtered.forEach(o=>{if(byStatus[o.estado]!==undefined)byStatus[o.estado]++;});
-
-  el.innerHTML=`
-    <div class="stats-row">
-      <div class="stat"><div class="stat-n">${filtered.length}</div><div class="stat-l">Ventas</div></div>
-      <div class="stat"><div class="stat-n g">S/${totalCobrado.toFixed(0)}</div><div class="stat-l">Cobrado</div></div>
-      ${isSuper()?`<div class="stat"><div class="stat-n g">S/${totalGanancia.toFixed(0)}</div><div class="stat-l">Ganancia</div></div>`:''}
-    </div>
-    <div class="card">
-      <div class="section-label">Ventas por zona</div>
-      <div class="zone-row">
-        <div class="zdot" style="background:var(--accent)"></div>
-        <div class="zname">Lima</div>
-        <div class="zwrap"><div class="zbar" style="width:${Math.round(lima/maxZone*100)}%;background:var(--accent)"></div></div>
-        <div class="zcount" style="color:var(--accent)">${lima}</div>
-      </div>
-      <div class="zone-row">
-        <div class="zdot" style="background:#93c5fd"></div>
-        <div class="zname">Provincia</div>
-        <div class="zwrap"><div class="zbar" style="width:${Math.round(prov/maxZone*100)}%;background:#93c5fd"></div></div>
-        <div class="zcount" style="color:#1e40af">${prov}</div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="section-label">Por vendedor · Meta semana</div>
-      ${Object.entries(byVend).sort((a,b)=>b[1].ventas-a[1].ventas).map(([name,d])=>{
-        const wStart2=weekStart();
-        const wVentas=orders.filter(o=>o.vendedor===name&&o.ts>=wStart2&&o.estado!=='anulado').length;
-        const sueldo=getSueldo(wVentas);
-        const next=getNextLevel(wVentas);
-        // Ganancia bruta = sum cobrar, ganancia real = cobrar - costos
-        let gBruta=0,gReal=0;
-        orders.filter(o=>o.vendedor===name&&o.ts>=start&&o.ts<=end&&o.estado!=='anulado').forEach(o=>{
-          gBruta+=(o.cobrar||0);
-          const p=cfg.productos?.find(x=>x.nombre===o.producto);
-          const costo=p?.costo||0,delivery=cfg.deliveryCostos?.[o.zona||'Lima']||10;
-          gReal+=(o.cobrar||0)-costo-delivery;
-        });
-        return'<div style="padding:10px 0;border-bottom:0.5px solid var(--bo)">'+
-          '<div class="row"><span style="font-size:13px;font-weight:700;color:var(--accent)">'+name+'</span>'+
-          '<span style="font-size:11px;font-weight:600;color:'+(next?'#f59e0b':'#166534')+'">'+(next?'🎯 −'+(next.ventas-wVentas)+' meta':'✅ Meta máx.')+'</span></div>'+
-          '<div style="display:flex;gap:12px;margin-top:4px">'+
-          '<span style="font-size:11px;color:var(--tx3)">'+wVentas+' ventas</span>'+
-          (isSuper()?'<span style="font-size:11px;color:var(--tx2)">Bruta: <b>S/'+gBruta.toFixed(0)+'</b></span>'+
-          '<span style="font-size:11px;color:var(--accent)">Real: <b>S/'+gReal.toFixed(0)+'</b></span>':'')+'</div>'+
-          '<div style="font-size:11px;color:var(--tx3);margin-top:2px">Sueldo proyectado: S/'+sueldo+'</div>'+
-        '</div>';
-      }).join('')||'<div class="empty" style="padding:16px 0">Sin ventas</div>'}
-    </div>
-    <div class="card">
-      <div class="section-label">Por estado</div>
-      <div class="dr"><span class="dl">Entregado</span><span class="dv green">${byStatus.entregado}</span></div>
-      <div class="dr"><span class="dl">Enviado</span><span class="dv blue">${byStatus.enviado}</span></div>
-      <div class="dr"><span class="dl">Pendiente</span><span class="dv" style="color:#92400e">${byStatus.pendiente}</span></div>
-      <div class="dr"><span class="dl">Anulado</span><span class="dv red">${anuladas}</span></div>
-    </div>
-    ${isSuper()?`<div class="card">
-      <div class="section-label">Ventas por cantidad de unidades</div>
-      ${(()=>{
-        const byCant={1:0,2:0,3:0,4:0,5:0,'6+':0};
-        filtered.forEach(o=>{
-          const total=o.totalCantidad||1;
-          if(total>=6)byCant['6+']++;
-          else if(byCant[total]!==undefined)byCant[total]++;
-          else byCant['6+']++;
-        });
-        return Object.entries(byCant).map(([k,v])=>v>0?
-          `<div class="dr"><span class="dl">${k} unidad${k==='1'?'':'es'}</span><span class="dv">${v} venta${v!==1?'s':''}</span></div>`
-        :'').join('');
-      })()}
-    </div>`:''}
-    ${isSuper()&&filtered.length?`
-    <div class="fin-card">
-      <div class="section-label" style="color:var(--accent)">💰 Finanzas del período</div>
-      <div class="dr"><span class="dl">Total cobrado</span><span class="dv">S/ ${totalCobrado.toFixed(2)}</span></div>
-      <div class="dr"><span class="dl">Costos (prod+delivery)</span><span class="dv red">− S/ ${(totalCobrado-totalGanancia).toFixed(2)}</span></div>
-      <div class="dr"><span class="dl" style="font-weight:700;color:var(--tx)">Ganancia neta</span><span class="dv green" style="font-size:16px">S/ ${totalGanancia.toFixed(2)}</span></div>
-    </div>`:''}`;
+  el.innerHTML=html;
 }
 
 // ═══ HISTORIAL ═══
@@ -1334,6 +1386,36 @@ function applyCustomRes(){
   if(!f||!t){toast('Selecciona fechas');return;}
   resCustomFrom=new Date(f).getTime();resCustomTo=new Date(t).getTime()+86399999;
   renderResumen();
+}
+
+function getVendedoresList(){
+  var names={};
+  orders.forEach(function(o){if(o.vendedor)names[o.vendedor]=1;});
+  return Object.keys(names).map(function(n){
+    return '<div class="di" onclick="setHistVend(\''+n+'\',this)">'+n+'</div>';
+  }).join('');
+}
+
+function setHistVend(v,el){
+  histVendedor=v;
+  document.getElementById('vend-drop').style.display='none';
+  document.querySelectorAll('#vend-drop .di').forEach(function(d){d.classList.remove('on');});
+  if(el)el.classList.add('on');
+  renderHistorial();
+}
+
+function updateVendedoresList(){
+  if(!isAdmin())return;
+  var wrap=document.getElementById('vend-drop-wrap');
+  if(wrap)wrap.style.display='inline-block';
+  var drop=document.getElementById('vend-drop');
+  if(!drop)return;
+  var names={};
+  orders.forEach(function(o){if(o.vendedor)names[o.vendedor]=1;});
+  drop.innerHTML='<div class="di '+(histVendedor==='all'?'on':'')+'" onclick="setHistVend(\'all\',this)">Todos</div>'+
+    Object.keys(names).map(function(n){
+      return '<div class="di '+(histVendedor===n?'on':'')+'" onclick="setHistVend(\''+n+'\',this)">'+n+'</div>';
+    }).join('');
 }
 
 function setHistPeriod(p,label,el){
