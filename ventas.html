@@ -740,12 +740,13 @@ function selectStatus(s,el){
 function updateDelivery(){}
 
 $('btn-nueva').onclick=async()=>{
+  const err=$('nv-err');err.style.display='none';
+  try{
   const cliente=$('nv-cliente').value.trim(),celular=$('nv-celular').value.trim();
   const cobrar=parseFloat($('nv-cobrar').value)||0;
-  const zona=$('nv-zona').value;
+  const zona=$('nv-zona').value||'Lima';
   const ciudad=$('nv-ciudad').value.trim();
   const productLines=getProductLines();
-  const err=$('nv-err');err.style.display='none';
   if(!cliente||!celular||!cobrar){err.textContent='Completa: cliente, celular y monto.';err.style.display='block';return;}
   if(!productLines.length){err.textContent='Selecciona al menos un producto.';err.style.display='block';return;}
   const btn=$('btn-nueva');btn.disabled=true;btn.textContent='Registrando...';
@@ -768,8 +769,9 @@ $('btn-nueva').onclick=async()=>{
       timestamp:firebase.firestore.FieldValue.serverTimestamp()
     });
     closeOv('ov-nueva');toast('✓ Venta registrada');
-  }catch(e){err.textContent='Error: '+e.message;err.style.display='block';}
+  }catch(e){console.error(e);err.textContent='Error: '+e.message;err.style.display='block';}
   finally{btn.disabled=false;btn.textContent='Registrar venta';}
+  }catch(outer){console.error(outer);err.textContent='Error inesperado: '+outer.message;err.style.display='block';}
 };
 
 // ═══ EDIT ESTADO ═══
@@ -813,8 +815,25 @@ function renderMeta(){
   const ventasSemana=myOrders.length;
   const sueldo=getSueldo(ventasSemana);
   const next=getNextLevel(ventasSemana);
+  // Fix bar: calculate position as proportion of ticks
   const maxTick=salaryScale[salaryScale.length-1]?.ventas||30;
-  const pct=Math.min(ventasSemana/maxTick*100,100);
+  // Add 0 at start for proper calculation
+  const ticks=[0,...salaryScale.map(l=>l.ventas)];
+  let pct=0;
+  if(ventasSemana>=maxTick){
+    pct=100;
+  } else {
+    // Find which segment we're in
+    for(let i=1;i<ticks.length;i++){
+      if(ventasSemana<=ticks[i]){
+        const segStart=ticks[i-1],segEnd=ticks[i];
+        const segPct=(i-1)/(ticks.length-1)*100;
+        const segWidth=1/(ticks.length-1)*100;
+        pct=segPct+((ventasSemana-segStart)/(segEnd-segStart))*segWidth;
+        break;
+      }
+    }
+  }
 
   // Days remaining in week
   const now2=new Date();
@@ -828,7 +847,9 @@ function renderMeta(){
       <div class="meta-n">${ventasSemana} ventas</div>
       <div class="meta-s">${next?`Te falt${ventasSemana===next.ventas-1?'a 1 venta':'an '+(next.ventas-ventasSemana)+' ventas'} para el siguiente nivel 🎯`:'🏆 ¡Nivel máximo alcanzado!'}</div>
       <div class="meta-prog"><div class="meta-bar" style="width:${pct}%"></div></div>
-      <div class="meta-ticks"><span>0</span>${salaryScale.map(l=>`<span>${l.ventas}</span>`).join('')}</div>
+      <div class="meta-ticks">
+        <span>0</span>${salaryScale.map(l=>`<span>${l.ventas}</span>`).join('')}
+      </div>
     </div>
     <div class="card">
       <div class="section-label">Escala de comisiones · Semanal</div>
@@ -943,6 +964,21 @@ function renderResumen(){
       <div class="dr"><span class="dl">Pendiente</span><span class="dv" style="color:#92400e">${byStatus.pendiente}</span></div>
       <div class="dr"><span class="dl">Anulado</span><span class="dv red">${anuladas}</span></div>
     </div>
+    ${isSuper()?`<div class="card">
+      <div class="section-label">Ventas por cantidad de unidades</div>
+      ${(()=>{
+        const byCant={1:0,2:0,3:0,4:0,5:0,'6+':0};
+        filtered.forEach(o=>{
+          const total=o.totalCantidad||1;
+          if(total>=6)byCant['6+']++;
+          else if(byCant[total]!==undefined)byCant[total]++;
+          else byCant['6+']++;
+        });
+        return Object.entries(byCant).map(([k,v])=>v>0?
+          `<div class="dr"><span class="dl">${k} unidad${k==='1'?'':'es'}</span><span class="dv">${v} venta${v!==1?'s':''}</span></div>`
+        :'').join('');
+      })()}
+    </div>`:''}
     ${isSuper()&&filtered.length?`
     <div class="fin-card">
       <div class="section-label" style="color:var(--accent)">💰 Finanzas del período</div>
