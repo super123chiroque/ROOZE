@@ -155,6 +155,22 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
 .sopt.ent.on{background:#dcfce7;color:#166534}
 .sopt.anul.on{background:#fee2e2;color:#991b1b}
 /* TOAST */
+/* ── Meta Dashboard ──────────────────────────────── */
+.meta-filter-bar{display:flex;gap:6px;padding:10px 14px;background:var(--bg);border-bottom:0.5px solid var(--bo);overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+.mfbtn{padding:6px 13px;border-radius:20px;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:var(--fs);background:var(--bg2);color:var(--tx2);white-space:nowrap;flex-shrink:0;transition:all .15s}
+.mfbtn.on{background:var(--accent);color:#fff}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi{background:var(--bg);border-radius:14px;padding:13px 14px;border:0.5px solid var(--bo)}
+.kpi-val{font-size:20px;font-weight:800;color:var(--tx);margin:2px 0}
+.kpi-lbl{font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em}
+.kpi-delta{font-size:11px;font-weight:600;margin-top:3px}
+.kpi-delta.up{color:#059669}
+.kpi-delta.dn{color:#dc2626}
+.chart-wrap{background:var(--bg);border-radius:14px;padding:14px;border:0.5px solid var(--bo);position:relative}
+.chart-title{font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.chart-svg{width:100%;overflow:visible}
+.chart-tooltip{position:absolute;background:#1a1a1a;color:#fff;padding:6px 10px;border-radius:8px;font-size:11px;font-weight:600;pointer-events:none;display:none;white-space:nowrap;z-index:10}
+/* ── End Meta Dashboard ──────────────────────────── */
 .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .2s;white-space:nowrap}
 .toast.show{opacity:1}
 .celebration{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);display:none}
@@ -246,6 +262,21 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
   <!-- TAB: META -->
   <div id="tab-meta" style="display:none;flex-direction:column;flex:1;overflow:hidden">
     <div class="tb"><h2>Mi meta</h2><div class="tb-sub" id="meta-sub">Esta semana</div></div>
+    <div class="meta-filter-bar">
+      <button class="mfbtn on" onclick="setMetaPeriod('week',this)">Esta semana</button>
+      <button class="mfbtn" onclick="setMetaPeriod('today',this)">Hoy</button>
+      <button class="mfbtn" onclick="setMetaPeriod('yesterday',this)">Ayer</button>
+      <button class="mfbtn" onclick="setMetaPeriod('7days',this)">7 días</button>
+      <button class="mfbtn" onclick="setMetaPeriod('30days',this)">30 días</button>
+      <button class="mfbtn" onclick="setMetaPeriod('custom',this)">Personalizado</button>
+    </div>
+    <div id="meta-custom-date" style="display:none;padding:8px 14px;gap:8px;background:var(--bg);border-bottom:0.5px solid var(--bo)">
+      <div style="display:flex;gap:8px">
+        <input type="date" id="meta-from" style="flex:1;padding:7px;border:0.5px solid var(--bo2);border-radius:8px;background:var(--bg2);color:var(--tx);font-family:var(--fs);font-size:12px">
+        <input type="date" id="meta-to" style="flex:1;padding:7px;border:0.5px solid var(--bo2);border-radius:8px;background:var(--bg2);color:var(--tx);font-family:var(--fs);font-size:12px">
+        <button onclick="applyMetaCustom()" style="padding:7px 12px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fs)">Ver</button>
+      </div>
+    </div>
     <div class="body" id="meta-body"><div class="spin"></div></div>
   </div>
 
@@ -388,6 +419,34 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
     <input type="hidden" id="edit-order-id">
     <button class="btn" id="btn-estado">Guardar estado</button>
     <button class="btn gray" style="margin-top:8px" onclick="closeOv('ov-estado')">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL: EDITAR PEDIDO -->
+<div class="ov" id="ov-edit-order">
+  <div class="sheet">
+    <div class="sh"></div>
+    <h3>Editar pedido</h3>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="fld"><label>Cliente</label><input id="eo-cliente" placeholder="Nombre completo"></div>
+      <div class="fld"><label>Celular</label><input id="eo-celular" type="tel" placeholder="+51 9XX XXX XXX"></div>
+      <div class="fld"><label>Producto</label>
+        <select id="eo-producto" style="background:var(--bg2);border:0.5px solid var(--bo2);border-radius:8px;padding:11px 12px;font-size:14px;color:var(--tx);font-family:var(--fs);width:100%;outline:none"></select>
+      </div>
+      <div class="fld"><label>Cobrar (S/)</label><input id="eo-cobrar" type="number" step="0.50" placeholder="0.00"></div>
+      <div class="fld"><label>Zona</label>
+        <select id="eo-zona" style="background:var(--bg2);border:0.5px solid var(--bo2);border-radius:8px;padding:11px 12px;font-size:14px;color:var(--tx);font-family:var(--fs);width:100%;outline:none">
+          <option value="Lima">Lima</option>
+          <option value="Provincia">Provincia</option>
+        </select>
+      </div>
+      <div class="fld"><label>Ciudad / Distrito</label><input id="eo-ciudad" placeholder="Ej: Arequipa · Cercado"></div>
+      <div class="fld"><label>Fecha de venta</label><input type="date" id="eo-fecha"></div>
+      <input type="hidden" id="eo-order-id">
+      <div class="err" id="eo-err"></div>
+      <button class="btn" id="btn-edit-order">Guardar cambios</button>
+      <button class="btn gray" style="margin-top:4px" onclick="closeOv('ov-edit-order')">Cancelar</button>
+    </div>
   </div>
 </div>
 
@@ -772,7 +831,8 @@ function openDetalle(id){
 
   let editBtn='';
   if(isAdmin()||o.vendedorId===cu?.id){
-    editBtn=`<button class="btn" style="margin-top:12px" onclick="openEditEstado('${o.id}','${o.estado||'pendiente'}')">Cambiar estado</button>`;
+    editBtn=`<button class="btn" style="margin-top:12px" onclick="openEditEstado('${o.id}','${o.estado||'pendiente'}')">Cambiar estado</button>
+    <button class="btn" style="margin-top:8px;background:var(--bg2);color:var(--tx)" onclick="openEditOrder('${o.id}')">✏️ Editar pedido</button>`;
   }
   const delBtn=isSuper()?`<button class="btn" style="margin-top:8px;background:#fee2e2;color:#991b1b" onclick="deleteOrder('${o.id}')">Eliminar venta</button>`:'';
 
@@ -998,85 +1058,193 @@ function getNextLevel(ventas){
   return salaryScale.find(l=>l.ventas>ventas);
 }
 
-function renderMeta(){
-  const el=$('meta-body');
-  const now=Date.now(),wStart=weekStart();
-  const myOrders=orders.filter(o=>o.vendedorId===cu.id&&o.fv>=wStart&&o.estado!=='anulado');
-  const ventasSemana=myOrders.length;
-  const sueldo=getSueldo(ventasSemana);
-  const next=getNextLevel(ventasSemana);
-  // Fix bar: calculate position as proportion of ticks
-  const maxTick=salaryScale[salaryScale.length-1]?.ventas||30;
-  // Add 0 at start for proper calculation
-  const ticks=[0,...salaryScale.map(l=>l.ventas)];
-  let pct=0;
-  if(ventasSemana>=maxTick){
-    pct=100;
-  } else {
-    // Find which segment we're in
-    for(let i=1;i<ticks.length;i++){
-      if(ventasSemana<=ticks[i]){
-        const segStart=ticks[i-1],segEnd=ticks[i];
-        const segPct=(i-1)/(ticks.length-1)*100;
-        const segWidth=1/(ticks.length-1)*100;
-        pct=segPct+((ventasSemana-segStart)/(segEnd-segStart))*segWidth;
-        break;
-      }
+// ── Meta period state ─────────────────────────────────────────────────
+let metaPeriod='week', metaCustomFrom=0, metaCustomTo=Date.now();
+
+function setMetaPeriod(p, el){
+  metaPeriod=p;
+  document.querySelectorAll('.mfbtn').forEach(function(b){b.classList.remove('on');});
+  if(el)el.classList.add('on');
+  var cd=document.getElementById('meta-custom-date');
+  if(cd)cd.style.display=p==='custom'?'flex':'none';
+  if(p!=='custom')renderMeta();
+}
+
+function applyMetaCustom(){
+  var f=(document.getElementById('meta-from')||{}).value;
+  var t=(document.getElementById('meta-to')||{}).value;
+  if(!f||!t){toast('Selecciona rango de fechas');return;}
+  metaCustomFrom=new Date(f+'T00:00:00').getTime();
+  metaCustomTo=new Date(t+'T23:59:59').getTime();
+  renderMeta();
+}
+
+function getMetaRange(p){
+  var n=new Date(), Y=n.getFullYear(), M=n.getMonth(), D=n.getDate();
+  if(p==='today')    return {start:dayStart(Y,M,D),   end:dayEnd(Y,M,D),   prevStart:dayStart(Y,M,D-1), prevEnd:dayEnd(Y,M,D-1)};
+  if(p==='yesterday')return {start:dayStart(Y,M,D-1), end:dayEnd(Y,M,D-1), prevStart:dayStart(Y,M,D-2), prevEnd:dayEnd(Y,M,D-2)};
+  if(p==='week')     return {start:weekStart(),        end:dayEnd(Y,M,D),   prevStart:weekStart()-7*86400000, prevEnd:weekStart()-1};
+  if(p==='7days')    return {start:dayStart(Y,M,D-7),  end:dayEnd(Y,M,D),   prevStart:dayStart(Y,M,D-14), prevEnd:dayStart(Y,M,D-7)-1};
+  if(p==='30days')   return {start:dayStart(Y,M,D-30), end:dayEnd(Y,M,D),   prevStart:dayStart(Y,M,D-60), prevEnd:dayStart(Y,M,D-30)-1};
+  if(p==='custom')   return {start:metaCustomFrom,     end:metaCustomTo,    prevStart:0, prevEnd:0};
+  return {start:weekStart(), end:dayEnd(Y,M,D), prevStart:0, prevEnd:0};
+}
+
+function calcMetrics(orderList){
+  var ventas=orderList.filter(function(o){return o.estado!=='anulado';});
+  var totalS=ventas.reduce(function(s,o){return s+(o.cobrar||0);},0);
+  var totalU=ventas.reduce(function(s,o){return s+(o.totalCantidad||1);},0);
+  return {count:ventas.length, ingresos:totalS, unidades:totalU};
+}
+
+function buildChartData(orderList, start, end){
+  // Build daily data points
+  var days={};
+  var cur=new Date(start);
+  var endD=new Date(end);
+  while(cur<=endD){
+    var key=cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'-'+String(cur.getDate()).padStart(2,'0');
+    days[key]=0;
+    cur.setDate(cur.getDate()+1);
+  }
+  orderList.filter(function(o){return o.estado!=='anulado'&&o.fv>=start&&o.fv<=end;}).forEach(function(o){
+    var d=new Date(o.fv);
+    var key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    if(days[key]!==undefined)days[key]+=(o.cobrar||0);
+  });
+  return Object.entries(days).map(function(e){return{date:e[0],val:e[1]};});
+}
+
+function renderLineChart(data, data2){
+  if(!data||data.length<2) return '<div style="height:120px;display:flex;align-items:center;justify-content:center;color:var(--tx3);font-size:13px">Sin datos para graficar</div>';
+  var W=320, H=120, padL=8, padR=8, padT=12, padB=24;
+  var vals=data.map(function(d){return d.val;});
+  var maxV=Math.max.apply(null,vals.concat(data2?data2.map(function(d){return d.val;}):[])) || 1;
+  var xScale=function(i){return padL+(W-padL-padR)*(i/(data.length-1));};
+  var yScale=function(v){return padT+(H-padT-padB)*(1-v/maxV);};
+  // Build path
+  var path=data.map(function(d,i){return (i===0?'M':'L')+xScale(i).toFixed(1)+','+yScale(d.val).toFixed(1);}).join(' ');
+  var areaPath=path+' L'+xScale(data.length-1).toFixed(1)+','+(H-padB)+' L'+xScale(0).toFixed(1)+','+(H-padB)+' Z';
+  // Labels
+  var labels='';
+  var step=Math.max(1,Math.floor(data.length/4));
+  data.forEach(function(d,i){
+    if(i%step===0||i===data.length-1){
+      var parts=d.date.split('-');
+      labels+='<text x="'+xScale(i).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle" font-size="9" fill="var(--tx3)">'+parts[2]+'/'+parts[1]+'</text>';
     }
+  });
+  // Previous period line
+  var path2='';
+  if(data2&&data2.length===data.length){
+    path2='<path d="'+data2.map(function(d,i){return (i===0?'M':'L')+xScale(i).toFixed(1)+','+yScale(d.val).toFixed(1);}).join(' ')+'" fill="none" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.7"/>';
+  }
+  return '<svg class="chart-svg" viewBox="0 0 '+W+' '+H+'" style="height:120px">'+
+    '<defs><linearGradient id="agrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2d7a4f" stop-opacity="0.18"/><stop offset="100%" stop-color="#2d7a4f" stop-opacity="0"/></linearGradient></defs>'+
+    '<path d="'+areaPath+'" fill="url(#agrad)"/>'+
+    path2+
+    '<path d="'+path+'" fill="none" stroke="#2d7a4f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+
+    data.map(function(d,i){return '<circle cx="'+xScale(i).toFixed(1)+'" cy="'+yScale(d.val).toFixed(1)+'" r="3" fill="#2d7a4f" opacity="'+(d.val>0?'1':'0')+'"/>';}).join('')+
+    '<g>'+labels+'</g>'+
+  '</svg>';
+}
+
+function renderMeta(){
+  var el=$('meta-body');
+  if(!el)return;
+  var range=getMetaRange(metaPeriod);
+  var myAll=orders.filter(function(o){return o.vendedorId===cu.id;});
+  var myCur=myAll.filter(function(o){return o.fv>=range.start&&o.fv<=range.end;});
+  var myPrev=range.prevStart?myAll.filter(function(o){return o.fv>=range.prevStart&&o.fv<=range.prevEnd;}):[];
+  var cur=calcMetrics(myCur);
+  var prev=calcMetrics(myPrev);
+
+  // Delta calculations
+  function delta(a,b){if(!b)return null;return Math.round((a-b)/b*100);}
+  var dCount=delta(cur.count,prev.count);
+  var dIngresos=delta(cur.ingresos,prev.ingresos);
+  function dHtml(d){
+    if(d===null)return '';
+    var arrow=d>=0?'↑':'↓';
+    var cls=d>=0?'up':'dn';
+    return '<div class="kpi-delta '+cls+'">'+arrow+' '+Math.abs(d)+'% vs periodo ant.</div>';
   }
 
-  // Days remaining in week
-  const now2=new Date();
-  const dayOfWeek=now2.getDay()||7;
-  const daysLeft=8-dayOfWeek;
+  // Chart data
+  var chartCur=buildChartData(myAll, range.start, range.end);
+  var chartPrev=range.prevStart?buildChartData(myAll, range.prevStart, range.prevEnd):null;
+  // Normalize prev to same length
+  if(chartPrev&&chartPrev.length!==chartCur.length)chartPrev=null;
 
+  // Weekly goal (always based on current week)
+  var wOrders=myAll.filter(function(o){return o.fv>=weekStart()&&o.estado!=='anulado';});
+  var ventasSemana=wOrders.length;
+  var sueldo=getSueldo(ventasSemana);
+  var next=getNextLevel(ventasSemana);
+  var maxTick=salaryScale[salaryScale.length-1]?.ventas||30;
+  var ticks=[0,...salaryScale.map(function(l){return l.ventas;})];
+  var pct=0;
+  if(ventasSemana>=maxTick){pct=100;}
+  else{for(var ti=1;ti<ticks.length;ti++){if(ventasSemana<=ticks[ti]){var segStart=ticks[ti-1],segEnd=ticks[ti];pct=(ti-1)/(ticks.length-1)*100+((ventasSemana-segStart)/(segEnd-segStart))/(ticks.length-1)*100;break;}}}
+
+  // Units breakdown for selected period
+  var byCant={};
+  myCur.filter(function(o){return o.estado!=='anulado';}).forEach(function(o){var q=o.totalCantidad||1;byCant[q]=(byCant[q]||0)+1;});
+  var unitRows=Object.entries(byCant).sort(function(a,b){return Number(a[0])-Number(b[0]);}).map(function(e){
+    var k=e[0],v=e[1];
+    return '<div class="dr"><span class="dl">'+v+' venta'+(v!==1?'s':'')+' de '+k+' unidad'+(k!=='1'?'es':'')+'</span><span class="dv" style="color:var(--accent)">'+(v*parseInt(k))+' un.</span></div>';
+  }).join('');
+
+  var n=new Date();
+  var dayOfWeek=n.getDay()||7;
+  var daysLeft=8-dayOfWeek;
+
+  var html='';
+
+  // KPI grid
+  html+='<div class="kpi-grid">'+
+    '<div class="kpi"><div class="kpi-lbl">Ingresos</div><div class="kpi-val">S/'+cur.ingresos.toFixed(0)+'</div>'+dHtml(dIngresos)+'</div>'+
+    '<div class="kpi"><div class="kpi-lbl">Pedidos</div><div class="kpi-val">'+cur.count+'</div>'+dHtml(dCount)+'</div>'+
+    '<div class="kpi"><div class="kpi-lbl">Unidades</div><div class="kpi-val">'+cur.unidades+'</div></div>'+
+    '<div class="kpi" style="background:var(--accent2);border-color:rgba(45,122,79,.2)"><div class="kpi-lbl" style="color:var(--accent)">Sueldo semana</div><div class="kpi-val" style="color:var(--accent)">S/'+sueldo+'</div><div style="font-size:10px;color:var(--accent);margin-top:2px">'+ventasSemana+' ventas / sem.</div></div>'+
+  '</div>';
+
+  // Line chart
+  html+='<div class="chart-wrap">'+
+    '<div class="chart-title">Evolución de ingresos (S/)  <span style="color:#93c5fd;font-size:9px">-- periodo anterior</span></div>'+
+    renderLineChart(chartCur, chartPrev)+
+  '</div>';
+
+  // Weekly progress bar
+  html+='<div class="meta-hero">'+
+    '<div class="meta-h">Meta semanal · '+daysLeft+' día'+(daysLeft!==1?'s':'')+' restante'+(daysLeft!==1?'s':'')+'</div>'+
+    '<div class="meta-n">'+ventasSemana+' ventas</div>'+
+    '<div class="meta-s">'+(next?'Faltan '+(next.ventas-ventasSemana)+' ventas para el siguiente nivel 🎯':'🏆 ¡Nivel máximo!')+'</div>'+
+    '<div class="meta-prog"><div class="meta-bar" style="width:'+pct.toFixed(1)+'%"></div></div>'+
+    '<div class="meta-ticks"><span>0</span>'+salaryScale.map(function(l){return '<span>'+l.ventas+'</span>';}).join('')+'</div>'+
+  '</div>';
+
+  // Scale
+  html+='<div class="card"><div class="section-label">Escala semanal</div>'+
+    salaryScale.map(function(l){
+      var cur2=ventasSemana>=l.ventas;
+      var isNext=next&&l.ventas===next.ventas;
+      return '<div class="meta-level'+(cur2&&!isNext?' cur':'')+(isNext?' style="border:1px dashed var(--accent)"':'')+'" style="'+(isNext?'border:1px dashed var(--accent)':'')+'">'+'<span style="font-size:12px;font-weight:'+(cur2?'700':'500')+';color:'+(cur2?'var(--accent)':'var(--tx2)')+'">'+l.ventas+' ventas'+(isNext?' ← próximo':cur2?' ← actual':'')+'</span><span style="font-size:13px;font-weight:700;color:'+(cur2?'var(--accent)':'var(--tx2)')+'">S/ '+l.sueldo+'</span></div>';
+    }).join('')+
+  '</div>';
+
+  // Units breakdown
+  if(unitRows){
+    html+='<div class="card"><div class="section-label">Detalle del período</div>'+
+      '<div class="dr"><span class="dl">Total pedidos</span><span class="dv green">'+cur.count+'</span></div>'+
+      unitRows+'</div>';
+  }
+
+  // Celebrate
   checkCelebration(ventasSemana);
-  el.innerHTML=`
-    <div class="meta-hero">
-      <div class="meta-h">Esta semana · ${daysLeft} día${daysLeft!==1?'s':''} restante${daysLeft!==1?'s':''}</div>
-      <div class="meta-n">${ventasSemana} ventas</div>
-      <div class="meta-s">${next?`Te falt${ventasSemana===next.ventas-1?'a 1 venta':'an '+(next.ventas-ventasSemana)+' ventas'} para el siguiente nivel 🎯`:'🏆 ¡Nivel máximo alcanzado!'}</div>
-      <div class="meta-prog"><div class="meta-bar" style="width:${pct}%"></div></div>
-      <div class="meta-ticks">
-        <span>0</span>${salaryScale.map(l=>`<span>${l.ventas}</span>`).join('')}
-      </div>
-    </div>
-    <div class="card">
-      <div class="section-label">Escala de comisiones · Semanal</div>
-      ${salaryScale.map(l=>{
-        const cur=ventasSemana>=l.ventas&&(!next||l.ventas===sueldo||l.ventas<=ventasSemana);
-        const isNext=next&&l.ventas===next.ventas;
-        return`<div class="meta-level ${cur&&!isNext?'cur':''}" style="${isNext?'border:1px dashed var(--accent);background:var(--bg2)':''}">
-          <span style="font-size:12px;font-weight:${cur?'700':'500'};color:${cur?'var(--accent)':'var(--tx2)'}">${l.ventas} ventas${isNext?' ← próximo':cur?' ← actual':''}</span>
-          <span style="font-size:13px;font-weight:700;color:${cur?'var(--accent)':'var(--tx2)'}">S/ ${l.sueldo}</span>
-        </div>`;
-      }).join('')}
-    </div>
-    <div class="card" style="border:1px solid rgba(45,122,79,0.3);background:var(--accent2)">
-      <div class="row">
-        <div>
-          <div style="font-size:11px;color:var(--tx2)">Sueldo proyectado esta semana</div>
-          <div style="font-size:26px;font-weight:800;color:var(--accent)">S/ ${sueldo>0?sueldo:'—'}</div>
-        </div>
-        <div style="text-align:right;font-size:11px;color:var(--tx2)">
-          ${sueldo>0?`Basado en<br><strong style="color:var(--accent)">${ventasSemana} ventas</strong>`:'Registra al menos<br><strong>10 ventas</strong>'}
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="section-label">Detalle de unidades vendidas</div>
-      <div class="dr"><span class="dl">Total ventas esta semana</span><span class="dv green">${ventasSemana}</span></div>
-      ${(()=>{
-        const byCant={};
-        myOrders.forEach(function(o){const q=o.totalCantidad||1;byCant[q]=(byCant[q]||0)+1;});
-        const rows=Object.entries(byCant).sort(function(a,b){return Number(a[0])-Number(b[0]);}).map(function(e){
-          const k=e[0],v=e[1];
-          return '<div class="dr"><span class="dl">'+v+' venta'+(v!==1?'s':'')+' de '+k+' unidad'+(k!=='1'?'es':'')+'</span><span class="dv" style="color:var(--accent)">'+(v*parseInt(k))+' un. total</span></div>';
-        });
-        return rows.join('');
-      })()}
-    </div>`;
+  el.innerHTML=html;
 }
+
 
 // ═══ RESUMEN (admin/super) ═══
 function getCostoReal(o){
@@ -1592,6 +1760,57 @@ async function saveFCMToken(){
 function logout(){if(!confirm('¿Cerrar sesión?'))return;listeners.forEach(u=>u());auth.signOut();showSc('sc-login');}
 
 // ═══ OVERLAYS ═══
+function openEditOrder(id){
+  var o=orders.find(function(x){return x.id===id;});
+  if(!o)return;
+  closeOv('ov-detalle');
+  document.getElementById('eo-order-id').value=id;
+  document.getElementById('eo-cliente').value=o.cliente||'';
+  document.getElementById('eo-celular').value=o.celular||'';
+  document.getElementById('eo-cobrar').value=o.cobrar||'';
+  document.getElementById('eo-zona').value=o.zona||'Lima';
+  document.getElementById('eo-ciudad').value=o.ciudad||'';
+  document.getElementById('eo-fecha').value=o.fechaVenta||new Date().toISOString().split('T')[0];
+  // Populate products
+  var sel=document.getElementById('eo-producto');
+  sel.innerHTML='<option value="">Selecciona...</option>'+(cfg.productos||[]).map(function(p){
+    return '<option value="'+p.nombre+'"'+(p.nombre===o.producto?' selected':'')+'>'+p.nombre+'</option>';
+  }).join('');
+  document.getElementById('eo-err').style.display='none';
+  openOv('ov-edit-order');
+}
+
+document.getElementById('btn-edit-order').onclick=async function(){
+  var id=document.getElementById('eo-order-id').value;
+  var err=document.getElementById('eo-err');
+  err.style.display='none';
+  var cliente=(document.getElementById('eo-cliente').value||'').trim();
+  var celular=(document.getElementById('eo-celular').value||'').trim();
+  var cobrar=parseFloat(document.getElementById('eo-cobrar').value)||0;
+  var producto=document.getElementById('eo-producto').value;
+  var zona=document.getElementById('eo-zona').value||'Lima';
+  var ciudad=(document.getElementById('eo-ciudad').value||'').trim();
+  var fechaVenta=document.getElementById('eo-fecha').value||new Date().toISOString().split('T')[0];
+  if(!cliente||!celular||!cobrar){err.textContent='Completa cliente, celular y monto.';err.style.display='block';return;}
+  var parts=fechaVenta.split('-');
+  var fechaMs=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]),12,0,0).getTime();
+  var btn=document.getElementById('btn-edit-order');
+  btn.disabled=true;btn.textContent='Guardando...';
+  try{
+    await db.collection('orders').doc(id).update({
+      cliente:cliente, celular:celular, cobrar:cobrar,
+      producto:producto, zona:zona, ciudad:ciudad,
+      fechaVenta:fechaVenta, fechaMs:fechaMs
+    });
+    closeOv('ov-edit-order');
+    toast('✓ Pedido actualizado');
+  }catch(e){
+    err.textContent='Error: '+e.message;err.style.display='block';
+  }finally{
+    btn.disabled=false;btn.textContent='Guardar cambios';
+  }
+};
+
 async function deleteOrder(id){
   if(!confirm('¿Eliminar esta venta permanentemente?\nEsta acción no se puede deshacer.'))return;
   try{
