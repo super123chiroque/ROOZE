@@ -204,7 +204,10 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
     <div class="tb">
       <div class="row">
         <div><h2 id="ventas-title">Mis Ventas</h2><div class="tb-sub" id="ventas-sub">Cargando...</div></div>
-        <div class="av" id="ventas-av"></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button onclick="logout()" style="padding:6px 12px;border-radius:8px;background:#fee2e2;color:#991b1b;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fs)">Salir</button>
+          <div class="av" id="ventas-av"></div>
+        </div>
       </div>
     </div>
     <div style="background:var(--bg);border-bottom:0.5px solid var(--bo);flex-shrink:0">
@@ -1442,7 +1445,11 @@ async function saveFCMToken(){
       const reg=await navigator.serviceWorker.ready;
       const msg=firebase.messaging();
       const token=await msg.getToken({vapidKey:VAPID,serviceWorkerRegistration:reg});
-      if(token)await db.collection('users').doc(cu.id).update({fcmToken:token});
+      if(token){
+        // Save as fcmTokenVentas so it doesn't overwrite fcmToken from stock app
+        await db.collection('users').doc(cu.id).update({fcmTokenVentas:token});
+        console.log('FCM token ventas saved');
+      }
     }
   }catch(e){console.log('FCM:',e.message);}
 }
