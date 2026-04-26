@@ -556,9 +556,18 @@ function startListeners(){
     orders=snap.docs.map(d=>{
       const dat=d.data();
       const regTs=dat.timestamp?.toMillis()||Date.now();
-      // fv = fecha de venta elegida por vendedor (para filtros)
-      // ts = fecha de registro real (para mostrar "hace X tiempo")
-      const fv=dat.fechaMs||regTs;
+      // fv = fecha de venta (for all date filters)
+      // Priority: fechaVenta string > fechaMs number > registration timestamp
+      let fv=regTs;
+      if(dat.fechaVenta){
+        // Parse date string as local noon to avoid timezone boundary issues
+        const parts=dat.fechaVenta.split('-');
+        if(parts.length===3){
+          fv=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]),12,0,0).getTime();
+        }
+      } else if(dat.fechaMs&&dat.fechaMs>0){
+        fv=dat.fechaMs;
+      }
       return{id:d.id,...dat,ts:regTs,fv:fv};
     });
     if(curTab==='ventas')renderVentas();
@@ -572,25 +581,37 @@ function startListeners(){
 
 // ═══ DATES ═══
 function weekStart(){
-  const n=new Date(),d=new Date(n);
-  const day=d.getDay()||7;d.setDate(d.getDate()-(day-1));
-  return new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();
+  const n=new Date();
+  const day=n.getDay()||7;
+  const monday=new Date(n.getFullYear(),n.getMonth(),n.getDate()-(day-1),0,0,0);
+  return monday.getTime();
+}
+function dayStart(y,m,d){
+  // Local midnight - safe for date comparisons since fv uses local noon
+  return new Date(y,m,d,0,0,0).getTime();
+}
+function dayEnd(y,m,d){
+  // End of local day
+  return new Date(y,m,d,23,59,59,999).getTime();
 }
 function periodStart(p){
   const n=new Date();
-  if(p==='today')return new Date(n.getFullYear(),n.getMonth(),n.getDate()).getTime();
-  if(p==='yesterday')return new Date(n.getFullYear(),n.getMonth(),n.getDate()-1).getTime();
+  const Y=n.getFullYear(),M=n.getMonth(),D=n.getDate();
+  if(p==='today')return dayStart(Y,M,D);
+  if(p==='yesterday')return dayStart(Y,M,D-1);
   if(p==='week')return weekStart();
-  if(p==='month')return new Date(n.getFullYear(),n.getMonth(),1).getTime();
-  if(p==='30days'){const d=new Date(n);d.setDate(d.getDate()-30);return d.getTime();}
+  if(p==='month')return dayStart(Y,M,1);
+  if(p==='30days')return dayStart(Y,M,D-30);
+  if(p==='15days')return dayStart(Y,M,D-15);
   if(p==='custom')return resCustomFrom;
   return 0;
 }
 function periodEnd(p){
   const n=new Date();
-  if(p==='yesterday')return new Date(n.getFullYear(),n.getMonth(),n.getDate()).getTime()-1;
+  const Y=n.getFullYear(),M=n.getMonth(),D=n.getDate();
+  if(p==='yesterday')return dayEnd(Y,M,D-1);
   if(p==='custom')return resCustomTo;
-  return Date.now();
+  return dayEnd(Y,M,D); // end of today, not "right now"
 }
 function formatFecha(f){
   if(!f)return'';
@@ -688,14 +709,15 @@ function applyVentasDate(){
 
 function getVentasDateRange(){
   const n=new Date();
-  if(ventasDatePeriod==='all')return{start:0,end:Date.now()};
-  if(ventasDatePeriod==='today'){const s=new Date(n.getFullYear(),n.getMonth(),n.getDate()).getTime();return{start:s,end:Date.now()};}
-  if(ventasDatePeriod==='yesterday'){const s=new Date(n.getFullYear(),n.getMonth(),n.getDate()-1).getTime();return{start:s,end:s+86399999};}
-  if(ventasDatePeriod==='week')return{start:weekStart(),end:Date.now()};
-  if(ventasDatePeriod==='15days'){const d=new Date(n);d.setDate(d.getDate()-15);return{start:d.getTime(),end:Date.now()};}
-  if(ventasDatePeriod==='month'){const s=new Date(n.getFullYear(),n.getMonth(),1).getTime();return{start:s,end:Date.now()};}
+  const Y=n.getFullYear(),M=n.getMonth(),D=n.getDate();
+  if(ventasDatePeriod==='all')return{start:0,end:dayEnd(Y,M,D)};
+  if(ventasDatePeriod==='today')return{start:dayStart(Y,M,D),end:dayEnd(Y,M,D)};
+  if(ventasDatePeriod==='yesterday')return{start:dayStart(Y,M,D-1),end:dayEnd(Y,M,D-1)};
+  if(ventasDatePeriod==='week')return{start:weekStart(),end:dayEnd(Y,M,D)};
+  if(ventasDatePeriod==='15days')return{start:dayStart(Y,M,D-15),end:dayEnd(Y,M,D)};
+  if(ventasDatePeriod==='month')return{start:dayStart(Y,M,1),end:dayEnd(Y,M,D)};
   if(ventasDatePeriod==='custom')return{start:ventasDateFrom,end:ventasDateTo};
-  return{start:0,end:Date.now()};
+  return{start:0,end:dayEnd(Y,M,D)};
 }
 
 // Close dropdown on outside click
@@ -1073,7 +1095,7 @@ function getCostoReal(o){
 function renderResumen(){
   var el=$('resumen-body');
   var start=periodStart(resPeriod),end2=periodEnd(resPeriod);
-  var allPeriod=orders.filter(function(o){return o.fv>=start&&o.fv<=end2;});
+  var allPeriod=orders.filter(function(o){var t=o.fv||o.fechaMs||o.ts;return t>=start&&t<=end2;});
   var filtered=allPeriod.filter(function(o){return o.estado!=='anulado';});
   var totalCobrado=filtered.reduce(function(s,o){return s+(o.cobrar||0);},0);
 
@@ -1237,7 +1259,7 @@ function renderHistorial(){
     if(histPeriod==='custom'){start=histCustomFrom;end=histCustomTo;}
     else{start=periodStart(histPeriod);end=periodEnd(histPeriod);}
   }
-  let filtered=histPeriod==='all'?[...source]:source.filter(o=>o.fv>=start&&o.fv<=end);
+  let filtered=histPeriod==='all'?[...source]:source.filter(o=>{var t=o.fv||o.fechaMs||o.ts;return t>=start&&t<=end;});
   filtered.sort((a,b)=>b.fv-a.fv);
   if(!filtered.length){el.innerHTML=`<div class="empty"><div style="font-size:32px;margin-bottom:8px">📋</div><p>Sin ventas en este período</p></div>`;return;}
   el.innerHTML=filtered.map(o=>`
@@ -1306,7 +1328,7 @@ async function renderConfig(){
       </div>
       <div class="dr">
         <span class="dl">Provincia</span>
-        <input type="number" value="${cfg.deliveryCostos?.Provincia||20}" id="cost-prov" style="width:80px;padding:6px 8px;border:0.5px solid var(--bo2);border-radius:6px;background:var(--bg2);color:var(--tx);font-family:var(--fs);font-size:13px;text-align:right">
+        <input type="number" value="${cfg.deliveryCostos?.Provincia||0}" id="cost-prov" style="width:80px;padding:6px 8px;border:0.5px solid var(--bo2);border-radius:6px;background:var(--bg2);color:var(--tx);font-family:var(--fs);font-size:13px;text-align:right">
       </div>
       <button class="btn" style="margin-top:10px" onclick="saveDelivery()">Guardar costos</button>
     </div>
@@ -1413,57 +1435,67 @@ async function saveDelivery(){
   var limaEl=document.getElementById('cost-lima');
   var provEl=document.getElementById('cost-prov');
   if(!limaEl||!provEl){toast('Error: campos no encontrados');return;}
-  var Lima=parseFloat(limaEl.value);
-  var Provincia=parseFloat(provEl.value);
-  if(isNaN(Lima)||Lima<=0)Lima=10;
-  if(isNaN(Provincia)||Provincia<=0)Provincia=20;
+  // Read raw values - allow any number including 0
+  var limaVal=limaEl.value.trim();
+  var provVal=provEl.value.trim();
+  var Lima=limaVal===''?10:Number(limaVal);
+  var Provincia=provVal===''?0:Number(provVal);
+  if(isNaN(Lima))Lima=10;
+  if(isNaN(Provincia))Provincia=0;
+  // Save both fields explicitly
+  var costoData={Lima:Lima, Provincia:Provincia};
   try{
-    // Use update with dot notation to ensure correct field saving
-    await db.collection('config').doc('ventas').update({
-      'deliveryCostos.Lima': Lima,
-      'deliveryCostos.Provincia': Provincia
-    });
-    cfg.deliveryCostos={Lima:Lima,Provincia:Provincia};
-    toast('✓ Lima S/'+Lima+' · Provincia S/'+Provincia+' guardados');
-    // Re-render config to confirm saved values
-    renderConfig();
+    // Write complete deliveryCostos object - no dot notation, no merge issues
+    await db.collection('config').doc('ventas').set(
+      {deliveryCostos: costoData},
+      {merge: true}
+    );
+    // Update local cfg immediately
+    cfg.deliveryCostos=costoData;
+    toast('✅ Guardado: Lima S/'+Lima+' · Provincia S/'+Provincia);
+    // Update inputs directly without re-rendering whole page
+    limaEl.value=Lima;
+    provEl.value=Provincia;
   }catch(e){
-    // If update fails (doc doesn't exist), use set
-    try{
-      await db.collection('config').doc('ventas').set({deliveryCostos:{Lima:Lima,Provincia:Provincia}},{merge:true});
-      cfg.deliveryCostos={Lima:Lima,Provincia:Provincia};
-      toast('✓ Lima S/'+Lima+' · Provincia S/'+Provincia+' guardados');
-      renderConfig();
-    }catch(e2){toast('Error al guardar: '+e2.message);}
+    toast('❌ Error: '+e.message);
+    console.error('saveDelivery error:',e);
   }
 }
 
 // ═══ PERIOD FILTERS ═══
+function closeAllDrops(except){
+  document.querySelectorAll('.drop-menu').forEach(function(d){
+    if(d.id!==except){d.classList.remove('open');d.style.display='';}
+  });
+}
 function toggleDrop(id){
-  document.querySelectorAll('.drop-menu').forEach(d=>{if(d.id!==id)d.classList.remove('open');});
-  const menu=$(id);
-  if(!menu.classList.contains('open')){
-    // Position below the topbar
-    const tb=menu.closest('.tb')||menu.parentElement.closest('.tb');
-    if(tb){
-      const rect=tb.getBoundingClientRect();
-      menu.style.top=(rect.bottom+4)+'px';
-    }
+  closeAllDrops(id);
+  var menu=document.getElementById(id);
+  if(!menu)return;
+  // Clear any inline style that might conflict with CSS
+  menu.style.display='';
+  var isOpen=menu.classList.contains('open');
+  if(!isOpen){
+    var tb=menu.closest('.tb')||menu.parentElement.closest('.tb');
+    if(tb){var rect=tb.getBoundingClientRect();menu.style.top=(rect.bottom+4)+'px';}
   }
   menu.classList.toggle('open');
 }
-document.addEventListener('click',e=>{
-  if(!e.target.closest('.drop-wrap'))document.querySelectorAll('.drop-menu').forEach(d=>d.classList.remove('open'));
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.drop-wrap')&&!e.target.closest('.drop-menu')){
+    closeAllDrops(null);
+  }
 });
 
 function setResPeriod(p,label,el){
   resPeriod=p;
-  $(id='res-drop').classList.remove('open');
-  document.querySelectorAll('#res-drop .di').forEach(b=>b.classList.remove('on'));
-  el.classList.add('on');
-  $('res-sub').textContent=label;
-  $('res-custom').style.display=p==='custom'?'flex':'none';
-  $('res-custom').className=p==='custom'?'custom-date open':'custom-date';
+  var rd=document.getElementById('res-drop');
+  if(rd){rd.classList.remove('open');rd.style.display='';}
+  document.querySelectorAll('#res-drop .di').forEach(function(b){b.classList.remove('on');});
+  if(el)el.classList.add('on');
+  var rs=$('res-sub');if(rs)rs.textContent=label;
+  var rc=$('res-custom');
+  if(rc)rc.style.display=p==='custom'?'flex':'none';
   if(p!=='custom')renderResumen();
 }
 
@@ -1484,7 +1516,8 @@ function getVendedoresList(){
 
 function setHistVend(v,el){
   histVendedor=v;
-  document.getElementById('vend-drop').style.display='none';
+  var drop=document.getElementById('vend-drop');
+  if(drop){drop.classList.remove('open');drop.style.display='';}
   document.querySelectorAll('#vend-drop .di').forEach(function(d){d.classList.remove('on');});
   if(el)el.classList.add('on');
   renderHistorial();
@@ -1524,12 +1557,12 @@ function updateVendedoresList(){
 function setHistPeriod(p,label,el){
   histPeriod=p;
   var drop=document.getElementById('hist-drop');
-  if(drop)drop.style.display='none';
+  if(drop){drop.classList.remove('open');drop.style.display='';}
   document.querySelectorAll('#hist-drop .di').forEach(function(b){b.classList.remove('on');});
   if(el)el.classList.add('on');
   var cd=document.getElementById('hist-custom');
-  if(cd){cd.style.display=p==='custom'?'flex':'none';cd.className=p==='custom'?'custom-date open':'custom-date';}
-  if(p!=='custom')renderHistorial(); // keeps histVendedor state
+  if(cd){cd.style.display=p==='custom'?'flex':'none';}
+  if(p!=='custom')renderHistorial();
 }
 
 function applyCustomHist(){
