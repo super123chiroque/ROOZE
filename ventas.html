@@ -207,12 +207,35 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
         <div class="av" id="ventas-av"></div>
       </div>
     </div>
-    <div style="display:flex;gap:6px;padding:8px 14px;background:var(--bg);border-bottom:0.5px solid var(--bo);overflow-x:auto;flex-shrink:0;scrollbar-width:none">
-      <button id="f-all" onclick="setFilt('all')" style="cursor:pointer;font-weight:700;background:var(--accent);color:var(--accent-tx);border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--fs);flex-shrink:0">Todos</button>
-      <button id="f-pend" onclick="setFilt('pendiente')" style="cursor:pointer;font-weight:600;background:#fef3c7;color:#92400e;border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--fs);flex-shrink:0">Pendiente</button>
-      <button id="f-env" onclick="setFilt('enviado')" style="cursor:pointer;font-weight:600;background:#dbeafe;color:#1e40af;border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--fs);flex-shrink:0">Enviado</button>
-      <button id="f-ent" onclick="setFilt('entregado')" style="cursor:pointer;font-weight:600;background:#dcfce7;color:#166534;border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--fs);flex-shrink:0">Entregado</button>
-      <button id="f-anul" onclick="setFilt('anulado')" style="cursor:pointer;font-weight:600;background:#fee2e2;color:#991b1b;border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--fs);flex-shrink:0">Anulado</button>
+    <div style="background:var(--bg);border-bottom:0.5px solid var(--bo);flex-shrink:0">
+      <div style="display:flex;gap:6px;padding:8px 14px;overflow-x:auto;scrollbar-width:none;align-items:center">
+        <!-- Date dropdown -->
+        <div style="position:relative;flex-shrink:0">
+          <button id="f-date-btn" onclick="toggleVentasDrop()" style="cursor:pointer;font-weight:700;background:var(--accent);color:var(--accent-tx);border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--fs);display:flex;align-items:center;gap:4px">
+            <span id="f-date-label">Todos</span> <span style="font-size:9px">▼</span>
+          </button>
+          <div id="ventas-drop" style="display:none;position:fixed;left:14px;right:14px;background:var(--bg);border:0.5px solid var(--bo2);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.15);z-index:300;overflow:hidden">
+            <div onclick="setVentasDate('all','Todos',this)" style="padding:13px 18px;font-size:14px;border-bottom:0.5px solid var(--bo);cursor:pointer;background:#b2d1c1;color:#1a4a30;font-weight:600">Todos</div>
+            <div onclick="setVentasDate('today','Hoy',this)" style="padding:13px 18px;font-size:14px;border-bottom:0.5px solid var(--bo);cursor:pointer;color:var(--tx)">Hoy</div>
+            <div onclick="setVentasDate('yesterday','Ayer',this)" style="padding:13px 18px;font-size:14px;border-bottom:0.5px solid var(--bo);cursor:pointer;color:var(--tx)">Ayer</div>
+            <div onclick="setVentasDate('week','Esta semana',this)" style="padding:13px 18px;font-size:14px;border-bottom:0.5px solid var(--bo);cursor:pointer;color:var(--tx)">Esta semana</div>
+            <div onclick="setVentasDate('15days','Últimos 15 días',this)" style="padding:13px 18px;font-size:14px;border-bottom:0.5px solid var(--bo);cursor:pointer;color:var(--tx)">Últimos 15 días</div>
+            <div onclick="setVentasDate('month','Este mes',this)" style="padding:13px 18px;font-size:14px;border-bottom:0.5px solid var(--bo);cursor:pointer;color:var(--tx)">Este mes</div>
+            <div onclick="setVentasDate('custom','Personalizado',this)" style="padding:13px 18px;font-size:14px;cursor:pointer;color:var(--tx)">Personalizado</div>
+          </div>
+        </div>
+        <!-- Status filters -->
+        <button id="f-all" onclick="setFilt('all')" style="cursor:pointer;font-weight:700;background:var(--bg2);color:var(--tx2);border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--fs);flex-shrink:0;opacity:0.5">Estado</button>
+        <button id="f-pend" onclick="setFilt('pendiente')" style="cursor:pointer;font-weight:600;background:#fef3c7;color:#92400e;border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--fs);flex-shrink:0">Pendiente</button>
+        <button id="f-env" onclick="setFilt('enviado')" style="cursor:pointer;font-weight:600;background:#dbeafe;color:#1e40af;border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--fs);flex-shrink:0">Enviado</button>
+        <button id="f-ent" onclick="setFilt('entregado')" style="cursor:pointer;font-weight:600;background:#dcfce7;color:#166534;border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--fs);flex-shrink:0">Entregado</button>
+        <button id="f-anul" onclick="setFilt('anulado')" style="cursor:pointer;font-weight:600;background:#fee2e2;color:#991b1b;border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-family:var(--fs);flex-shrink:0">Anulado</button>
+      </div>
+      <div id="ventas-custom-date" style="display:none;padding:0 14px 8px;gap:8px;flex-direction:row">
+        <input type="date" id="vd-from" style="flex:1;padding:7px;border:0.5px solid var(--bo2);border-radius:8px;background:var(--bg2);color:var(--tx);font-family:var(--fs);font-size:12px">
+        <input type="date" id="vd-to" style="flex:1;padding:7px;border:0.5px solid var(--bo2);border-radius:8px;background:var(--bg2);color:var(--tx);font-family:var(--fs);font-size:12px">
+        <button onclick="applyVentasDate()" style="padding:7px 12px;background:var(--accent);color:var(--accent-tx);border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fs)">Ver</button>
+      </div>
     </div>
     <div class="body" id="ventas-list"><div class="spin"></div></div>
     <button class="fab" onclick="openNueva()">+</button>
@@ -256,7 +279,7 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
   <div id="tab-historial" style="display:none;flex-direction:column;flex:1;overflow:hidden">
     <div class="tb">
       <div class="row">
-        <div><h2>Historial</h2><div class="tb-sub">Todos los pedidos</div></div>
+        <div><h2>Historial</h2><div class="tb-sub" id="hist-sub-label">Mis ventas</div></div>
         <div class="drop-wrap">
           <button class="drop-btn" onclick="toggleDrop('hist-drop')">Filtrar <span style="font-size:10px">▼</span></button>
           <div class="drop-menu" id="hist-drop">
@@ -277,6 +300,10 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
           <button class="btn" style="width:auto;padding:8px 14px;font-size:13px" onclick="applyCustomHist()">Ver</button>
         </div>
       </div>
+    </div>
+    <!-- Stats charts for vendedor -->
+    <div id="hist-stats" style="display:none;flex-shrink:0;background:var(--bg);border-bottom:0.5px solid var(--bo);padding:12px 14px">
+      <div id="hist-stats-content"></div>
     </div>
     <div class="body" id="hist-list"><div class="spin"></div></div>
   </div>
@@ -356,9 +383,20 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
   <div class="sheet">
     <div class="sh"></div>
     <h3 id="prod-title">Agregar producto</h3>
-    <div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;flex-direction:column;gap:10px">
       <div class="fld"><label>Nombre del modelo</label><input id="prod-nombre" placeholder="Ej: Kennedy Miel T.41"></div>
       <div class="fld"><label>Costo del producto (S/)</label><input id="prod-costo" type="number" step="0.50" placeholder="0.00"></div>
+      <div style="background:var(--bg2);border-radius:10px;padding:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Precios por cantidad (S/)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;color:var(--tx3)">× 1 unid.</label><input type="number" id="prod-p1" step="0.50" placeholder="0.00" style="padding:7px 8px;border:0.5px solid var(--bo2);border-radius:7px;background:var(--bg);color:var(--tx);font-size:13px;font-family:var(--fs)"></div>
+          <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;color:var(--tx3)">× 2 unid.</label><input type="number" id="prod-p2" step="0.50" placeholder="0.00" style="padding:7px 8px;border:0.5px solid var(--bo2);border-radius:7px;background:var(--bg);color:var(--tx);font-size:13px;font-family:var(--fs)"></div>
+          <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;color:var(--tx3)">× 3 unid.</label><input type="number" id="prod-p3" step="0.50" placeholder="0.00" style="padding:7px 8px;border:0.5px solid var(--bo2);border-radius:7px;background:var(--bg);color:var(--tx);font-size:13px;font-family:var(--fs)"></div>
+          <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;color:var(--tx3)">× 4 unid.</label><input type="number" id="prod-p4" step="0.50" placeholder="0.00" style="padding:7px 8px;border:0.5px solid var(--bo2);border-radius:7px;background:var(--bg);color:var(--tx);font-size:13px;font-family:var(--fs)"></div>
+          <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;color:var(--tx3)">× 5 unid.</label><input type="number" id="prod-p5" step="0.50" placeholder="0.00" style="padding:7px 8px;border:0.5px solid var(--bo2);border-radius:7px;background:var(--bg);color:var(--tx);font-size:13px;font-family:var(--fs)"></div>
+          <div style="display:flex;flex-direction:column;gap:3px"><label style="font-size:10px;color:var(--tx3)">× 6 unid.</label><input type="number" id="prod-p6" step="0.50" placeholder="0.00" style="padding:7px 8px;border:0.5px solid var(--bo2);border-radius:7px;background:var(--bg);color:var(--tx);font-size:13px;font-family:var(--fs)"></div>
+        </div>
+      </div>
       <div class="err" id="prod-err"></div>
       <button class="btn" id="btn-prod">Guardar</button>
       <button class="btn gray" onclick="closeOv('ov-prod')">Cancelar</button>
@@ -566,9 +604,12 @@ function renderVentas(){
   $('ventas-title').textContent=isAdmin()?'Todas las ventas':'Mis ventas';
   $('ventas-sub').textContent=cu?.name||'';
   const filtered=orders.filter(o=>curFilt==='all'||o.estado===curFilt);
-  // Sort by ts descending client-side as backup
-  filtered.sort((a,b)=>b.ts-a.ts);
-  if(!filtered.length){el.innerHTML=`<div class="empty"><div style="font-size:32px;margin-bottom:8px">📋</div><p>Sin ventas ${curFilt==='all'?'':'con estado '+statusLabel(curFilt)}</p></div>`;return;}
+  // Apply date filter
+  const {start:vStart,end:vEnd}=getVentasDateRange();
+  let filteredByDate=filtered.filter(o=>ventasDatePeriod==='all'||(o.ts>=vStart&&o.ts<=vEnd));
+  filteredByDate.sort((a,b)=>b.ts-a.ts);
+  if(!filteredByDate.length){el.innerHTML=`<div class="empty"><div style="font-size:32px;margin-bottom:8px">📋</div><p>Sin ventas ${curFilt==='all'?'':'con estado '+statusLabel(curFilt)}</p></div>`;return;}
+  filtered=filteredByDate;
   el.innerHTML=filtered.map(o=>`
     <div class="card" onclick="openDetalle('${o.id}')" style="cursor:pointer">
       <div class="row">
@@ -590,6 +631,59 @@ function renderVentas(){
       </div>
     </div>`).join('');
 }
+
+// Ventas date filter
+let ventasDatePeriod='all', ventasDateFrom=0, ventasDateTo=Date.now();
+
+function toggleVentasDrop(){
+  const d=document.getElementById('ventas-drop');
+  if(!d)return;
+  if(d.style.display==='none'){
+    const btn=document.getElementById('f-date-btn');
+    if(btn){const r=btn.getBoundingClientRect();d.style.top=(r.bottom+4)+'px';}
+    d.style.display='block';
+  } else {d.style.display='none';}
+}
+
+function setVentasDate(p,label,el){
+  ventasDatePeriod=p;
+  document.getElementById('ventas-drop').style.display='none';
+  document.getElementById('f-date-label').textContent=label;
+  // Highlight selected
+  document.querySelectorAll('#ventas-drop div').forEach(d=>{d.style.background='';d.style.color='var(--tx)';d.style.fontWeight='400';});
+  if(el){el.style.background='#b2d1c1';el.style.color='#1a4a30';el.style.fontWeight='600';}
+  const cd=document.getElementById('ventas-custom-date');
+  if(cd)cd.style.display=p==='custom'?'flex':'none';
+  if(p!=='custom')renderVentas();
+}
+
+function applyVentasDate(){
+  const f=document.getElementById('vd-from').value;
+  const t=document.getElementById('vd-to').value;
+  if(!f||!t){toast('Selecciona fecha inicio y fin');return;}
+  ventasDateFrom=new Date(f).getTime();
+  ventasDateTo=new Date(t).getTime()+86399999;
+  renderVentas();
+}
+
+function getVentasDateRange(){
+  const n=new Date();
+  if(ventasDatePeriod==='all')return{start:0,end:Date.now()};
+  if(ventasDatePeriod==='today'){const s=new Date(n.getFullYear(),n.getMonth(),n.getDate()).getTime();return{start:s,end:Date.now()};}
+  if(ventasDatePeriod==='yesterday'){const s=new Date(n.getFullYear(),n.getMonth(),n.getDate()-1).getTime();return{start:s,end:s+86399999};}
+  if(ventasDatePeriod==='week')return{start:weekStart(),end:Date.now()};
+  if(ventasDatePeriod==='15days'){const d=new Date(n);d.setDate(d.getDate()-15);return{start:d.getTime(),end:Date.now()};}
+  if(ventasDatePeriod==='month'){const s=new Date(n.getFullYear(),n.getMonth(),1).getTime();return{start:s,end:Date.now()};}
+  if(ventasDatePeriod==='custom')return{start:ventasDateFrom,end:ventasDateTo};
+  return{start:0,end:Date.now()};
+}
+
+// Close dropdown on outside click
+document.addEventListener('click',function(e){
+  const d=document.getElementById('ventas-drop');
+  const btn=document.getElementById('f-date-btn');
+  if(d&&btn&&!d.contains(e.target)&&!btn.contains(e.target))d.style.display='none';
+});
 
 const FILT_COLORS={
   all:{bg:'var(--accent)',tx:'var(--accent-tx)'},
@@ -684,25 +778,37 @@ function openDetalle(id){
 let prodLineCount=0;
 function addProductLine(){
   prodLineCount++;
-  const id='pl-'+prodLineCount;
+  const lineId='pl-'+prodLineCount;
   const div=document.createElement('div');
-  div.id=id;
-  div.style.cssText='display:flex;gap:6px;align-items:center';
-  const opts=(cfg.productos||[]).map(p=>`<option value="${p.nombre}">${p.nombre}</option>`).join('');
-  div.innerHTML=`
-    <select style="flex:2;padding:9px 10px;border:0.5px solid var(--bo2);border-radius:8px;background:var(--bg2);color:var(--tx);font-family:var(--fs);font-size:13px">
-      <option value="">Producto...</option>${opts}
-    </select>
-    <input type="number" min="1" value="1" placeholder="Cant." style="width:60px;padding:9px 8px;border:0.5px solid var(--bo2);border-radius:8px;background:var(--bg2);color:var(--tx);font-family:var(--fs);font-size:13px;text-align:center">
-    ${prodLineCount>1?`<button onclick="document.getElementById('${id}').remove()" style="padding:8px;border:none;background:#fee2e2;color:#991b1b;border-radius:8px;cursor:pointer;font-size:14px;flex-shrink:0">✕</button>`:''}
-  `;
-  $('nv-productos-list').appendChild(div);
+  div.id=lineId;
+  div.style.cssText='display:flex;gap:6px;align-items:center;margin-bottom:4px';
+  const opts=(cfg.productos||[]).map(function(p){return '<option value="'+p.nombre+'">'+p.nombre+'</option>';}).join('');
+  const sel=document.createElement('select');
+  sel.style.cssText='flex:2;padding:9px 10px;border:0.5px solid rgba(0,0,0,0.12);border-radius:8px;background:#f5f5f4;color:#1a1a1a;font-family:var(--fs);font-size:13px';
+  sel.innerHTML='<option value="">Selecciona producto...</option>'+opts;
+  const inp=document.createElement('input');
+  inp.type='number';inp.min='1';inp.value='1';
+  inp.style.cssText='width:60px;padding:9px 8px;border:0.5px solid rgba(0,0,0,0.12);border-radius:8px;background:#f5f5f4;color:#1a1a1a;font-family:var(--fs);font-size:13px;text-align:center';
+  div.appendChild(sel);
+  div.appendChild(inp);
+  if(prodLineCount>1){
+    const btn=document.createElement('button');
+    btn.textContent='✕';
+    btn.style.cssText='padding:8px;border:none;background:#fee2e2;color:#991b1b;border-radius:8px;cursor:pointer;font-size:14px;flex-shrink:0';
+    btn.onclick=function(){div.remove();};
+    div.appendChild(btn);
+  }
+  var list=$('nv-productos-list');
+  if(list)list.appendChild(div);
 }
 function getProductLines(){
-  const lines=[];
-  $('nv-productos-list').querySelectorAll('div[id^="pl-"]').forEach(div=>{
-    const sel=div.querySelector('select');
-    const inp=div.querySelector('input[type="number"]');
+  var lines=[];
+  var list=$('nv-productos-list');
+  if(!list)return lines;
+  var divs=list.querySelectorAll('div[id^="pl-"]');
+  divs.forEach(function(div){
+    var sel=div.querySelector('select');
+    var inp=div.querySelector('input[type="number"]');
     if(sel&&sel.value&&inp){
       lines.push({nombre:sel.value,cantidad:parseInt(inp.value)||1});
     }
@@ -720,9 +826,6 @@ function openNueva(){
   newStatus='pendiente';
   document.querySelectorAll('.sopt').forEach(b=>b.classList.remove('on'));
   document.querySelector('.sopt.pend').classList.add('on');
-  // Populate products
-  const sel=$('nv-producto');
-  sel.innerHTML='<option value="">Seleccionar producto...</option>'+(cfg.productos||[]).map(p=>`<option value="${p.nombre}">${p.nombre}</option>`).join('');
   $('nv-err').style.display='none';
   // Default date = today
   const hoy=new Date();
@@ -739,39 +842,54 @@ function selectStatus(s,el){
 
 function updateDelivery(){}
 
-$('btn-nueva').onclick=async()=>{
-  const err=$('nv-err');err.style.display='none';
-  try{
-  const cliente=$('nv-cliente').value.trim(),celular=$('nv-celular').value.trim();
+$('btn-nueva').onclick=async function(){
+  const err=$('nv-err');
+  err.style.display='none';
+  const btn=$('btn-nueva');
+  const cliente=($('nv-cliente').value||'').trim();
+  const celular=($('nv-celular').value||'').trim();
   const cobrar=parseFloat($('nv-cobrar').value)||0;
-  const zona=$('nv-zona').value||'Lima';
-  const ciudad=$('nv-ciudad').value.trim();
-  const productLines=getProductLines();
-  if(!cliente||!celular||!cobrar){err.textContent='Completa: cliente, celular y monto.';err.style.display='block';return;}
+  const zona=($('nv-zona')&&$('nv-zona').value)||'Lima';
+  const ciudad=($('nv-ciudad').value||'').trim();
+  const fechaVal=($('nv-fecha').value)||new Date().toISOString().split('T')[0];
+  let productLines=[];
+  try{productLines=getProductLines();}catch(e2){console.warn('getProductLines error:',e2);}
+  if(!cliente){err.textContent='Ingresa el nombre del cliente.';err.style.display='block';return;}
+  if(!celular){err.textContent='Ingresa el celular.';err.style.display='block';return;}
+  if(!cobrar||cobrar<=0){err.textContent='Ingresa el monto a cobrar.';err.style.display='block';return;}
   if(!productLines.length){err.textContent='Selecciona al menos un producto.';err.style.display='block';return;}
-  const btn=$('btn-nueva');btn.disabled=true;btn.textContent='Registrando...';
+  btn.disabled=true;btn.textContent='Registrando...';
   try{
-    const fechaVal=$('nv-fecha').value;
-    const fechaMs=fechaVal?new Date(fechaVal+'T12:00:00').getTime():Date.now();
-    // Main product for display (first one)
-    const mainProd=productLines[0]?.nombre||'';
-    const totalCantidad=productLines.reduce((s,p)=>s+p.cantidad,0);
-    await db.collection('orders').add({
-      vendedorId:cu.id,vendedor:cu.name||cu.email,
-      cliente,celular,cobrar,
+    const fechaMs=new Date(fechaVal+'T12:00:00').getTime();
+    const mainProd=productLines[0]?productLines[0].nombre:'';
+    const totalCantidad=productLines.reduce(function(s,p){return s+(p.cantidad||1);},0);
+    const orderData={
+      vendedorId:cu.id,
+      vendedor:cu.name||cu.email,
+      cliente:cliente,
+      celular:celular,
+      cobrar:cobrar,
       producto:mainProd,
       productos:productLines,
-      totalCantidad,
-      zona,ciudad,
-      estado:newStatus,
-      fechaVenta:fechaVal||new Date().toISOString().split('T')[0],
-      fechaMs,
+      totalCantidad:totalCantidad,
+      zona:zona,
+      ciudad:ciudad,
+      estado:newStatus||'pendiente',
+      fechaVenta:fechaVal,
+      fechaMs:fechaMs,
       timestamp:firebase.firestore.FieldValue.serverTimestamp()
-    });
-    closeOv('ov-nueva');toast('✓ Venta registrada');
-  }catch(e){console.error(e);err.textContent='Error: '+e.message;err.style.display='block';}
-  finally{btn.disabled=false;btn.textContent='Registrar venta';}
-  }catch(outer){console.error(outer);err.textContent='Error inesperado: '+outer.message;err.style.display='block';}
+    };
+    await db.collection('orders').add(orderData);
+    closeOv('ov-nueva');
+    toast('✓ Venta registrada correctamente');
+  }catch(e){
+    console.error('Error registrando venta:',e);
+    err.textContent='Error: '+e.message;
+    err.style.display='block';
+  }finally{
+    btn.disabled=false;
+    btn.textContent='Registrar venta';
+  }
 };
 
 // ═══ EDIT ESTADO ═══
@@ -1000,6 +1118,7 @@ function renderHistorial(){
   const source=isVendedor()?orders.filter(o=>o.vendedorId===cu.id):orders;
   const filtered=histPeriod==='all'?source:source.filter(o=>o.ts>=start&&o.ts<=end);
   if(!filtered.length){el.innerHTML=`<div class="empty"><div style="font-size:32px;margin-bottom:8px">📋</div><p>Sin ventas en este período</p></div>`;return;}
+  filtered=filteredByDate;
   el.innerHTML=filtered.map(o=>`
     <div class="card" onclick="openDetalle('${o.id}')" style="cursor:pointer">
       <div class="row">
@@ -1073,18 +1192,27 @@ async function renderConfig(){
 
 function openAddProd(){
   $('prod-nombre').value='';$('prod-costo').value='';
+  [1,2,3,4,5,6].forEach(n=>{const el=$('prod-p'+n);if(el)el.value='';});
   $('prod-err').style.display='none';
   $('prod-title').textContent='Agregar producto';
   openOv('ov-prod');
 }
 
 $('btn-prod').onclick=async()=>{
-  const nombre=$('prod-nombre').value.trim(),costo=parseFloat($('prod-costo').value)||0;
+  const nombre=($('prod-nombre').value||'').trim();
+  const costo=parseFloat($('prod-costo').value)||0;
   const err=$('prod-err');err.style.display='none';
-  if(!nombre||!costo){err.textContent='Completa nombre y costo.';err.style.display='block';return;}
-  const prods=[...(cfg.productos||[]),{nombre,costo}];
+  if(!nombre){err.textContent='Ingresa el nombre del producto.';err.style.display='block';return;}
+  if(!costo){err.textContent='Ingresa el costo del producto.';err.style.display='block';return;}
+  const preciosPorCantidad={};
+  [1,2,3,4,5,6].forEach(n=>{
+    const v=parseFloat(($('prod-p'+n)||{}).value)||0;
+    if(v>0)preciosPorCantidad[n]=v;
+  });
+  const newProd={nombre,costo,preciosPorCantidad};
+  const prods=[...(cfg.productos||[]),newProd];
   try{
-    await db.collection('config').doc('ventas').set({productos:prods,...(cfg.deliveryCostos?{deliveryCostos:cfg.deliveryCostos}:{})},{merge:true});
+    await db.collection('config').doc('ventas').set({productos:prods},{merge:true});
     cfg.productos=prods;closeOv('ov-prod');toast('✓ Producto agregado');renderConfig();
   }catch(e){err.textContent='Error: '+e.message;err.style.display='block';}
 };
