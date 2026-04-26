@@ -758,7 +758,7 @@ function openDetalle(id){
       <div class="dr"><span class="dl">Celular</span><span class="dv">${o.celular||'—'}</span></div>
       <div class="dr"><span class="dl">Zona</span><span class="dv ${o.zona==='Lima'?'blue':''}">${o.zona||'—'}</span></div>
       <div class="dr"><span class="dl">Ciudad</span><span class="dv">${o.ciudad||'—'}</span></div>
-      \${o.nota?'<div class="dr"><span class="dl">Nota</span><span class="dv" style="font-size:12px;font-style:italic">'+o.nota+'</span></div>':''}
+      ${o.nota?'<div class="dr"><span class="dl">Nota</span><span class="dv" style="font-size:12px;font-style:italic">'+o.nota+'</span></div>':''}
       <div class="dr"><span class="dl">Dirección</span><span class="dv" style="font-size:12px">${o.direccion||'—'}</span></div>
       ${o.productos&&o.productos.length>1?
         o.productos.map(p=>`<div class="dr"><span class="dl">Producto</span><span class="dv">${p.nombre} × ${p.cantidad}</span></div>`).join('')
@@ -766,7 +766,7 @@ function openDetalle(id){
       }
       <div class="dr"><span class="dl">Cobrar</span><span class="dv green">S/ ${(o.cobrar||0).toFixed(2)}</span></div>
       ${isAdmin()?`<div class="dr"><span class="dl">Vendedor</span><span class="dv green">${o.vendedor||'—'}</span></div>`:''}
-      ${o.nota?`<div class="dr"><span class="dl">Nota</span><span class="dv" style="font-size:12px">${o.nota}</span></div>`:''}
+      ${o.nota?'<div class="dr"><span class="dl">Nota</span><span class="dv" style="font-size:12px;font-style:italic">'+o.nota+'</span></div>':''}
       <div class="dr"><span class="dl">Fecha de venta</span><span class="dv">${o.fechaVenta||formatFecha(new Date(o.ts).toISOString().split('T')[0])}</span></div>
       <div class="dr"><span class="dl">Registrado</span><span class="dv">${ago(o.ts)}</span></div>
     </div>
@@ -1188,7 +1188,7 @@ async function renderConfig(){
           '</div>'+
           '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">'+
             '<span style="font-size:11px;color:var(--tx3)">Costo S/</span>'+
-            '<input type="number" value="'+(p.costo||0)+'" step="0.5" style="width:65px;padding:4px 6px;border:0.5px solid rgba(0,0,0,0.12);border-radius:6px;background:var(--bg2);color:var(--tx);font-size:12px;font-family:inherit" onchange="updateProdField('+i+','costo',this.value)">'+
+            '<input type="number" value="'+(p.costo||0)+'" step="0.5" style="width:65px;padding:4px 6px;border:0.5px solid rgba(0,0,0,0.12);border-radius:6px;background:var(--bg2);color:var(--tx);font-size:12px;font-family:inherit" onchange="updateProdField('+i+',\'costo\',this.value)">'+
           '</div>'+
           '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Precio venta por cantidad</div>'+
           '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
