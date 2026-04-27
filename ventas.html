@@ -1111,53 +1111,68 @@ function calcMetrics(orderList){
 }
 
 function buildChartData(orderList, start, end){
-  // Build daily data points
   var days={};
-  var cur=new Date(start);
-  var endD=new Date(end);
+  var cur=new Date(start), endD=new Date(end);
   while(cur<=endD){
     var key=cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'-'+String(cur.getDate()).padStart(2,'0');
-    days[key]=0;
+    days[key]={val:0,count:0};
     cur.setDate(cur.getDate()+1);
   }
   orderList.filter(function(o){return o.estado!=='anulado'&&o.fv>=start&&o.fv<=end;}).forEach(function(o){
     var d=new Date(o.fv);
     var key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    if(days[key]!==undefined)days[key]+=(o.cobrar||0);
+    if(days[key]!==undefined){days[key].val+=(o.cobrar||0);days[key].count++;}
   });
-  return Object.entries(days).map(function(e){return{date:e[0],val:e[1]};});
+  return Object.entries(days).map(function(e){return{date:e[0],val:e[1].val,count:e[1].count};});
 }
 
 function renderLineChart(data, data2){
-  if(!data||data.length<2) return '<div style="height:120px;display:flex;align-items:center;justify-content:center;color:var(--tx3);font-size:13px">Sin datos para graficar</div>';
-  var W=320, H=120, padL=8, padR=8, padT=12, padB=24;
+  if(!data||data.length<2) return '<div style="height:150px;display:flex;align-items:center;justify-content:center;color:var(--tx3);font-size:13px">Sin datos para graficar</div>';
+  var W=320, H=150, padL=12, padR=12, padT=26, padB=28;
   var vals=data.map(function(d){return d.val;});
   var maxV=Math.max.apply(null,vals.concat(data2?data2.map(function(d){return d.val;}):[])) || 1;
-  var xScale=function(i){return padL+(W-padL-padR)*(i/(data.length-1));};
+  var xScale=function(i){return padL+(W-padL-padR)*(data.length===1?0.5:i/(data.length-1));};
   var yScale=function(v){return padT+(H-padT-padB)*(1-v/maxV);};
-  // Build path
   var path=data.map(function(d,i){return (i===0?'M':'L')+xScale(i).toFixed(1)+','+yScale(d.val).toFixed(1);}).join(' ');
   var areaPath=path+' L'+xScale(data.length-1).toFixed(1)+','+(H-padB)+' L'+xScale(0).toFixed(1)+','+(H-padB)+' Z';
-  // Labels
+  // Date labels on x-axis
   var labels='';
-  var step=Math.max(1,Math.floor(data.length/4));
+  var step=Math.max(1,Math.floor(data.length/5));
   data.forEach(function(d,i){
     if(i%step===0||i===data.length-1){
       var parts=d.date.split('-');
-      labels+='<text x="'+xScale(i).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle" font-size="9" fill="var(--tx3)">'+parts[2]+'/'+parts[1]+'</text>';
+      labels+='<text x="'+xScale(i).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle" font-size="9" fill="#aaa">'+parts[2]+'/'+parts[1]+'</text>';
     }
   });
   // Previous period line
   var path2='';
   if(data2&&data2.length===data.length){
     path2='<path d="'+data2.map(function(d,i){return (i===0?'M':'L')+xScale(i).toFixed(1)+','+yScale(d.val).toFixed(1);}).join(' ')+'" fill="none" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.7"/>';
+    // Nodes for prev period
+    path2+=data2.map(function(d,i){
+      return d.val>0?'<circle cx="'+xScale(i).toFixed(1)+'" cy="'+yScale(d.val).toFixed(1)+'" r="2.5" fill="#93c5fd" opacity="0.7"/>':'';
+    }).join('');
   }
-  return '<svg class="chart-svg" viewBox="0 0 '+W+' '+H+'" style="height:120px">'+
-    '<defs><linearGradient id="agrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2d7a4f" stop-opacity="0.18"/><stop offset="100%" stop-color="#2d7a4f" stop-opacity="0"/></linearGradient></defs>'+
+  // Nodes with count labels for current period
+  var nodes=data.map(function(d,i){
+    if(d.val===0)return '';
+    var cx=xScale(i).toFixed(1), cy=yScale(d.val).toFixed(1);
+    var showLabel=(d.count>0); // show count badge on node
+    var countBadge=showLabel?'<text x="'+cx+'" y="'+(parseFloat(cy)-8)+'" text-anchor="middle" font-size="9" font-weight="700" fill="#2d7a4f">'+d.count+'</text>':'';
+    return '<circle cx="'+cx+'" cy="'+cy+'" r="4" fill="#fff" stroke="#2d7a4f" stroke-width="2"/>'+
+           countBadge;
+  }).join('');
+  return '<svg class="chart-svg" viewBox="0 0 '+W+' '+H+'" style="height:150px;width:100%">'+
+    '<defs>'+
+    '<linearGradient id="agrad" x1="0" y1="0" x2="0" y2="1">'+
+      '<stop offset="0%" stop-color="#2d7a4f" stop-opacity="0.15"/>'+
+      '<stop offset="100%" stop-color="#2d7a4f" stop-opacity="0"/>'+
+    '</linearGradient>'+
+    '</defs>'+
     '<path d="'+areaPath+'" fill="url(#agrad)"/>'+
     path2+
-    '<path d="'+path+'" fill="none" stroke="#2d7a4f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+
-    data.map(function(d,i){return '<circle cx="'+xScale(i).toFixed(1)+'" cy="'+yScale(d.val).toFixed(1)+'" r="3" fill="#2d7a4f" opacity="'+(d.val>0?'1':'0')+'"/>';}).join('')+
+    '<path d="'+path+'" fill="none" stroke="#2d7a4f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'+
+    nodes+
     '<g>'+labels+'</g>'+
   '</svg>';
 }
@@ -1189,10 +1204,11 @@ function renderMeta(){
   // Normalize prev to same length
   if(chartPrev&&chartPrev.length!==chartCur.length)chartPrev=null;
 
-  // Weekly goal (always based on current week)
-  var wOrders=myAll.filter(function(o){return o.fv>=weekStart()&&o.estado!=='anulado';});
+  // PUNTO 1 FIX: sueldo calculated from FILTERED period, not hardcoded week
+  // Use myCur (already filtered by metaPeriod range)
+  var wOrders=myCur.filter(function(o){return o.estado!=='anulado';});
   var ventasSemana=wOrders.length;
-  var sueldo=getSueldo(ventasSemana);
+  var sueldo=calcSueldo(ventasSemana);  // use centralized function
   var next=getNextLevel(ventasSemana);
   var maxTick=salaryScale[salaryScale.length-1]?.ventas||30;
   var ticks=[0,...salaryScale.map(function(l){return l.ventas;})];
@@ -1208,9 +1224,11 @@ function renderMeta(){
     return '<div class="dr"><span class="dl">'+v+' venta'+(v!==1?'s':'')+' de '+k+' unidad'+(k!=='1'?'es':'')+'</span><span class="dv" style="color:var(--accent)">'+(v*parseInt(k))+' un.</span></div>';
   }).join('');
 
-  var n=new Date();
-  var dayOfWeek=n.getDay()||7;
-  var daysLeft=8-dayOfWeek;
+  // Label for the period
+  var periodLabel={
+    'today':'Hoy','yesterday':'Ayer','week':'Esta semana',
+    '7days':'Últimos 7 días','30days':'Últimos 30 días','custom':'Período personalizado'
+  }[metaPeriod]||'Período';
 
   var html='';
 
@@ -1219,7 +1237,7 @@ function renderMeta(){
     '<div class="kpi"><div class="kpi-lbl">Ingresos</div><div class="kpi-val">S/'+cur.ingresos.toFixed(0)+'</div>'+dHtml(dIngresos)+'</div>'+
     '<div class="kpi"><div class="kpi-lbl">Pedidos</div><div class="kpi-val">'+cur.count+'</div>'+dHtml(dCount)+'</div>'+
     '<div class="kpi"><div class="kpi-lbl">Unidades</div><div class="kpi-val">'+cur.unidades+'</div></div>'+
-    '<div class="kpi" style="background:var(--accent2);border-color:rgba(45,122,79,.2)"><div class="kpi-lbl" style="color:var(--accent)">Sueldo semana</div><div class="kpi-val" style="color:var(--accent)">S/'+sueldo+'</div><div style="font-size:10px;color:var(--accent);margin-top:2px">'+ventasSemana+' ventas / sem.</div></div>'+
+    '<div class="kpi" style="background:var(--accent2);border-color:rgba(45,122,79,.2)"><div class="kpi-lbl" style="color:var(--accent)">Sueldo período</div><div class="kpi-val" style="color:var(--accent)">S/'+sueldo+'</div><div style="font-size:10px;color:var(--accent);margin-top:2px">'+ventasSemana+' ventas</div></div>'+
   '</div>';
 
   // Line chart
@@ -1228,9 +1246,9 @@ function renderMeta(){
     renderLineChart(chartCur, chartPrev)+
   '</div>';
 
-  // Weekly progress bar
+  // Progress bar
   html+='<div class="meta-hero">'+
-    '<div class="meta-h">Meta semanal · '+daysLeft+' día'+(daysLeft!==1?'s':'')+' restante'+(daysLeft!==1?'s':'')+'</div>'+
+    '<div class="meta-h">'+periodLabel+'</div>'+
     '<div class="meta-n">'+ventasSemana+' ventas</div>'+
     '<div class="meta-s">'+(next?'Faltan '+(next.ventas-ventasSemana)+' ventas para el siguiente nivel 🎯':'🏆 ¡Nivel máximo!')+'</div>'+
     '<div class="meta-prog"><div class="meta-bar" style="width:'+pct.toFixed(1)+'%"></div></div>'+
@@ -1356,6 +1374,25 @@ function renderResumen(){
   '</div>';
 
   // Global status
+  // Chart for resumen
+  var chartDataRes=buildChartData(orders.filter(function(o){var t=o.fv||o.fechaMs||o.ts;return t>=start&&t<=end2;}), start, end2);
+  var prevStartRes=resPeriod==='today'?dayStart(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()-1):
+                   resPeriod==='week'?weekStart()-7*86400000:
+                   resPeriod==='month'?dayStart(new Date().getFullYear(),new Date().getMonth()-1,1):0;
+  var prevEndRes=prevStartRes>0?start-1:0;
+  var chartDataRes2=prevStartRes>0?buildChartData(orders,prevStartRes,prevEndRes):null;
+  if(chartDataRes2&&chartDataRes2.length!==chartDataRes.length)chartDataRes2=null;
+  hh+='<div class="chart-wrap">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
+      '<div class="chart-title" style="margin-bottom:0">Evolución de ventas</div>'+
+      '<div style="display:flex;gap:10px;align-items:center">'+
+        '<span style="font-size:10px;color:#2d7a4f">⬤ Período actual</span>'+
+        (chartDataRes2?'<span style="font-size:10px;color:#93c5fd">– – Período ant.</span>':'')+
+      '</div>'+
+    '</div>'+
+    renderLineChart(chartDataRes, chartDataRes2)+
+  '</div>';
+
   hh+='<div class="card"><div class="section-label">Resumen por estado</div>'+
     '<div class="dr"><span class="dl">✅ Entregado</span><span class="dv green">'+byStatus.entregado+'</span></div>'+
     '<div class="dr"><span class="dl">📦 Enviado</span><span class="dv blue">'+byStatus.enviado+'</span></div>'+
@@ -1384,47 +1421,63 @@ function renderResumen(){
         return '<div class="dr"><span class="dl">'+pe[0]+'</span><span class="dv green">'+pe[1]+' un.</span></div>';
       }).join('');
 
-      var cardId='vcard-'+vi;
-      var bodyId='vbody-'+vi;
+            // ── Bloque completo por vendedor (sin acordeón) ─────────────────
       hh+=
-        '<div class="card" id="'+cardId+'" style="padding:0;overflow:hidden;border-left:3px solid var(--accent)">'+
-          // ── Header (always visible, clickable) ──────────────────────
-          '<div onclick="toggleVcard(\''+bodyId+'\')" style="display:flex;align-items:center;justify-content:space-between;padding:13px 14px;cursor:pointer;gap:8px">'+
-            '<div style="flex:1;min-width:0">'+
-              '<div style="font-size:14px;font-weight:800;color:var(--accent)">'+name+'</div>'+
-              '<div style="font-size:11px;color:var(--tx3);margin-top:2px">'+d.ventas+' ventas · S/'+d.cobrado.toFixed(0)+' cobrado'+(isSuper()?' · Gan: S/'+d.ganancia.toFixed(0):'')+'</div>'+
+        '<div class="card" style="border-left:3px solid var(--accent);padding:0;overflow:hidden">'+
+          // ── Header del vendedor ─────────────────────────────────────────
+          '<div style="padding:14px 16px 10px;background:linear-gradient(135deg,rgba(45,122,79,0.06),rgba(45,122,79,0.02))">'+
+            '<div style="display:flex;align-items:center;justify-content:space-between">'+
+              '<div>'+
+                '<div style="font-size:16px;font-weight:800;color:var(--accent)">'+name+'</div>'+
+                '<div style="font-size:11px;color:var(--tx3);margin-top:2px">'+d.ventas+' ventas totales · S/'+d.cobrado.toFixed(0)+' cobrado</div>'+
+              '</div>'+
+              '<span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:'+(next?'#fef3c7':'#dcfce7')+';color:'+(next?'#92400e':'#166534')+'">'+(next?'🎯 −'+(next.ventas-ventasValidas):'✅ Meta')+'</span>'+
             '</div>'+
-            '<span id="'+bodyId+'-arrow" style="font-size:12px;color:var(--tx3);transition:transform .25s;flex-shrink:0">▶</span>'+
           '</div>'+
-          // ── Body (collapsible) ───────────────────────────────────────
-          '<div id="'+bodyId+'" style="display:none;padding:0 14px 14px">'+
-            '<div style="height:0.5px;background:var(--bo);margin-bottom:10px"></div>'+
-            // Estados 2x2
-            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">'+
-              '<div style="background:#dcfce7;border-radius:8px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:800;color:#166534">'+d.estados.entregado+'</div><div style="font-size:9px;color:#166534;font-weight:700">ENTREGADO</div></div>'+
-              '<div style="background:#dbeafe;border-radius:8px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:800;color:#1e40af">'+d.estados.enviado+'</div><div style="font-size:9px;color:#1e40af;font-weight:700">ENVIADO</div></div>'+
-              '<div style="background:#fef3c7;border-radius:8px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:800;color:#92400e">'+d.estados.pendiente+'</div><div style="font-size:9px;color:#92400e;font-weight:700">PENDIENTE</div></div>'+
-              '<div style="background:#fee2e2;border-radius:8px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:800;color:#991b1b">'+d.estados.anulado+'</div><div style="font-size:9px;color:#991b1b;font-weight:700">ANULADO</div></div>'+
+          '<div style="padding:0 16px 16px">'+
+            // ── Estados 2×2 ─────────────────────────────────────────────
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0">'+
+              '<div style="background:#dcfce7;border-radius:10px;padding:10px;text-align:center">'+
+                '<div style="font-size:22px;font-weight:800;color:#166534">'+d.estados.entregado+'</div>'+
+                '<div style="font-size:10px;color:#166534;font-weight:700;margin-top:2px">Entregado</div>'+
+              '</div>'+
+              '<div style="background:#dbeafe;border-radius:10px;padding:10px;text-align:center">'+
+                '<div style="font-size:22px;font-weight:800;color:#1e40af">'+d.estados.enviado+'</div>'+
+                '<div style="font-size:10px;color:#1e40af;font-weight:700;margin-top:2px">Enviado</div>'+
+              '</div>'+
+              '<div style="background:#fef3c7;border-radius:10px;padding:10px;text-align:center">'+
+                '<div style="font-size:22px;font-weight:800;color:#92400e">'+d.estados.pendiente+'</div>'+
+                '<div style="font-size:10px;color:#92400e;font-weight:700;margin-top:2px">Pendiente</div>'+
+              '</div>'+
+              '<div style="background:#fee2e2;border-radius:10px;padding:10px;text-align:center">'+
+                '<div style="font-size:22px;font-weight:800;color:#991b1b">'+d.estados.anulado+'</div>'+
+                '<div style="font-size:10px;color:#991b1b;font-weight:700;margin-top:2px">Anulado</div>'+
+              '</div>'+
             '</div>'+
-            // Ventas por cantidad
-            (cantRows?'<div class="section-label">Ventas por cantidad</div>'+cantRows:'')+
-            // Productos
-            (prodRows?'<div class="section-label" style="margin-top:8px">Productos vendidos</div>'+prodRows:'')+
-            // Sueldo y ganancia
-            '<div style="display:flex;gap:6px;margin-top:10px">'+
-              '<div style="flex:1;background:var(--accent2);border-radius:9px;padding:9px 11px;text-align:center">'+
-                '<div style="font-size:10px;color:var(--accent);font-weight:700;text-transform:uppercase">Sueldo período</div>'+
-                '<div style="font-size:18px;font-weight:800;color:var(--accent)">S/'+sueldo+'</div>'+
-                '<div style="font-size:10px;color:var(--tx3)">'+ventasValidas+' ventas</div>'+
+            // ── Ventas por cantidad ──────────────────────────────────────
+            (cantRows?
+              '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Ventas por cantidad</div>'+
+              '<div style="background:var(--bg2);border-radius:10px;padding:4px 10px;margin-bottom:12px">'+cantRows+'</div>'
+            :'')+
+            // ── Productos vendidos ───────────────────────────────────────
+            (prodRows?
+              '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Productos vendidos</div>'+
+              '<div style="background:var(--bg2);border-radius:10px;padding:4px 10px;margin-bottom:12px">'+prodRows+'</div>'
+            :'')+
+            // ── Sueldo y ganancia ────────────────────────────────────────
+            '<div style="display:flex;gap:8px">'+
+              '<div style="flex:1;background:var(--accent2);border-radius:10px;padding:10px;text-align:center">'+
+                '<div style="font-size:10px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.04em">Sueldo período</div>'+
+                '<div style="font-size:20px;font-weight:800;color:var(--accent);margin:2px 0">S/ '+sueldo+'</div>'+
+                '<div style="font-size:10px;color:var(--tx3)">'+ventasValidas+' ventas válidas</div>'+
               '</div>'+
-              (isSuper()?'<div style="flex:1;background:#f0fdf4;border-radius:9px;padding:9px 11px;text-align:center">'+
-                '<div style="font-size:10px;color:#166534;font-weight:700;text-transform:uppercase">Ganancia real</div>'+
-                '<div style="font-size:18px;font-weight:800;color:#166534">S/'+d.ganancia.toFixed(0)+'</div>'+
-              '</div>':'')+
-              '<div style="flex:1;background:var(--bg2);border-radius:9px;padding:9px 11px;text-align:center">'+
-                '<div style="font-size:10px;color:var(--tx2);font-weight:700;text-transform:uppercase">Meta sem.</div>'+
-                '<div style="font-size:14px;font-weight:700;color:'+(next?'#f59e0b':'#166534')+'">'+(next?'−'+(next.ventas-ventasValidas):'✅')+'</div>'+
-              '</div>'+
+              (isSuper()?
+                '<div style="flex:1;background:#f0fdf4;border-radius:10px;padding:10px;text-align:center">'+
+                  '<div style="font-size:10px;color:#166534;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Ganancia real</div>'+
+                  '<div style="font-size:20px;font-weight:800;color:#166534;margin:2px 0">S/ '+d.ganancia.toFixed(0)+'</div>'+
+                  '<div style="font-size:10px;color:var(--tx3)">Neto del período</div>'+
+                '</div>'
+              :'')+
             '</div>'+
           '</div>'+
         '</div>';
@@ -1444,14 +1497,6 @@ function renderResumen(){
   el.innerHTML=hh;
 }
 
-function toggleVcard(bodyId){
-  var body=document.getElementById(bodyId);
-  var arrow=document.getElementById(bodyId+'-arrow');
-  if(!body)return;
-  var isOpen=body.style.display!=='none';
-  body.style.display=isOpen?'none':'block';
-  if(arrow)arrow.style.transform=isOpen?'':'rotate(90deg)';
-}
 
 
 // ═══ HISTORIAL ═══
