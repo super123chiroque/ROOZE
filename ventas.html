@@ -812,20 +812,33 @@ function openDetalle(id){
   const o=orders.find(x=>x.id===id);if(!o)return;
   const steps=['Registrado','Enviado','Entregado','Cobrado'];
   const stepIdx={pendiente:0,enviado:1,entregado:2,cobrado:3}[o.estado]??0;
-  const deliveryCost=cfg.deliveryCostos?.[o.zona||'Lima']||10;
+  // ── Finance calculation using getCostoReal for consistency ─────────
+  const _cr=getCostoReal(o);
+  const deliveryCost=_cr.delivery;
+  const costoProd=_cr.costo;   // costo_unitario × cantidad
+  const ganancia=_cr.ganancia; // cobrar - costoProd - delivery
+  const qty=o.totalCantidad||1;
   const productData=cfg.productos?.find(p=>p.nombre===o.producto);
-  const costoProd=productData?.costo||0;
-  const ganancia=(o.cobrar||0)-costoProd-deliveryCost;
+  const costoUnit=(productData?.costo)||0;
+  const isAnul=o.estado==='anulado';
 
   let finHtml='';
   if(isSuper()){
     finHtml=`
       <div class="fin-card" style="margin-top:8px">
         <div class="section-label" style="color:var(--accent)">💰 Finanzas (privado)</div>
-        <div class="dr"><span class="dl">Precio de venta</span><span class="dv">S/ ${(o.cobrar||0).toFixed(2)}</span></div>
-        <div class="dr"><span class="dl">Costo producto</span><span class="dv red">− S/ ${costoProd.toFixed(2)}</span></div>
-        <div class="dr"><span class="dl">Costo delivery (${o.zona||'Lima'})</span><span class="dv red">− S/ ${deliveryCost.toFixed(2)}</span></div>
-        <div class="dr"><span class="dl" style="font-weight:700;color:var(--tx)">Ganancia real</span><span class="dv green" style="font-size:16px">S/ ${ganancia.toFixed(2)}</span></div>
+        <div class="dr"><span class="dl">Precio cobrado</span><span class="dv">S/ ${(o.cobrar||0).toFixed(2)}</span></div>
+        ${isAnul
+          ? '<div class="dr"><span class="dl" style="color:#991b1b">Anulado — sin ingreso</span><span class="dv red">S/ 0.00</span></div>'
+          : `<div class="dr">
+               <span class="dl">Costo producto (${costoUnit.toFixed(2)} × ${qty})</span>
+               <span class="dv red">− S/ ${costoProd.toFixed(2)}</span>
+             </div>`
+        }
+        <div class="dr"><span class="dl">Delivery (${o.zona||'Lima'})</span><span class="dv red">− S/ ${deliveryCost.toFixed(2)}</span></div>
+        <div class="dr"><span class="dl" style="font-weight:700;color:var(--tx)">Ganancia real</span>
+          <span class="dv ${ganancia>=0?'green':'red'}" style="font-size:16px">S/ ${ganancia.toFixed(2)}</span>
+        </div>
       </div>`;
   }
 
