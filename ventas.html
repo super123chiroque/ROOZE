@@ -263,11 +263,11 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
   <div id="tab-meta" style="display:none;flex-direction:column;flex:1;overflow:hidden">
     <div class="tb"><h2>Mi meta</h2><div class="tb-sub" id="meta-sub">Esta semana</div></div>
     <div class="meta-filter-bar">
-      <button class="mfbtn on" onclick="setMetaPeriod('week',this)">Esta semana</button>
-      <button class="mfbtn" onclick="setMetaPeriod('today',this)">Hoy</button>
+      <button class="mfbtn on" onclick="setMetaPeriod('today',this)">Hoy</button>
       <button class="mfbtn" onclick="setMetaPeriod('yesterday',this)">Ayer</button>
-      <button class="mfbtn" onclick="setMetaPeriod('7days',this)">7 días</button>
-      <button class="mfbtn" onclick="setMetaPeriod('30days',this)">30 días</button>
+      <button class="mfbtn" onclick="setMetaPeriod('week',this)">Esta semana</button>
+      <button class="mfbtn" onclick="setMetaPeriod('15days',this)">15 días</button>
+      <button class="mfbtn" onclick="setMetaPeriod('month',this)">Mes</button>
       <button class="mfbtn" onclick="setMetaPeriod('custom',this)">Personalizado</button>
     </div>
     <div id="meta-custom-date" style="display:none;padding:8px 14px;gap:8px;background:var(--bg);border-bottom:0.5px solid var(--bo)">
@@ -291,8 +291,8 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
             <div class="di on" onclick="setResPeriod('today','Hoy',this)">Hoy</div>
             <div class="di" onclick="setResPeriod('yesterday','Ayer',this)">Ayer</div>
             <div class="di" onclick="setResPeriod('week','Esta semana',this)">Esta semana</div>
-            <div class="di" onclick="setResPeriod('month','Este mes',this)">Este mes</div>
-            <div class="di" onclick="setResPeriod('30days','Últimos 30 días',this)">Últimos 30 días</div>
+            <div class="di" onclick="setResPeriod('15days','Últimos 15 días',this)">Últimos 15 días</div>
+            <div class="di" onclick="setResPeriod('month','Último mes',this)">Último mes</div>
             <div class="di" onclick="setResPeriod('custom','Personalizado',this)">Personalizado</div>
           </div>
         </div>
@@ -327,8 +327,8 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
             <div class="di" onclick="setHistPeriod('today','Hoy',this)">Hoy</div>
             <div class="di" onclick="setHistPeriod('yesterday','Ayer',this)">Ayer</div>
             <div class="di" onclick="setHistPeriod('week','Esta semana',this)">Esta semana</div>
-            <div class="di" onclick="setHistPeriod('month','Este mes',this)">Este mes</div>
-            <div class="di" onclick="setHistPeriod('30days','Últimos 30 días',this)">Últimos 30 días</div>
+            <div class="di" onclick="setHistPeriod('15days','Últimos 15 días',this)">Últimos 15 días</div>
+            <div class="di" onclick="setHistPeriod('month','Último mes',this)">Último mes</div>
             <div class="di" onclick="setHistPeriod('custom','Personalizado',this)">Personalizado</div>
           </div>
         </div>
@@ -656,21 +656,21 @@ function dayEnd(y,m,d){
 function periodStart(p){
   const n=new Date();
   const Y=n.getFullYear(),M=n.getMonth(),D=n.getDate();
-  if(p==='today')return dayStart(Y,M,D);
-  if(p==='yesterday')return dayStart(Y,M,D-1);
-  if(p==='week')return weekStart();
-  if(p==='month')return dayStart(Y,M,1);
-  if(p==='30days')return dayStart(Y,M,D-30);
-  if(p==='15days')return dayStart(Y,M,D-15);
-  if(p==='custom')return resCustomFrom;
+  if(p==='today')     return dayStart(Y,M,D);
+  if(p==='yesterday') return dayStart(Y,M,D-1);
+  if(p==='week')      return weekStart();
+  if(p==='15days')    return dayStart(Y,M,D-15);
+  if(p==='month')     return dayStart(Y,M,1);
+  if(p==='30days')    return dayStart(Y,M,D-30);
+  if(p==='custom')    return resCustomFrom;
   return 0;
 }
 function periodEnd(p){
   const n=new Date();
   const Y=n.getFullYear(),M=n.getMonth(),D=n.getDate();
-  if(p==='yesterday')return dayEnd(Y,M,D-1);
-  if(p==='custom')return resCustomTo;
-  return dayEnd(Y,M,D); // end of today, not "right now"
+  if(p==='yesterday') return dayEnd(Y,M,D-1);
+  if(p==='custom')    return resCustomTo;
+  return dayEnd(Y,M,D);
 }
 function formatFecha(f){
   if(!f)return'';
@@ -1072,7 +1072,7 @@ function getNextLevel(ventas){
 }
 
 // ── Meta period state ─────────────────────────────────────────────────
-let metaPeriod='week', metaCustomFrom=0, metaCustomTo=Date.now();
+let metaPeriod='today', metaCustomFrom=0, metaCustomTo=Date.now();
 
 function setMetaPeriod(p, el){
   metaPeriod=p;
@@ -1094,13 +1094,13 @@ function applyMetaCustom(){
 
 function getMetaRange(p){
   var n=new Date(), Y=n.getFullYear(), M=n.getMonth(), D=n.getDate();
-  if(p==='today')    return {start:dayStart(Y,M,D),   end:dayEnd(Y,M,D),   prevStart:dayStart(Y,M,D-1), prevEnd:dayEnd(Y,M,D-1)};
-  if(p==='yesterday')return {start:dayStart(Y,M,D-1), end:dayEnd(Y,M,D-1), prevStart:dayStart(Y,M,D-2), prevEnd:dayEnd(Y,M,D-2)};
-  if(p==='week')     return {start:weekStart(),        end:dayEnd(Y,M,D),   prevStart:weekStart()-7*86400000, prevEnd:weekStart()-1};
-  if(p==='7days')    return {start:dayStart(Y,M,D-7),  end:dayEnd(Y,M,D),   prevStart:dayStart(Y,M,D-14), prevEnd:dayStart(Y,M,D-7)-1};
-  if(p==='30days')   return {start:dayStart(Y,M,D-30), end:dayEnd(Y,M,D),   prevStart:dayStart(Y,M,D-60), prevEnd:dayStart(Y,M,D-30)-1};
-  if(p==='custom')   return {start:metaCustomFrom,     end:metaCustomTo,    prevStart:0, prevEnd:0};
-  return {start:weekStart(), end:dayEnd(Y,M,D), prevStart:0, prevEnd:0};
+  if(p==='today')    return {start:dayStart(Y,M,D),    end:dayEnd(Y,M,D),   prevStart:dayStart(Y,M,D-1),  prevEnd:dayEnd(Y,M,D-1)};
+  if(p==='yesterday')return {start:dayStart(Y,M,D-1),  end:dayEnd(Y,M,D-1), prevStart:dayStart(Y,M,D-2),  prevEnd:dayEnd(Y,M,D-2)};
+  if(p==='week')     return {start:weekStart(),         end:dayEnd(Y,M,D),   prevStart:weekStart()-7*86400000, prevEnd:weekStart()-1};
+  if(p==='15days')   return {start:dayStart(Y,M,D-15), end:dayEnd(Y,M,D),   prevStart:dayStart(Y,M,D-30), prevEnd:dayStart(Y,M,D-15)-1};
+  if(p==='month')    return {start:dayStart(Y,M,1),     end:dayEnd(Y,M,D),   prevStart:dayStart(Y,M-1,1),  prevEnd:dayStart(Y,M,1)-1};
+  if(p==='custom')   return {start:metaCustomFrom,      end:metaCustomTo,    prevStart:0, prevEnd:0};
+  return {start:dayStart(Y,M,D), end:dayEnd(Y,M,D), prevStart:dayStart(Y,M,D-1), prevEnd:dayEnd(Y,M,D-1)};
 }
 
 function calcMetrics(orderList){
@@ -1227,7 +1227,7 @@ function renderMeta(){
   // Label for the period
   var periodLabel={
     'today':'Hoy','yesterday':'Ayer','week':'Esta semana',
-    '7days':'Últimos 7 días','30days':'Últimos 30 días','custom':'Período personalizado'
+    '15days':'Últimos 15 días','month':'Último mes','custom':'Período personalizado'
   }[metaPeriod]||'Período';
 
   var html='';
