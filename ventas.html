@@ -1339,6 +1339,7 @@ function renderResumen(){
 
   // Build vendedor map
   var vendMap={};
+  window._vendData={}; // reset for fresh render
   allPeriod.forEach(function(o){
     var name=o.vendedor||'Desconocido';
     if(!vendMap[name])vendMap[name]={ventas:0,cobrado:0,ganancia:0,productos:{},estados:{pendiente:0,enviado:0,entregado:0,anulado:0},allOrders:[]};
@@ -1421,65 +1422,31 @@ function renderResumen(){
         return '<div class="dr"><span class="dl">'+pe[0]+'</span><span class="dv green">'+pe[1]+' un.</span></div>';
       }).join('');
 
-            // ── Bloque completo por vendedor (sin acordeón) ─────────────────
+            // ── Acordeón por vendedor ───────────────────────────────────────────
+      var bodyId='vbody-'+vi;
+      // Store data for lazy render on expand
+      window._vendData=window._vendData||{};
+      window._vendData[bodyId]={
+        estados:d.estados,
+        cantRows:cantRows,
+        prodRows:prodRows,
+        sueldo:sueldo,
+        ventasValidas:ventasValidas,
+        ganancia:d.ganancia,
+        showGan:isSuper()
+      };
       hh+=
         '<div class="card" style="border-left:3px solid var(--accent);padding:0;overflow:hidden">'+
-          // ── Header del vendedor ─────────────────────────────────────────
-          '<div style="padding:14px 16px 10px;background:linear-gradient(135deg,rgba(45,122,79,0.06),rgba(45,122,79,0.02))">'+
-            '<div style="display:flex;align-items:center;justify-content:space-between">'+
-              '<div>'+
-                '<div style="font-size:16px;font-weight:800;color:var(--accent)">'+name+'</div>'+
-                '<div style="font-size:11px;color:var(--tx3);margin-top:2px">'+d.ventas+' ventas totales · S/'+d.cobrado.toFixed(0)+' cobrado</div>'+
-              '</div>'+
-              '<span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:'+(next?'#fef3c7':'#dcfce7')+';color:'+(next?'#92400e':'#166534')+'">'+(next?'🎯 −'+(next.ventas-ventasValidas):'✅ Meta')+'</span>'+
+          // Header — always visible
+          '<div onclick="toggleVcard(\''+bodyId+'\')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;user-select:none;gap:8px">'+
+            '<div style="flex:1;min-width:0">'+
+              '<div style="font-size:15px;font-weight:800;color:var(--accent)">'+name+'</div>'+
+              '<div style="font-size:11px;color:var(--tx3);margin-top:2px">'+d.ventas+' ventas · S/'+d.cobrado.toFixed(0)+' cobrado'+(isSuper()?' · Gan: S/'+d.ganancia.toFixed(0):'')+'</div>'+
             '</div>'+
+            '<span id="'+bodyId+'-arrow" style="font-size:13px;color:var(--tx3);transition:transform .25s;flex-shrink:0">▶</span>'+
           '</div>'+
-          '<div style="padding:0 16px 16px">'+
-            // ── Estados 2×2 ─────────────────────────────────────────────
-            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0">'+
-              '<div style="background:#dcfce7;border-radius:10px;padding:10px;text-align:center">'+
-                '<div style="font-size:22px;font-weight:800;color:#166534">'+d.estados.entregado+'</div>'+
-                '<div style="font-size:10px;color:#166534;font-weight:700;margin-top:2px">Entregado</div>'+
-              '</div>'+
-              '<div style="background:#dbeafe;border-radius:10px;padding:10px;text-align:center">'+
-                '<div style="font-size:22px;font-weight:800;color:#1e40af">'+d.estados.enviado+'</div>'+
-                '<div style="font-size:10px;color:#1e40af;font-weight:700;margin-top:2px">Enviado</div>'+
-              '</div>'+
-              '<div style="background:#fef3c7;border-radius:10px;padding:10px;text-align:center">'+
-                '<div style="font-size:22px;font-weight:800;color:#92400e">'+d.estados.pendiente+'</div>'+
-                '<div style="font-size:10px;color:#92400e;font-weight:700;margin-top:2px">Pendiente</div>'+
-              '</div>'+
-              '<div style="background:#fee2e2;border-radius:10px;padding:10px;text-align:center">'+
-                '<div style="font-size:22px;font-weight:800;color:#991b1b">'+d.estados.anulado+'</div>'+
-                '<div style="font-size:10px;color:#991b1b;font-weight:700;margin-top:2px">Anulado</div>'+
-              '</div>'+
-            '</div>'+
-            // ── Ventas por cantidad ──────────────────────────────────────
-            (cantRows?
-              '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Ventas por cantidad</div>'+
-              '<div style="background:var(--bg2);border-radius:10px;padding:4px 10px;margin-bottom:12px">'+cantRows+'</div>'
-            :'')+
-            // ── Productos vendidos ───────────────────────────────────────
-            (prodRows?
-              '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Productos vendidos</div>'+
-              '<div style="background:var(--bg2);border-radius:10px;padding:4px 10px;margin-bottom:12px">'+prodRows+'</div>'
-            :'')+
-            // ── Sueldo y ganancia ────────────────────────────────────────
-            '<div style="display:flex;gap:8px">'+
-              '<div style="flex:1;background:var(--accent2);border-radius:10px;padding:10px;text-align:center">'+
-                '<div style="font-size:10px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.04em">Sueldo período</div>'+
-                '<div style="font-size:20px;font-weight:800;color:var(--accent);margin:2px 0">S/ '+sueldo+'</div>'+
-                '<div style="font-size:10px;color:var(--tx3)">'+ventasValidas+' ventas válidas</div>'+
-              '</div>'+
-              (isSuper()?
-                '<div style="flex:1;background:#f0fdf4;border-radius:10px;padding:10px;text-align:center">'+
-                  '<div style="font-size:10px;color:#166534;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Ganancia real</div>'+
-                  '<div style="font-size:20px;font-weight:800;color:#166534;margin:2px 0">S/ '+d.ganancia.toFixed(0)+'</div>'+
-                  '<div style="font-size:10px;color:var(--tx3)">Neto del período</div>'+
-                '</div>'
-              :'')+
-            '</div>'+
-          '</div>'+
+          // Body — hidden by default, rendered on first expand
+          '<div id="'+bodyId+'" style="display:none;padding:0 16px 16px"></div>'+
         '</div>';
     });
   }
@@ -1498,6 +1465,70 @@ function renderResumen(){
 }
 
 
+
+function toggleVcard(bodyId){
+  var body=document.getElementById(bodyId);
+  var arrow=document.getElementById(bodyId+'-arrow');
+  if(!body)return;
+  var isOpen=body.style.display!=='none';
+  if(!isOpen){
+    // Lazy render content on first open
+    var d=(window._vendData||{})[bodyId];
+    if(d&&!body._rendered){
+      body.innerHTML=
+        // Estados 2x2
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">'+
+          '<div style="background:#dcfce7;border-radius:10px;padding:10px;text-align:center">'+
+            '<div style="font-size:22px;font-weight:800;color:#166534">'+d.estados.entregado+'</div>'+
+            '<div style="font-size:10px;color:#166534;font-weight:700;margin-top:2px">Entregado</div>'+
+          '</div>'+
+          '<div style="background:#dbeafe;border-radius:10px;padding:10px;text-align:center">'+
+            '<div style="font-size:22px;font-weight:800;color:#1e40af">'+d.estados.enviado+'</div>'+
+            '<div style="font-size:10px;color:#1e40af;font-weight:700;margin-top:2px">Enviado</div>'+
+          '</div>'+
+          '<div style="background:#fef3c7;border-radius:10px;padding:10px;text-align:center">'+
+            '<div style="font-size:22px;font-weight:800;color:#92400e">'+d.estados.pendiente+'</div>'+
+            '<div style="font-size:10px;color:#92400e;font-weight:700;margin-top:2px">Pendiente</div>'+
+          '</div>'+
+          '<div style="background:#fee2e2;border-radius:10px;padding:10px;text-align:center">'+
+            '<div style="font-size:22px;font-weight:800;color:#991b1b">'+d.estados.anulado+'</div>'+
+            '<div style="font-size:10px;color:#991b1b;font-weight:700;margin-top:2px">Anulado</div>'+
+          '</div>'+
+        '</div>'+
+        // Ventas por cantidad
+        (d.cantRows?
+          '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Ventas por cantidad</div>'+
+          '<div style="background:var(--bg2);border-radius:10px;padding:4px 10px;margin-bottom:14px">'+d.cantRows+'</div>'
+        :'')+
+        // Productos
+        (d.prodRows?
+          '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Productos vendidos</div>'+
+          '<div style="background:var(--bg2);border-radius:10px;padding:4px 10px;margin-bottom:14px">'+d.prodRows+'</div>'
+        :'')+
+        // Sueldo + Ganancia
+        '<div style="display:flex;gap:8px">'+
+          '<div style="flex:1;background:var(--accent2);border-radius:10px;padding:10px;text-align:center">'+
+            '<div style="font-size:10px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.04em">Sueldo período</div>'+
+            '<div style="font-size:20px;font-weight:800;color:var(--accent);margin:3px 0">S/ '+d.sueldo+'</div>'+
+            '<div style="font-size:10px;color:var(--tx3)">'+d.ventasValidas+' ventas válidas</div>'+
+          '</div>'+
+          (d.showGan?
+            '<div style="flex:1;background:#f0fdf4;border-radius:10px;padding:10px;text-align:center">'+
+              '<div style="font-size:10px;color:#166534;font-weight:700;text-transform:uppercase;letter-spacing:.04em">Ganancia real</div>'+
+              '<div style="font-size:20px;font-weight:800;color:#166534;margin:3px 0">S/ '+d.ganancia.toFixed(0)+'</div>'+
+              '<div style="font-size:10px;color:var(--tx3)">Neto del período</div>'+
+            '</div>'
+          :'')+
+        '</div>';
+      body._rendered=true;
+    }
+    body.style.display='block';
+    if(arrow)arrow.style.transform='rotate(90deg)';arrow&&(arrow.style.color='var(--accent)');
+  } else {
+    body.style.display='none';
+    if(arrow){arrow.style.transform='';arrow.style.color='var(--tx3)';}
+  }
+}
 
 // ═══ HISTORIAL ═══
 function renderHistorial(){
