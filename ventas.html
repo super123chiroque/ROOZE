@@ -507,7 +507,7 @@ const DEFAULT_SCALE=[
 let salaryScale=[...DEFAULT_SCALE];
 
 // ═══ STATE ═══
-let auth,db,cu=null,orders=[],cfg={productos:[],deliveryCostos:{Lima:10,Provincia:20}};
+let auth,db,cu=null,orders=[],cfg={productos:[],deliveryCostos:{}};
 let curFilt='all',curTab='ventas',newStatus='pendiente',editStatus='pendiente';
 let resPeriod='today',resCustomFrom=0,resCustomTo=Date.now();
 let histPeriod='all',histCustomFrom=0,histCustomTo=Date.now();
@@ -1260,13 +1260,19 @@ function renderMeta(){
 
 
 // ═══ RESUMEN (admin/super) ═══
+function getDelivery(zona){
+  // Always read from current cfg - no fallback if value is 0
+  var costos=cfg.deliveryCostos||{};
+  var key=(zona==='Provincia')?'Provincia':'Lima';
+  // Use hasOwnProperty so 0 is respected (not treated as falsy)
+  return costos.hasOwnProperty(key)?Number(costos[key]):0;
+}
+
 function getCostoReal(o){
   var prod=cfg.productos?cfg.productos.find(function(x){return x.nombre===o.producto;}):null;
-  var ppc=prod&&prod.preciosPorCantidad?prod.preciosPorCantidad:{};
   var qty=o.totalCantidad||1;
-  var costo=(prod?prod.costo:0)||0;
-  var delivery=(cfg.deliveryCostos&&cfg.deliveryCostos[o.zona||'Lima'])||10;
-  // Anulado: solo se pierde el costo de delivery
+  var costo=(prod&&prod.costo)?prod.costo:0;
+  var delivery=getDelivery(o.zona);  // always dynamic, 0 is valid
   if(o.estado==='anulado'){
     return {costo:0, delivery:delivery, ganancia:-delivery};
   }
@@ -1632,11 +1638,14 @@ async function saveDelivery(){
       {merge: true}
     );
     // Update local cfg immediately
-    cfg.deliveryCostos=costoData;
+    // Update cfg immediately so all calculations use new values
+    cfg.deliveryCostos={Lima:Lima, Provincia:Provincia};
     toast('✅ Guardado: Lima S/'+Lima+' · Provincia S/'+Provincia);
-    // Update inputs directly without re-rendering whole page
+    // Update inputs in-place (no full re-render to avoid stale reads)
     limaEl.value=Lima;
     provEl.value=Provincia;
+    // Refresh any open tab that shows financial data
+    if(curTab==='resumen')renderResumen();
   }catch(e){
     toast('❌ Error: '+e.message);
     console.error('saveDelivery error:',e);
