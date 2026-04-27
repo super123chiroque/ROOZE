@@ -1268,6 +1268,28 @@ function getDelivery(zona){
   return costos.hasOwnProperty(key)?Number(costos[key]):0;
 }
 
+// ── Global helper: ventas por cantidad ──────────────────────────────────
+function calcVentasPorCantidad(ventasList){
+  var byCant={};
+  ventasList.filter(function(o){return o.estado!=='anulado';}).forEach(function(o){
+    var q=o.totalCantidad||1;
+    byCant[q]=(byCant[q]||0)+1;
+  });
+  return byCant;
+}
+
+// ── Global helper: sueldo según escala para N ventas ────────────────────
+function calcSueldo(numVentas){
+  var s=0;
+  salaryScale.forEach(function(l){if(numVentas>=l.ventas)s=l.sueldo;});
+  return s;
+}
+
+// ── Global helper: ganancia total de una lista de pedidos ───────────────
+function calcGananciaTotal(ventasList){
+  return ventasList.reduce(function(sum,o){return sum+getCostoReal(o).ganancia;},0);
+}
+
 function getCostoReal(o){
   var prod=cfg.productos?cfg.productos.find(function(x){return x.nombre===o.producto;}):null;
   var qty=o.totalCantidad||1;
@@ -1285,12 +1307,8 @@ function renderResumen(){
   var allPeriod=orders.filter(function(o){var t=o.fv||o.fechaMs||o.ts;return t>=start&&t<=end2;});
   var filtered=allPeriod.filter(function(o){return o.estado!=='anulado';});
   var totalCobrado=filtered.reduce(function(s,o){return s+(o.cobrar||0);},0);
-
-  // Totals
-  var totalGanancia=0;
-  if(isSuper()){
-    filtered.forEach(function(o){totalGanancia+=getCostoReal(o).ganancia;});
-  }
+  var totalGanancia=isSuper()?calcGananciaTotal(allPeriod):0;
+  var totalUnidades=filtered.reduce(function(s,o){return s+(o.totalCantidad||1);},0);
 
   // By zone
   var lima=filtered.filter(function(o){return o.zona==='Lima';}).length;
@@ -1301,126 +1319,121 @@ function renderResumen(){
   var byStatus={pendiente:0,enviado:0,entregado:0,anulado:0};
   allPeriod.forEach(function(o){if(byStatus[o.estado]!==undefined)byStatus[o.estado]++;});
 
-  // Build vendedor map with full details
+  // Build vendedor map
   var vendMap={};
   allPeriod.forEach(function(o){
     var name=o.vendedor||'Desconocido';
-    if(!vendMap[name])vendMap[name]={ventas:0,cobrado:0,ganancia:0,productos:{},estados:{pendiente:0,enviado:0,entregado:0,anulado:0}};
+    if(!vendMap[name])vendMap[name]={ventas:0,cobrado:0,ganancia:0,productos:{},estados:{pendiente:0,enviado:0,entregado:0,anulado:0},allOrders:[]};
     vendMap[name].ventas++;
     vendMap[name].cobrado+=(o.cobrar||0);
+    vendMap[name].allOrders.push(o);
     if(vendMap[name].estados[o.estado]!==undefined)vendMap[name].estados[o.estado]++;
-    // Productos
-    var qty=o.totalCantidad||1;
-    if(o.productos&&o.productos.length){
-      o.productos.forEach(function(p){
-        var k=p.nombre;
-        vendMap[name].productos[k]=(vendMap[name].productos[k]||0)+(p.cantidad||1);
-      });
-    } else if(o.producto){
-      vendMap[name].productos[o.producto]=(vendMap[name].productos[o.producto]||0)+qty;
+    if(o.estado!=='anulado'){
+      var qty=o.totalCantidad||1;
+      if(o.productos&&o.productos.length){
+        o.productos.forEach(function(p){vendMap[name].productos[p.nombre]=(vendMap[name].productos[p.nombre]||0)+(p.cantidad||1);});
+      } else if(o.producto){
+        vendMap[name].productos[o.producto]=(vendMap[name].productos[o.producto]||0)+qty;
+      }
     }
-    if(o.estado!=='anulado'&&isSuper()){
-      vendMap[name].ganancia+=getCostoReal(o).ganancia;
-    }
+    if(isSuper())vendMap[name].ganancia+=getCostoReal(o).ganancia;
   });
 
-  // Build HTML
-  var html='';
+  var hh='';
 
-  // ── Totals row ──────────────────────────────────────────────────────
-  html+='<div class="stats-row">'+
-    '<div class="stat"><div class="stat-n">'+allPeriod.length+'</div><div class="stat-l">Total ventas</div></div>'+
-    '<div class="stat"><div class="stat-n g">S/'+totalCobrado.toFixed(0)+'</div><div class="stat-l">Cobrado</div></div>'+
-    (isSuper()?'<div class="stat"><div class="stat-n g">S/'+totalGanancia.toFixed(0)+'</div><div class="stat-l">Ganancia</div></div>':'')+
+  // ── PUNTO 3: Dashboard global ──────────────────────────────────────────
+  hh+='<div class="kpi-grid">';
+  hh+='<div class="kpi"><div class="kpi-lbl">Ingresos</div><div class="kpi-val g">S/'+totalCobrado.toFixed(0)+'</div></div>';
+  hh+='<div class="kpi"><div class="kpi-lbl">Pedidos</div><div class="kpi-val">'+filtered.length+'</div></div>';
+  hh+='<div class="kpi"><div class="kpi-lbl">Unidades</div><div class="kpi-val">'+totalUnidades+'</div></div>';
+  if(isSuper())hh+='<div class="kpi" style="background:var(--accent2);border-color:rgba(45,122,79,.2)"><div class="kpi-lbl" style="color:var(--accent)">Ganancia real</div><div class="kpi-val" style="color:var(--accent)">S/'+totalGanancia.toFixed(0)+'</div></div>';
+  hh+='</div>';
+
+  // Zona bars
+  hh+='<div class="card"><div class="section-label">Ventas por zona</div>'+
+    '<div class="zone-row"><div class="zdot" style="background:var(--accent)"></div><div class="zname">Lima</div><div class="zwrap"><div class="zbar" style="width:'+Math.round(lima/maxZone*100)+'%;background:var(--accent)"></div></div><div class="zcount" style="color:var(--accent)">'+lima+'</div></div>'+
+    '<div class="zone-row"><div class="zdot" style="background:#93c5fd"></div><div class="zname">Provincia</div><div class="zwrap"><div class="zbar" style="width:'+Math.round(prov/maxZone*100)+'%;background:#93c5fd"></div></div><div class="zcount" style="color:#1e40af">'+prov+'</div></div>'+
   '</div>';
 
-  // ── Ventas por zona ─────────────────────────────────────────────────
-  html+='<div class="card">'+
-    '<div class="section-label">Ventas por zona</div>'+
-    '<div class="zone-row"><div class="zdot" style="background:var(--accent)"></div><div class="zname">Lima</div>'+
-    '<div class="zwrap"><div class="zbar" style="width:'+Math.round(lima/maxZone*100)+'%;background:var(--accent)"></div></div>'+
-    '<div class="zcount" style="color:var(--accent)">'+lima+'</div></div>'+
-    '<div class="zone-row"><div class="zdot" style="background:#93c5fd"></div><div class="zname">Provincia</div>'+
-    '<div class="zwrap"><div class="zbar" style="width:'+Math.round(prov/maxZone*100)+'%;background:#93c5fd"></div></div>'+
-    '<div class="zcount" style="color:#1e40af">'+prov+'</div></div>'+
-  '</div>';
-
-  // ── Estado global ───────────────────────────────────────────────────
-  html+='<div class="card">'+
-    '<div class="section-label">Resumen por estado</div>'+
+  // Global status
+  hh+='<div class="card"><div class="section-label">Resumen por estado</div>'+
     '<div class="dr"><span class="dl">✅ Entregado</span><span class="dv green">'+byStatus.entregado+'</span></div>'+
     '<div class="dr"><span class="dl">📦 Enviado</span><span class="dv blue">'+byStatus.enviado+'</span></div>'+
     '<div class="dr"><span class="dl">⏳ Pendiente</span><span class="dv" style="color:#92400e">'+byStatus.pendiente+'</span></div>'+
     '<div class="dr"><span class="dl">✗ Anulado</span><span class="dv red">'+byStatus.anulado+'</span></div>'+
   '</div>';
 
-  // ── Bloque por vendedor ─────────────────────────────────────────────
+  // ── PUNTO 2: Bloque acordeón por vendedor ──────────────────────────────
   var vendEntries=Object.entries(vendMap).sort(function(a,b){return b[1].ventas-a[1].ventas;});
   if(!vendEntries.length){
-    html+='<div class="empty"><p>Sin ventas en este período</p></div>';
+    hh+='<div class="empty"><p>Sin ventas en este período</p></div>';
   } else {
-    vendEntries.forEach(function(entry){
+    vendEntries.forEach(function(entry,vi){
       var name=entry[0], d=entry[1];
-      var wVentas=orders.filter(function(o){return o.vendedor===name&&o.fv>=weekStart()&&o.estado!=='anulado';}).length;
-      var sueldo=getSueldo(wVentas);
-      var next=getNextLevel(wVentas);
-      // Products list
-      var prodRows='';
-      var prodEntries=Object.entries(d.productos).sort(function(a,b){return b[1]-a[1];});
-      prodEntries.forEach(function(pe){
-        prodRows+='<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:0.5px solid var(--bo)">'+
-          '<span style="font-size:12px;color:var(--tx)">'+pe[0]+'</span>'+
-          '<span style="font-size:12px;font-weight:700;color:var(--accent)">'+pe[1]+' un.</span>'+
-        '</div>';
-      });
-      html+=
-        '<div class="card" style="border-left:3px solid var(--accent)">'+
-          // Header
-          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
-            '<div>'+
-              '<div style="font-size:15px;font-weight:800;color:var(--accent)">'+name+'</div>'+
-              '<div style="font-size:11px;color:var(--tx3)">'+d.ventas+' ventas · S/'+d.cobrado.toFixed(0)+' cobrado</div>'+
+      // PUNTO 4: sueldo segun ventas del período filtrado (no anuladas)
+      var ventasValidas=d.allOrders.filter(function(o){return o.estado!=='anulado';}).length;
+      var sueldo=calcSueldo(ventasValidas);
+      var next=getNextLevel(ventasValidas);
+      // Ventas por cantidad (punto 2A)
+      var byCant=calcVentasPorCantidad(d.allOrders);
+      var cantRows=Object.entries(byCant).sort(function(a,b){return Number(a[0])-Number(b[0]);}).map(function(e){
+        return '<div class="dr"><span class="dl">'+e[1]+' venta'+(e[1]!==1?'s':'')+' de '+e[0]+' unidad'+(e[0]!=='1'?'es':'')+'</span><span class="dv" style="color:var(--accent)">'+(e[1]*parseInt(e[0]))+' un.</span></div>';
+      }).join('');
+      // Products
+      var prodRows=Object.entries(d.productos).sort(function(a,b){return b[1]-a[1];}).map(function(pe){
+        return '<div class="dr"><span class="dl">'+pe[0]+'</span><span class="dv green">'+pe[1]+' un.</span></div>';
+      }).join('');
+
+      var cardId='vcard-'+vi;
+      var bodyId='vbody-'+vi;
+      hh+=
+        '<div class="card" id="'+cardId+'" style="padding:0;overflow:hidden;border-left:3px solid var(--accent)">'+
+          // ── Header (always visible, clickable) ──────────────────────
+          '<div onclick="toggleVcard(\''+bodyId+'\')" style="display:flex;align-items:center;justify-content:space-between;padding:13px 14px;cursor:pointer;gap:8px">'+
+            '<div style="flex:1;min-width:0">'+
+              '<div style="font-size:14px;font-weight:800;color:var(--accent)">'+name+'</div>'+
+              '<div style="font-size:11px;color:var(--tx3);margin-top:2px">'+d.ventas+' ventas · S/'+d.cobrado.toFixed(0)+' cobrado'+(isSuper()?' · Gan: S/'+d.ganancia.toFixed(0):'')+'</div>'+
             '</div>'+
-            '<span style="font-size:11px;font-weight:600;color:'+(next?'#f59e0b':'#166534')+'">'+(next?'🎯 −'+(next.ventas-wVentas)+' meta':'✅ Meta')+'</span>'+
+            '<span id="'+bodyId+'-arrow" style="font-size:12px;color:var(--tx3);transition:transform .25s;flex-shrink:0">▶</span>'+
           '</div>'+
-          // Estados
-          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">'+
-            '<div style="background:#dcfce7;border-radius:8px;padding:7px 10px;text-align:center">'+
-              '<div style="font-size:16px;font-weight:800;color:#166534">'+d.estados.entregado+'</div>'+
-              '<div style="font-size:9px;color:#166534;font-weight:600">ENTREGADO</div>'+
+          // ── Body (collapsible) ───────────────────────────────────────
+          '<div id="'+bodyId+'" style="display:none;padding:0 14px 14px">'+
+            '<div style="height:0.5px;background:var(--bo);margin-bottom:10px"></div>'+
+            // Estados 2x2
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">'+
+              '<div style="background:#dcfce7;border-radius:8px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:800;color:#166534">'+d.estados.entregado+'</div><div style="font-size:9px;color:#166534;font-weight:700">ENTREGADO</div></div>'+
+              '<div style="background:#dbeafe;border-radius:8px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:800;color:#1e40af">'+d.estados.enviado+'</div><div style="font-size:9px;color:#1e40af;font-weight:700">ENVIADO</div></div>'+
+              '<div style="background:#fef3c7;border-radius:8px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:800;color:#92400e">'+d.estados.pendiente+'</div><div style="font-size:9px;color:#92400e;font-weight:700">PENDIENTE</div></div>'+
+              '<div style="background:#fee2e2;border-radius:8px;padding:8px;text-align:center"><div style="font-size:18px;font-weight:800;color:#991b1b">'+d.estados.anulado+'</div><div style="font-size:9px;color:#991b1b;font-weight:700">ANULADO</div></div>'+
             '</div>'+
-            '<div style="background:#dbeafe;border-radius:8px;padding:7px 10px;text-align:center">'+
-              '<div style="font-size:16px;font-weight:800;color:#1e40af">'+d.estados.enviado+'</div>'+
-              '<div style="font-size:9px;color:#1e40af;font-weight:600">ENVIADO</div>'+
-            '</div>'+
-            '<div style="background:#fef3c7;border-radius:8px;padding:7px 10px;text-align:center">'+
-              '<div style="font-size:16px;font-weight:800;color:#92400e">'+d.estados.pendiente+'</div>'+
-              '<div style="font-size:9px;color:#92400e;font-weight:600">PENDIENTE</div>'+
-            '</div>'+
-            '<div style="background:#fee2e2;border-radius:8px;padding:7px 10px;text-align:center">'+
-              '<div style="font-size:16px;font-weight:800;color:#991b1b">'+d.estados.anulado+'</div>'+
-              '<div style="font-size:9px;color:#991b1b;font-weight:600">ANULADO</div>'+
+            // Ventas por cantidad
+            (cantRows?'<div class="section-label">Ventas por cantidad</div>'+cantRows:'')+
+            // Productos
+            (prodRows?'<div class="section-label" style="margin-top:8px">Productos vendidos</div>'+prodRows:'')+
+            // Sueldo y ganancia
+            '<div style="display:flex;gap:6px;margin-top:10px">'+
+              '<div style="flex:1;background:var(--accent2);border-radius:9px;padding:9px 11px;text-align:center">'+
+                '<div style="font-size:10px;color:var(--accent);font-weight:700;text-transform:uppercase">Sueldo período</div>'+
+                '<div style="font-size:18px;font-weight:800;color:var(--accent)">S/'+sueldo+'</div>'+
+                '<div style="font-size:10px;color:var(--tx3)">'+ventasValidas+' ventas</div>'+
+              '</div>'+
+              (isSuper()?'<div style="flex:1;background:#f0fdf4;border-radius:9px;padding:9px 11px;text-align:center">'+
+                '<div style="font-size:10px;color:#166534;font-weight:700;text-transform:uppercase">Ganancia real</div>'+
+                '<div style="font-size:18px;font-weight:800;color:#166534">S/'+d.ganancia.toFixed(0)+'</div>'+
+              '</div>':'')+
+              '<div style="flex:1;background:var(--bg2);border-radius:9px;padding:9px 11px;text-align:center">'+
+                '<div style="font-size:10px;color:var(--tx2);font-weight:700;text-transform:uppercase">Meta sem.</div>'+
+                '<div style="font-size:14px;font-weight:700;color:'+(next?'#f59e0b':'#166534')+'">'+(next?'−'+(next.ventas-ventasValidas):'✅')+'</div>'+
+              '</div>'+
             '</div>'+
           '</div>'+
-          // Productos vendidos
-          (prodRows?'<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Productos vendidos</div>'+prodRows:'')+
-          // Sueldo proyectado
-          '<div style="margin-top:8px;padding:8px 10px;background:var(--accent2);border-radius:8px;display:flex;justify-content:space-between;align-items:center">'+
-            '<span style="font-size:11px;color:var(--tx2)">Sueldo semana</span>'+
-            '<span style="font-size:14px;font-weight:800;color:var(--accent)">S/ '+sueldo+'</span>'+
-          '</div>'+
-          // Ganancia (super only)
-          (isSuper()?'<div style="margin-top:6px;padding:8px 10px;background:#f0fdf4;border-radius:8px;display:flex;justify-content:space-between;align-items:center">'+
-            '<span style="font-size:11px;color:var(--tx2)">Ganancia real</span>'+
-            '<span style="font-size:14px;font-weight:800;color:#166534">S/ '+d.ganancia.toFixed(0)+'</span>'+
-          '</div>':'')+
         '</div>';
     });
   }
 
-  // ── Finanzas globales (super only) ──────────────────────────────────
+  // Finanzas globales (super only)
   if(isSuper()&&filtered.length){
-    html+='<div class="fin-card">'+
+    hh+='<div class="fin-card">'+
       '<div class="section-label" style="color:var(--accent)">💰 Finanzas del período</div>'+
       '<div class="dr"><span class="dl">Total cobrado</span><span class="dv">S/ '+totalCobrado.toFixed(2)+'</span></div>'+
       '<div class="dr"><span class="dl">Costos totales</span><span class="dv red">− S/ '+(totalCobrado-totalGanancia).toFixed(2)+'</span></div>'+
@@ -1428,8 +1441,18 @@ function renderResumen(){
     '</div>';
   }
 
-  el.innerHTML=html;
+  el.innerHTML=hh;
 }
+
+function toggleVcard(bodyId){
+  var body=document.getElementById(bodyId);
+  var arrow=document.getElementById(bodyId+'-arrow');
+  if(!body)return;
+  var isOpen=body.style.display!=='none';
+  body.style.display=isOpen?'none':'block';
+  if(arrow)arrow.style.transform=isOpen?'':'rotate(90deg)';
+}
+
 
 // ═══ HISTORIAL ═══
 function renderHistorial(){
@@ -1520,24 +1543,18 @@ async function renderConfig(){
       <button class="btn" style="margin-top:10px" onclick="saveDelivery()">Guardar costos</button>
     </div>
     <div class="card">
-      <div class="section-label">Escala de sueldos · Semanal (editable)</div>
-      <div id="scale-list">
-      ${salaryScale.map((l,i)=>`
-        <div class="dr">
-          <div style="display:flex;gap:6px;align-items:center">
-            <input type="number" value="${l.ventas}" id="sv-${i}" style="width:52px;padding:5px 6px;border:0.5px solid var(--bo2);border-radius:6px;background:var(--bg2);color:var(--tx);font-size:12px;font-family:var(--fs)"> ventas
-          </div>
-          <div style="display:flex;gap:6px;align-items:center">
-            S/<input type="number" value="${l.sueldo}" id="ss-${i}" style="width:60px;padding:5px 6px;border:0.5px solid var(--bo2);border-radius:6px;background:var(--bg2);color:var(--accent);font-size:12px;font-weight:700;font-family:var(--fs)">
-          </div>
-        </div>`).join('')}
+      <div class="section-label">Escala de sueldos · Semanal</div>
+      <div id="scale-list" style="display:flex;flex-direction:column;gap:4px"></div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="btn out" style="flex:1;padding:9px;font-size:12px" onclick="addScaleRow()">+ Agregar nivel</button>
+        <button class="btn" style="flex:1;padding:9px;font-size:12px" onclick="saveScale()">Guardar escala</button>
       </div>
-      <button class="btn" style="margin-top:10px" onclick="saveScale()">Guardar escala</button>
     </div>
     <div class="card">
       <div class="section-label">Sesión</div>
       <button class="btn gray" onclick="logout()">Cerrar sesión</button>
     </div>`;
+  renderScaleList();
 }
 
 function openAddProd(){
@@ -1608,15 +1625,69 @@ async function delProducto(i){
   cfg.productos=prods;renderConfig();toast('✓ Producto eliminado');
 }
 
+function renderScaleList(){
+  var list=document.getElementById('scale-list');
+  if(!list)return;
+  list.innerHTML='';
+  salaryScale.forEach(function(l,i){
+    var row=document.createElement('div');
+    row.id='scale-row-'+i;
+    row.style.cssText='display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--bo)';
+    row.innerHTML=
+      '<input type="number" min="1" value="'+l.ventas+'" id="sv-'+i+'" placeholder="Ventas" style="width:65px;padding:6px 8px;border:0.5px solid var(--bo2);border-radius:8px;background:var(--bg2);color:var(--tx);font-size:13px;font-family:inherit">'+
+      '<span style="font-size:12px;color:var(--tx3)">ventas =</span>'+
+      '<span style="font-size:12px;color:var(--tx3)">S/</span>'+
+      '<input type="number" min="0" value="'+l.sueldo+'" id="ss-'+i+'" placeholder="Sueldo" style="flex:1;padding:6px 8px;border:0.5px solid var(--bo2);border-radius:8px;background:var(--bg2);color:var(--accent);font-size:13px;font-weight:700;font-family:inherit">'+
+      '<button onclick="removeScaleRow('+i+')" style="padding:5px 9px;border:none;background:#fee2e2;color:#991b1b;border-radius:8px;cursor:pointer;font-size:13px">✕</button>';
+    list.appendChild(row);
+  });
+}
+
+function addScaleRow(){
+  // Add a new empty row
+  salaryScale.push({ventas:0,sueldo:0});
+  renderScaleList();
+  // Focus the new ventas input
+  var lastIdx=salaryScale.length-1;
+  var inp=document.getElementById('sv-'+lastIdx);
+  if(inp)inp.focus();
+}
+
+function removeScaleRow(i){
+  salaryScale.splice(i,1);
+  renderScaleList();
+}
+
 async function saveScale(){
-  const newScale=salaryScale.map((_,i)=>({
-    ventas:parseInt($('sv-'+i)?.value)||0,
-    sueldo:parseInt($('ss-'+i)?.value)||0
-  })).filter(l=>l.ventas>0&&l.sueldo>0).sort((a,b)=>a.ventas-b.ventas);
-  if(!newScale.length){toast('Escala inválida');return;}
-  await db.collection('config').doc('ventas').set({salaryScale:newScale},{merge:true});
-  salaryScale=newScale;cfg.salaryScale=newScale;
-  toast('✓ Escala guardada');renderConfig();
+  var list=document.getElementById('scale-list');
+  if(!list){toast('Error: lista no encontrada');return;}
+  // Read all current rows
+  var newScale=[];
+  var seen={};
+  var hasError=false;
+  salaryScale.forEach(function(_,i){
+    var vEl=document.getElementById('sv-'+i);
+    var sEl=document.getElementById('ss-'+i);
+    var v=parseInt((vEl&&vEl.value)||'0');
+    var s=parseInt((sEl&&sEl.value)||'0');
+    if(v<=0||s<=0){hasError=true;return;}
+    if(seen[v]){hasError=true;toast('Hay duplicados en ventas: '+v);return;}
+    seen[v]=true;
+    newScale.push({ventas:v,sueldo:s});
+  });
+  if(hasError){toast('Corrige los campos inválidos o duplicados');return;}
+  if(!newScale.length){toast('Agrega al menos un nivel');return;}
+  // Sort ascending by ventas
+  newScale.sort(function(a,b){return a.ventas-b.ventas;});
+  try{
+    await db.collection('config').doc('ventas').set({salaryScale:newScale},{merge:true});
+    salaryScale=newScale;
+    cfg.salaryScale=newScale;
+    toast('✓ Escala guardada con '+newScale.length+' niveles');
+    renderScaleList();
+    // Re-render meta if open to reflect new scale
+    if(curTab==='meta')renderMeta();
+  }catch(e){toast('Error al guardar: '+e.message);}
 }
 async function saveDelivery(){
   var limaEl=document.getElementById('cost-lima');
