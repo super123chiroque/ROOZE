@@ -1622,10 +1622,10 @@ async function renderConfig(){
     </div>
     <div class="card">
       <div class="section-label">Escala de sueldos · Semanal</div>
-      <div id="scale-list" style="display:flex;flex-direction:column;gap:4px"></div>
-      <div style="display:flex;gap:6px;margin-top:8px">
-        <button class="btn out" style="flex:1;padding:9px;font-size:12px" onclick="addScaleRow()">+ Agregar nivel</button>
-        <button class="btn" style="flex:1;padding:9px;font-size:12px" onclick="saveScale()">Guardar escala</button>
+      <div id="scale-list" style="width:100%;overflow:hidden"></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn out" style="flex:1;padding:10px;font-size:13px" onclick="addScaleRow()">+ Agregar nivel</button>
+        <button class="btn" style="flex:1;padding:10px;font-size:13px" onclick="saveScale()">Guardar</button>
       </div>
     </div>
     <div class="card">
@@ -1707,16 +1707,24 @@ function renderScaleList(){
   var list=document.getElementById('scale-list');
   if(!list)return;
   list.innerHTML='';
+  // Ensure container doesn't overflow
+  list.style.cssText='display:flex;flex-direction:column;gap:0;width:100%;box-sizing:border-box;overflow:hidden';
   salaryScale.forEach(function(l,i){
     var row=document.createElement('div');
     row.id='scale-row-'+i;
-    row.style.cssText='display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--bo)';
+    // Full-width flex row, contained inside card
+    row.style.cssText='display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:0.5px solid var(--bo);width:100%;box-sizing:border-box;min-width:0';
+    var inpBase='box-sizing:border-box;min-width:0;padding:7px 8px;border:0.5px solid var(--bo2);border-radius:8px;background:var(--bg2);font-size:13px;font-family:inherit;outline:none';
     row.innerHTML=
-      '<input type="number" min="1" value="'+l.ventas+'" id="sv-'+i+'" placeholder="Ventas" style="width:65px;padding:6px 8px;border:0.5px solid var(--bo2);border-radius:8px;background:var(--bg2);color:var(--tx);font-size:13px;font-family:inherit">'+
-      '<span style="font-size:12px;color:var(--tx3)">ventas =</span>'+
-      '<span style="font-size:12px;color:var(--tx3)">S/</span>'+
-      '<input type="number" min="0" value="'+l.sueldo+'" id="ss-'+i+'" placeholder="Sueldo" style="flex:1;padding:6px 8px;border:0.5px solid var(--bo2);border-radius:8px;background:var(--bg2);color:var(--accent);font-size:13px;font-weight:700;font-family:inherit">'+
-      '<button onclick="removeScaleRow('+i+')" style="padding:5px 9px;border:none;background:#fee2e2;color:#991b1b;border-radius:8px;cursor:pointer;font-size:13px">✕</button>';
+      // Ventas input - fixed small width
+      '<input type="number" min="1" value="'+l.ventas+'" id="sv-'+i+'" placeholder="#" style="'+inpBase+';width:56px;color:var(--tx);text-align:center;flex-shrink:0">'+
+      // Label
+      '<span style="font-size:11px;color:var(--tx3);white-space:nowrap;flex-shrink:0">vtas =</span>'+
+      '<span style="font-size:11px;color:var(--tx3);flex-shrink:0">S/</span>'+
+      // Sueldo input - takes remaining space
+      '<input type="number" min="0" value="'+l.sueldo+'" id="ss-'+i+'" placeholder="0" style="'+inpBase+';flex:1;color:var(--accent);font-weight:700">'+
+      // Delete button - fixed size, always inside
+      '<button onclick="removeScaleRow('+i+')" style="flex-shrink:0;width:32px;height:32px;border:none;background:#fee2e2;color:#991b1b;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;padding:0">✕</button>';
     list.appendChild(row);
   });
 }
