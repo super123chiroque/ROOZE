@@ -303,15 +303,15 @@ tbody tr:hover{background:var(--bg2)}
       <div id="mod-inv">
         <!-- Model filter chips -->
         <div class="fbar" id="fbar" data-f="all"></div>
-        <!-- Product grid -->
-        <div class="prod-grid" id="inv-list"></div>
-        <!-- Stock KPIs at bottom -->
-        <div class="kpi-row" style="margin-top:20px">
+        <!-- Stock KPIs at top -->
+        <div class="kpi-row" style="margin-bottom:16px">
           <div class="kpi"><div class="kpi-lbl">Total pares</div><div class="kpi-val accent" id="m-tot">—</div></div>
-          <div class="kpi"><div class="kpi-lbl">Alertas stock bajo</div><div class="kpi-val red" id="m-alt">—</div></div>
+          <div class="kpi"><div class="kpi-lbl">Stock bajo ≤3</div><div class="kpi-val red" id="m-alt">—</div></div>
           <div class="kpi"><div class="kpi-lbl">Modelos</div><div class="kpi-val" id="m-models">—</div></div>
           <div class="kpi"><div class="kpi-lbl">Colores</div><div class="kpi-val" id="m-colors">—</div></div>
         </div>
+        <!-- Product grid -->
+        <div class="prod-grid" id="inv-list"></div>
       </div>
 
       <!-- ── HISTORIAL ───────────────────────────────────── -->
@@ -449,6 +449,48 @@ tbody tr:hover{background:var(--bg2)}
   </div>
 </div>
 
+<!-- ── MODAL: EDITAR MODELO/COLOR ───────────────────────────── -->
+<div class="modal-ov" id="ov-editp">
+  <div class="modal">
+    <button class="modal-close" onclick="closeMod('ov-editp')">✕</button>
+    <h3>Editar modelo / color</h3>
+    <div style="display:flex;gap:14px;align-items:center;margin-bottom:16px;background:var(--bg2);border-radius:10px;padding:12px">
+      <div id="editp-img" style="flex-shrink:0"></div>
+      <div><div style="font-weight:700" id="editp-nm"></div><div style="font-size:13px;color:var(--tx2)" id="editp-cl"></div></div>
+    </div>
+    <div class="fld-row">
+      <div class="fld"><label>Nuevo modelo</label><select id="editp-model"></select></div>
+      <div class="fld"><label>Nuevo color</label><select id="editp-color"></select></div>
+    </div>
+    <div class="err" id="editp-err"></div>
+    <div class="modal-btns">
+      <button class="btn-primary" id="btn-editp">Guardar cambios</button>
+      <button class="btn-secondary" onclick="closeMod('ov-editp')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: EDITAR TALLA ────────────────────────────────── -->
+<div class="modal-ov" id="ov-editsz">
+  <div class="modal">
+    <button class="modal-close" onclick="closeMod('ov-editsz')">✕</button>
+    <h3>Editar talla</h3>
+    <div style="display:flex;gap:14px;align-items:center;margin-bottom:16px;background:var(--bg2);border-radius:10px;padding:12px">
+      <div id="editsz-img" style="flex-shrink:0"></div>
+      <div><div style="font-weight:700" id="editsz-nm"></div><div style="font-size:13px;color:var(--tx2)" id="editsz-cl"></div></div>
+    </div>
+    <div class="fld-row">
+      <div class="fld"><label>Talla actual</label><select id="editsz-sel"></select></div>
+      <div class="fld"><label>Nueva talla</label><input type="number" id="editsz-new" min="30" max="48" placeholder="40"></div>
+    </div>
+    <div class="err" id="editsz-err"></div>
+    <div class="modal-btns">
+      <button class="btn-primary" id="btn-editsz">Guardar talla</button>
+      <button class="btn-secondary" onclick="closeMod('ov-editsz')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── MODAL: AGREGAR PRODUCTO ────────────────────────────── -->
 <div class="modal-ov" id="ov-addp">
   <div class="modal">
@@ -491,6 +533,34 @@ tbody tr:hover{background:var(--bg2)}
     <div class="modal-btns" style="margin-top:14px">
       <button class="btn-primary" id="btn-logo" disabled>Subir logo</button>
       <button class="btn-secondary" onclick="closeMod('ov-logo')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: FOTO PRODUCTO ─────────────────────────────────── -->
+<div class="modal-ov" id="ov-photo">
+  <div class="modal">
+    <button class="modal-close" onclick="closeMod('ov-photo')">✕</button>
+    <h3 id="photo-title">Foto del producto</h3>
+    <div id="photo-preview" style="width:100%;height:180px;background:var(--bg2);border-radius:10px;
+      display:flex;align-items:center;justify-content:center;margin-bottom:14px;overflow:hidden;border:1px solid var(--bo)">
+      <span style="font-size:40px;color:var(--tx3)">📷</span>
+    </div>
+    <div id="photo-drop" onclick="document.getElementById('photo-file').click()"
+      style="border:2px dashed var(--bo2);border-radius:10px;padding:20px;text-align:center;cursor:pointer">
+      <div style="font-size:13px;color:var(--tx2)">Click para seleccionar imagen</div>
+      <div style="font-size:11px;color:var(--tx3);margin-top:4px">JPG, PNG — máx 5MB</div>
+    </div>
+    <input type="file" id="photo-file" accept="image/*" style="display:none">
+    <div id="photo-prog" style="display:none;margin-top:10px">
+      <div style="height:6px;background:var(--bg2);border-radius:3px;overflow:hidden">
+        <div id="photo-bar" style="height:100%;background:var(--accent);border-radius:3px;width:0;transition:width .3s"></div>
+      </div>
+    </div>
+    <div class="err" id="photo-err" style="margin-top:8px"></div>
+    <div class="modal-btns" style="margin-top:14px">
+      <button class="btn-primary" id="btn-photo" disabled>Guardar foto</button>
+      <button class="btn-secondary" onclick="closeMod('ov-photo')">Cancelar</button>
     </div>
   </div>
 </div>
@@ -653,14 +723,17 @@ function renderList(){
   const q=($('srch')?.value||'').toLowerCase(),af=$('fbar')?.dataset.f||'all';
   const flt=products.filter(p=>(af==='all'||p.model===af)&&(!q||p.model.toLowerCase().includes(q)||p.color.toLowerCase().includes(q)));
   const gs=grps(flt), el=$('inv-list');
-  const colors=new Set(products.map(p=>p.color));
-  const models=new Set(products.map(p=>p.model));
+  const allColors=new Set(products.map(p=>p.color));
+  const allModels=new Set(products.map(p=>p.model));
   $('m-tot').textContent=products.reduce((s,p)=>s+p.stock,0);
   $('m-alt').textContent=products.filter(p=>p.stock<=3).length;
-  $('m-models').textContent=models.size;
-  $('m-colors').textContent=colors.size;
+  $('m-models').textContent=allModels.size;
+  $('m-colors').textContent=allColors.size;
   el.innerHTML='';
-  if(!gs.length){el.innerHTML=`<div class="empty" style="grid-column:1/-1"><p>${isAdm()?'Sin productos. Usa + Producto para agregar.':'Sin productos.'}</p></div>`;return;}
+  if(!gs.length){
+    el.innerHTML=`<div class="empty" style="grid-column:1/-1"><p>${isAdm()?'Sin productos. Usa + Producto para agregar.':'Sin productos.'}</p></div>`;
+    return;
+  }
   gs.forEach(g=>{
     const h=chex(g.color),li=isLt(h),bg=g.imgUrl?'var(--bg2)':(li?'#f5f0e8':`${h}18`);
     const s=[...g.items].sort((a,b)=>a.size-b.size);
@@ -668,27 +741,78 @@ function renderList(){
     const totalStock=s.reduce((sum,p)=>sum+p.stock,0);
     const szHtml=s.map(p=>{
       const cl=p.stock===0?'out':p.stock<=3?'low':'';
-      return `<span class="sz ${cl}">T${p.size}·${p.stock}</span>`;
+      const lt=p.stock===0?'text-decoration:line-through;opacity:0.45;':'';
+      return `<span class="sz ${cl}" style="${lt}">T${p.size}·${p.stock}</span>`;
     }).join('');
     const card=document.createElement('div');
     card.className='prod-card';
+    const stockBadgeColor=totalStock===0?'#dc2626':totalStock<=5?'#f59e0b':'#16a34a';
     card.innerHTML=`
       <div class="prod-img" style="background:${bg}">
         ${g.imgUrl?`<img src="${g.imgUrl}" alt="" loading="lazy">`:`<div style="padding:12px">${ssv(g.model,g.color,90,50)}</div>`}
-        <div style="position:absolute;top:8px;right:8px;background:${totalStock===0?'#dc2626':totalStock<=5?'#f59e0b':'#16a34a'};color:#fff;border-radius:12px;padding:3px 8px;font-size:11px;font-weight:700">${totalStock}</div>
+        <div style="position:absolute;top:8px;right:8px;background:${stockBadgeColor};color:#fff;border-radius:12px;padding:3px 8px;font-size:11px;font-weight:700">${totalStock}</div>
+        ${isAdm()?`<button onclick="toggleActMenu('${g.model}','${g.color}',this)"
+          style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.55);color:#fff;border:none;
+          border-radius:8px;padding:4px 9px;font-size:16px;cursor:pointer;line-height:1;font-weight:700"
+          title="Opciones">···</button>`:''}
       </div>
       <div class="prod-body">
         <div class="prod-name">${g.model}</div>
         <div class="prod-color"><span class="cdot" style="background:${h};border-color:rgba(0,0,0,.1)"></span>${g.color}</div>
         <div class="sizes-row">${szHtml}</div>
-        <div class="prod-actions">
-          <button class="sell" onclick="openSell('${g.model}','${g.color}')" ${hs?'':'disabled'} style="background:var(--accent2);color:var(--accent)">Vender</button>
-          ${isAdm()?`<button class="add" onclick="openRs('${g.model}','${g.color}')" style="background:#dcfce7;color:#166534">+Stock</button><button class="fix" onclick="openFix('${g.model}','${g.color}')" style="background:#fef3c7;color:#92400e">Fix</button>`:''}
+        <div style="display:flex;gap:6px">
+          <button onclick="openSell('${g.model}','${g.color}')" ${hs?'':'disabled'}
+            style="flex:1;padding:8px;background:var(--accent2);color:var(--accent);border:none;
+            border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
+            opacity:${hs?1:0.4}">Vender</button>
+          ${isAdm()?`<button onclick="openRs('${g.model}','${g.color}')"
+            style="padding:8px 12px;background:#dcfce7;color:#166534;border:none;border-radius:8px;
+            font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">+Stock</button>`:''}
+        </div>
+      </div>
+      <!-- Action menu (hidden by default) -->
+      <div id="actmenu-${g.model}-${g.color}" style="display:none;padding:0 12px 12px">
+        <div style="height:1px;background:var(--bo);margin-bottom:10px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <button onclick="openRs('${g.model}','${g.color}')"
+            style="${actBtnStyle('#dcfce7','#166534')}">📦 Agregar stock</button>
+          <button onclick="openFix('${g.model}','${g.color}')"
+            style="${actBtnStyle('#fef3c7','#92400e')}">🔧 Corregir stock</button>
+          <button onclick="openEditP('${g.model}','${g.color}')"
+            style="${actBtnStyle('#dbeafe','#1e40af')}">✏️ Editar modelo/color</button>
+          <button onclick="openEditSz('${g.model}','${g.color}')"
+            style="${actBtnStyle('#f3e8ff','#7c3aed')}">📐 Editar talla</button>
+          <button onclick="openPhotoModal('${g.model}','${g.color}')"
+            style="${actBtnStyle('#f0fdf4','#15803d')}">📷 Cambiar foto</button>
+          <button onclick="doDelete('${g.model}','${g.color}')"
+            style="${actBtnStyle('#fee2e2','#991b1b')}">🗑️ Eliminar</button>
         </div>
       </div>`;
     el.appendChild(card);
   });
 }
+
+function actBtnStyle(bg,col){
+  return `background:${bg};color:${col};border:none;border-radius:8px;padding:8px 6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;width:100%`;
+}
+
+function toggleActMenu(model,color,btn){
+  // Close all other menus first
+  document.querySelectorAll('[id^="actmenu-"]').forEach(m=>{
+    if(m.id!==`actmenu-${model}-${color}`)m.style.display='none';
+  });
+  const menu=document.getElementById(`actmenu-${model}-${color}`);
+  if(!menu)return;
+  const isOpen=menu.style.display!=='none';
+  menu.style.display=isOpen?'none':'block';
+  btn.style.background=isOpen?'rgba(0,0,0,0.55)':'var(--accent)';
+}
+
+// Close menus on outside click
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.prod-card'))
+    document.querySelectorAll('[id^="actmenu-"]').forEach(m=>m.style.display='none');
+});
 
 // ── SELL ──────────────────────────────────────────────────────
 function openSell(model,color){
@@ -936,8 +1060,8 @@ function renderStats(){
         const max=Math.max(1,...[...new Set(products.map(p=>p.model))].map(mm=>products.filter(p=>p.model===mm).reduce((s,p)=>s+p.stock,0)));
         return `<div class="stat-row">
           <div class="stat-lbl">${m}</div>
-          <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.round(tot/max*100)}%;background:#8b5cf6"></div></div>
-          <div class="stat-num" style="color:#8b5cf6">${tot}</div>
+          <div class="stat-bar-wrap"><div class="stat-bar" style="width:${Math.round(tot/max*100)}%;background:#77b75d"></div></div>
+          <div class="stat-num" style="color:#77b75d">${tot}</div>
         </div>`;
       }).join('')}
     </div>`:''}`;
@@ -1013,6 +1137,31 @@ function renderCfg(){
           + Agregar
         </button>
       </div>
+    <!-- Colors -->
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">Colores disponibles</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px" id="cfg-colors-list">
+        ${(cfg.colors||[]).map(c=>`
+          <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 12px;
+            background:var(--bg2);color:var(--tx);border-radius:20px;font-size:13px;border:1px solid var(--bo)">
+            <span style="width:12px;height:12px;border-radius:50%;background:${c.h||chex(c.n)};
+              border:1px solid rgba(0,0,0,.15);flex-shrink:0"></span>
+            ${c.n}
+            <button onclick="removeColor('${c.n}')" style="background:none;border:none;cursor:pointer;
+              color:var(--tx3);font-size:14px;line-height:1;padding:0;font-family:inherit">×</button>
+          </span>`).join('')}
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="new-color-name" placeholder="Nombre del color" style="flex:1;padding:8px 12px;
+          border:1px solid var(--bo2);border-radius:8px;background:var(--bg2);
+          color:var(--tx);font-size:13px;font-family:inherit;outline:none">
+        <input type="color" id="new-color-hex" value="#185fa5" style="width:40px;height:36px;
+          border:1px solid var(--bo2);border-radius:8px;cursor:pointer;padding:2px">
+        <button onclick="addColor()" style="padding:8px 16px;background:var(--accent);color:#fff;
+          border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
+          + Color
+        </button>
+      </div>
     </div>`;
 }
 
@@ -1072,6 +1221,32 @@ async function removeBuyer(b){
   }catch(e){toast('Error: '+e.message);}
 }
 
+async function addColor(){
+  const nameInp=$('new-color-name'), hexInp=$('new-color-hex');
+  const name=(nameInp.value||'').trim();
+  const hex=hexInp.value||'#888888';
+  if(!name){toast('Escribe el nombre del color');return;}
+  const existing=(cfg.colors||[]).find(c=>c.n.toLowerCase()===name.toLowerCase());
+  if(existing){toast('El color ya existe');return;}
+  try{
+    cfg.colors=[...(cfg.colors||[]),{n:name,h:hex}];
+    await db.collection('config').doc('main').update({colors:cfg.colors});
+    toast('✓ Color agregado: '+name);
+    nameInp.value='';
+    renderCfg();
+  }catch(e){toast('Error: '+e.message);}
+}
+
+async function removeColor(name){
+  if(!confirm(`¿Eliminar color "${name}"?`))return;
+  try{
+    cfg.colors=(cfg.colors||[]).filter(c=>c.n!==name);
+    await db.collection('config').doc('main').update({colors:cfg.colors});
+    toast('✓ Color eliminado: '+name);
+    renderCfg();
+  }catch(e){toast('Error: '+e.message);}
+}
+
 // ── LOGO ───────────────────────────────────────────────────────
 function compressImg(f,mW,mH,q){return new Promise((res,rej)=>{const i=new Image(),u=URL.createObjectURL(f);i.onload=()=>{URL.revokeObjectURL(u);let w=i.width,h=i.height;if(w>mW){h=Math.round(h*mW/w);w=mW;}if(h>mH){w=Math.round(w*mH/h);h=mH;}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(i,0,0,w,h);res(c.toDataURL('image/jpeg',q));};i.onerror=rej;i.src=u;});}
 
@@ -1126,6 +1301,119 @@ document.querySelectorAll('.modal-ov').forEach(o=>o.addEventListener('click',e=>
 
 // ── TOAST ─────────────────────────────────────────────────────
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// ── PHOTO PRODUCT ─────────────────────────────────────────────
+let _photoGrp=null, _photoFile=null;
+
+function openPhotoModal(model,color){
+  _photoGrp={model,color};_photoFile=null;
+  $('photo-title').textContent=`Foto: ${model} · ${color}`;
+  const existing=products.find(p=>p.model===model&&p.color===color&&p.imageUrl);
+  $('photo-preview').innerHTML=existing
+    ?`<img src="${existing.imageUrl}" style="width:100%;height:100%;object-fit:cover">`
+    :`<span style="font-size:40px;color:var(--tx3)">📷</span>`;
+  $('photo-drop').style.display='block';
+  const btn=$('btn-photo');btn.disabled=true;
+  $('photo-prog').style.display='none';
+  $('photo-bar').style.width='0';
+  $('photo-err').style.display='none';
+  $('photo-file').value='';
+  openMod('ov-photo');
+}
+
+document.getElementById('photo-file').onchange=function(e){
+  const f=e.target.files[0];if(!f)return;
+  if(f.size>5*1024*1024){toast('Imagen máximo 5MB');return;}
+  _photoFile=f;
+  const u=URL.createObjectURL(f);
+  $('photo-preview').innerHTML=`<img src="${u}" style="width:100%;height:100%;object-fit:cover">`;
+  $('btn-photo').disabled=false;
+};
+
+document.getElementById('btn-photo').onclick=async function(){
+  if(!_photoFile||!_photoGrp)return;
+  const btn=$('btn-photo');btn.disabled=true;btn.textContent='Guardando...';
+  $('photo-prog').style.display='block';
+  $('photo-bar').style.width='30%';
+  try{
+    const b64=await compressImg(_photoFile,600,400,.8);
+    $('photo-bar').style.width='75%';
+    const batch=db.batch();
+    products.filter(p=>p.model===_photoGrp.model&&p.color===_photoGrp.color)
+      .forEach(p=>batch.update(db.collection('products').doc(p.id),{imageUrl:b64}));
+    await batch.commit();
+    $('photo-bar').style.width='100%';
+    toast(`✓ Foto guardada: ${_photoGrp.model}`);
+    setTimeout(()=>closeMod('ov-photo'),600);
+  }catch(e){$('photo-err').textContent='Error: '+e.message;$('photo-err').style.display='block';}
+  finally{btn.disabled=false;btn.textContent='Guardar foto';}
+};
+
+// ── EDIT PRODUCT (Model/Color) ───────────────────────────────
+function openEditP(model,color){
+  const prods=products.filter(p=>p.model===model&&p.color===color);
+  $('editp-nm').textContent=model; $('editp-cl').textContent=color;
+  $('editp-img').innerHTML=imgEl({model,color,imgUrl:prods.find(p=>p.imageUrl)?.imageUrl||null},60,40);
+  $('editp-model').innerHTML=cfg.models.map(m=>`<option${m===model?' selected':''}>${m}</option>`).join('');
+  $('editp-color').innerHTML=(cfg.colors||[]).map(c=>`<option value="${c.n}"${c.n===color?' selected':''}>${c.n}</option>`).join('');
+  $('editp-err').style.display='none';
+  openMod('ov-editp');
+}
+$('btn-editp').onclick=async function(){
+  const om=$('editp-nm').textContent,oc=$('editp-cl').textContent;
+  const nm=$('editp-model').value,nc=$('editp-color').value;
+  if(nm===om&&nc===oc){closeMod('ov-editp');return;}
+  const prods=products.filter(p=>p.model===om&&p.color===oc);
+  if(!prods.length)return;
+  const btn=$('btn-editp');btn.disabled=true;btn.textContent='Guardando...';
+  try{
+    const b=db.batch();
+    prods.forEach(p=>{const u={};if(nm!==om)u.model=nm;if(nc!==oc)u.color=nc;if(Object.keys(u).length)b.update(db.collection('products').doc(p.id),u);});
+    await b.commit();
+    closeMod('ov-editp');toast('✓ Producto actualizado');
+  }catch(e){$('editp-err').textContent='Error: '+e.message;$('editp-err').style.display='block';}
+  finally{btn.disabled=false;btn.textContent='Guardar cambios';}
+};
+
+// ── EDIT SIZE ─────────────────────────────────────────────────
+function openEditSz(model,color){
+  const prods=products.filter(p=>p.model===model&&p.color===color).sort((a,b)=>a.size-b.size);
+  $('editsz-nm').textContent=model; $('editsz-cl').textContent=color;
+  $('editsz-img').innerHTML=imgEl({model,color,imgUrl:prods.find(p=>p.imageUrl)?.imageUrl||null},60,40);
+  $('editsz-sel').innerHTML=prods.map(p=>`<option value="${p.id}|${p.size}">Talla ${p.size} — stock: ${p.stock}</option>`).join('');
+  $('editsz-new').value='';
+  $('editsz-err').style.display='none';
+  openMod('ov-editsz');
+}
+$('btn-editsz').onclick=async function(){
+  const parts=$('editsz-sel').value.split('|'),pid=parts[0],oldSz=parseInt(parts[1]);
+  const newSz=parseInt($('editsz-new').value);
+  if(!newSz||newSz<30||newSz>48){$('editsz-err').textContent='Ingresa talla válida (30-48)';$('editsz-err').style.display='block';return;}
+  if(newSz===oldSz){closeMod('ov-editsz');return;}
+  const prod=products.find(p=>p.id===pid);if(!prod)return;
+  if(products.find(p=>p.model===prod.model&&p.color===prod.color&&p.size===newSz&&p.id!==pid)){
+    $('editsz-err').textContent=`Ya existe ${prod.model} · ${prod.color} en talla ${newSz}`;$('editsz-err').style.display='block';return;}
+  const btn=$('btn-editsz');btn.disabled=true;btn.textContent='Guardando...';
+  try{
+    await db.collection('products').doc(pid).update({size:newSz});
+    closeMod('ov-editsz');toast(`✓ Talla ${oldSz} → ${newSz}`);
+  }catch(e){$('editsz-err').textContent='Error: '+e.message;$('editsz-err').style.display='block';}
+  finally{btn.disabled=false;btn.textContent='Guardar talla';}
+};
+
+// ── DELETE PRODUCT ────────────────────────────────────────────
+async function doDelete(model,color){
+  const prods=products.filter(p=>p.model===model&&p.color===color);
+  const tot=prods.reduce((s,p)=>s+p.stock,0);
+  if(!confirm(`¿Eliminar ${model} · ${color}?
+${prods.length} talla(s) — ${tot} pares
+
+Esto no se puede deshacer.`))return;
+  try{
+    const b=db.batch();prods.forEach(p=>b.delete(db.collection('products').doc(p.id)));
+    await b.commit();toast('✓ Producto eliminado');
+  }catch(e){alert('Error: '+e.message);}
+}
 
 // Enter key shortcuts for config inputs
 document.addEventListener('keydown',function(e){
