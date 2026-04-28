@@ -259,10 +259,7 @@ tbody tr:hover{background:var(--bg2)}
         <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
         Ventas
       </button>
-      <button class="nav-item" id="nb-meta" onclick="showModule('meta')">
-        <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
-        Historial
-      </button>
+
       <button class="nav-item" id="nb-resumen" onclick="showModule('resumen')">
         <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
         Vendedores
@@ -343,23 +340,6 @@ tbody tr:hover{background:var(--bg2)}
           <button class="btn-primary" style="width:auto;padding:7px 16px;font-size:13px;margin-left:auto" onclick="openNuevaVenta()">+ Nueva venta</button>
         </div>
         <div class="tbl-wrap" id="ventas-tbl-wrap"><div class="spin"></div></div>
-      </div>
-
-      <!-- ── HISTORIAL ────────────────────────────────── -->
-      <div id="mod-meta" style="display:none">
-        <!-- Filter row built dynamically by renderMeta() -->
-        <div id="pc-hist-filters"></div>
-        <!-- Stats row -->
-        <div id="pc-hist-stats" class="kpi-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px"></div>
-        <!-- Chart -->
-        <div class="chart-wrap" style="margin-bottom:14px">
-          <div class="chart-hdr">
-            <div class="chart-title">Evolución de ventas en el período</div>
-          </div>
-          <div id="pc-hist-chart"></div>
-        </div>
-        <!-- Table -->
-        <div class="tbl-wrap" id="pc-hist-tbl"></div>
       </div>
 
       <!-- ── VENDEDORES ──────────────────────────────── -->
@@ -677,15 +657,14 @@ async function loadApp(fbUser){
     $('user-name').textContent=cu.name||cu.email||'Usuario';
     $('user-role').textContent=cu.role==='superuser'?'Super Admin':cu.role==='admin'?'Admin':'Vendedor';
     // Show/hide admin-only nav items
+    await loadConfig();
+    startListeners();
     if(!isAdmin()){
       $('nb-resumen').style.display='none';
       showModule('ventas');
     } else {
       showModule('dashboard');
     }
-    await loadConfig();
-    startListeners();
-    showModule('dashboard');
   }catch(e){console.error(e);}
 }
 
@@ -702,7 +681,6 @@ function startListeners(){
   let q=db.collection('orders');
   if(!isAdmin())q=q.where('vendedorId','==',cu.id);
   const u=q.onSnapshot(snap=>{
-    _vendoresLoaded=false; // reset so new vendors get loaded
     orders=snap.docs.map(d=>{
       const dat=d.data();
       const regTs=dat.timestamp?.toMillis()||Date.now();
@@ -715,7 +693,6 @@ function startListeners(){
     });
     renderCurrentModule();
     // Reload vendor list whenever orders update
-    if(curModule==='meta') loadPCVendedores();
   });
   listeners.push(u);
 }
@@ -723,24 +700,21 @@ function startListeners(){
 function renderCurrentModule(){
   if(curModule==='dashboard')renderDashboard();
   else if(curModule==='ventas')renderVentas();
-  else if(curModule==='meta')renderMeta();
   else if(curModule==='resumen')renderResumen();
 }
 
 // ═══ NAVIGATION ═════════════════════════════════════════════
 function showModule(mod){
   curModule=mod;
-  ['dashboard','ventas','meta','resumen','config'].forEach(m=>{
+  ['dashboard','ventas','resumen','config'].forEach(m=>{
     const el=$('mod-'+m); if(el)el.style.display=m===mod?'block':'none';
     const nb=$('nb-'+m); if(nb){nb.classList.toggle('on',m===mod);}
   });
-  const titles={dashboard:'Dashboard',ventas:'Ventas',meta:'Historial',resumen:'Vendedores',config:'Configuración'};
+  const titles={dashboard:'Dashboard',ventas:'Ventas',resumen:'Vendedores',config:'Configuración'};
   $('page-title').textContent=titles[mod]||mod;
   // Show/hide global filter
-  $('global-filter').style.display=mod==='meta'?'none':'flex';
   if(mod==='dashboard')renderDashboard();
   else if(mod==='ventas')renderVentas();
-  else if(mod==='meta')renderMeta();
   else if(mod==='resumen')renderResumen();
   else if(mod==='config')renderConfig();
 }
@@ -979,8 +953,10 @@ async function deleteOrder(id){
 
 // ═══ HISTORIAL (PC) ════════════════════════════════════════
 // Same logic as mobile historial tab
+// Historial state - mirrors mobile app exactly
 let pcHistPeriod='all', pcHistVendedor='all', pcHistStatus='all';
 let pcHistCustomFrom=0, pcHistCustomTo=Date.now(), pcHistPage=1;
+let _pcHistVendoresBuilt=false;
 
 function togglePCVendDrop(){
   var d=document.getElementById('pc-vend-drop');
@@ -1045,204 +1021,175 @@ function getPCHistRange(){
   return{start:0,end:dayEnd(Y,M,D)};
 }
 
-function loadPCVendedores(){
-  var wrap=document.getElementById('pc-vend-wrap');
-  var sel=document.getElementById('pc-vend-sel');
-  if(!wrap||!sel)return;
-  if(!isAdmin()){wrap.style.display='none';return;}
-  wrap.style.display='flex';
-  // If orders not yet loaded, retry in 500ms
-  if(orders.length===0){
-    setTimeout(loadPCVendedores, 500);
-    return;
-  }
-  // PRIMARY: build from orders (always works, no permission issues)
-  var vendMap={};
-  orders.forEach(function(o){
-    if(o.vendedor&&o.vendedorId){
-      vendMap[o.vendedorId]=o.vendedor;
-    }
-  });
-  var entries=Object.entries(vendMap).sort(function(a,b){
-    return a[1].localeCompare(b[1]);
-  });
-  // Always populate (even if empty, show "Todos")
-  sel.innerHTML='<option value="all">Todos los vendedores</option>'+
-    entries.map(function(e){
-      return '<option value="'+e[0]+'" '+(e[0]===pcHistVendedor?'selected':'')+'>'+e[1]+'</option>';
-    }).join('');
-  // SUPPLEMENT: also try to get from users collection (non-blocking)
-  db.collection('users').where('role','in',['vendedor','admin','superuser']).get()
-    .then(function(snap){
-      var fromDB={};
-      snap.forEach(function(doc){
-        var d=doc.data();
-        if(d.name)fromDB[doc.id]=d.name;
-      });
-      // Merge: add any from DB not already in orders
-      Object.entries(fromDB).forEach(function(e){
-        if(!vendMap[e[0]])vendMap[e[0]]=e[1];
-      });
-      var allEntries=Object.entries(vendMap).sort(function(a,b){return a[1].localeCompare(b[1]);});
-      var curVal=sel.value;
-      sel.innerHTML='<option value="all">Todos los vendedores</option>'+
-        allEntries.map(function(e){
-          return '<option value="'+e[0]+'">'+e[1]+'</option>';
-        }).join('');
-      sel.value=curVal; // restore selection
-    }).catch(function(){/* orders-only is fine */});
-}
 
-function setPCHistPeriodSel(sel){
-  // Called when user changes the date <select>
-  var p=sel.value;
-  pcHistPeriod=p;
-  var cd=document.getElementById('pc-hist-custom');
-  if(cd)cd.style.display=p==='custom'?'flex':'none';
-  pcHistPage=1;
-  if(p!=='custom')renderMeta();
-}
 
-function setPCHistVendSel(sel){
-  // Called when user changes the vendor <select>
-  pcHistVendedor=sel.value;
-  pcHistPage=1;
-  renderMeta();
-}
+
+
+
 
 function renderMeta(){
-  // ── Build filter bar dynamically from real orders ───────────────────────
   var filtersEl=document.getElementById('pc-hist-filters');
+  var statsEl=document.getElementById('pc-hist-stats');
+  var chartEl=document.getElementById('pc-hist-chart');
+  var tblEl=document.getElementById('pc-hist-tbl');
+
+  // ── 1. Build vendor list from orders (always reliable) ─────────────────
+  var vendorNames={};
+  orders.forEach(function(o){ if(o.vendedor) vendorNames[o.vendedor]=1; });
+  var vendorList=Object.keys(vendorNames).sort();
+
+  // ── 2. Build filter bar HTML ───────────────────────────────────────────
   if(filtersEl){
-    // Build vendor options from orders (guaranteed to exist here)
-    var vendMap={};
-    orders.forEach(function(o){
-      if(o.vendedorId&&o.vendedor)vendMap[o.vendedorId]=o.vendedor;
-    });
-    var vendEntries=Object.entries(vendMap).sort(function(a,b){return a[1].localeCompare(b[1]);});
-    var vendSel='';
+    var S='padding:9px 13px;border:1.5px solid var(--bo2);border-radius:9px;background:var(--bg);color:var(--tx);font-size:13px;font-weight:500;cursor:pointer;outline:none;font-family:inherit;transition:border-color .15s';
+
+    // Vendor select (admin/super only)
+    var vendBlock='';
     if(isAdmin()){
-      var selInpStyle='padding:8px 12px;border:1.5px solid var(--accent);border-radius:8px;background:var(--bg);color:var(--tx);font-size:13px;font-weight:600;cursor:pointer;min-width:160px;outline:none;font-family:inherit';
-      vendSel='<div style="display:flex;flex-direction:column;gap:3px">'+
-        '<label style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em">Vendedor</label>'+
-        '<select id="pc-vend-sel" onchange="setPCHistVendSel(this)" style="'+selInpStyle+'">'+
-          '<option value="all"'+(pcHistVendedor==='all'?' selected':'')+'>Todos los vendedores</option>'+
-          vendEntries.map(function(e){
-            return '<option value="'+e[0]+'"'+(e[0]===pcHistVendedor?' selected':'')+'>'+e[1]+'</option>';
-          }).join('')+
-        '</select>'+
-      '</div>';
+      var vendOpts='<option value="all">Todos los vendedores</option>'+
+        vendorList.map(function(n){
+          return '<option value="'+n+'"'+(n===pcHistVendedor?' selected':'')+'>'+n+'</option>';
+        }).join('');
+      vendBlock=
+        '<div style="display:flex;flex-direction:column;gap:5px">'+
+          '<label style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em">Vendedor</label>'+
+          '<select id="pc-vend-sel" onchange="pcSetVend(this.value)" style="'+S+';min-width:180px;border-color:var(--accent)">'+vendOpts+'</select>'+
+        '</div>';
     }
-    var inpStyle='padding:8px 12px;border:1.5px solid var(--accent);border-radius:8px;background:var(--bg);color:var(--tx);font-size:13px;font-weight:600;cursor:pointer;min-width:180px;outline:none;font-family:inherit';
-    var dateSel='<div style="display:flex;flex-direction:column;gap:3px">'+
-      '<label style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em">Fecha</label>'+
-      '<select id="pc-hist-period-sel" onchange="setPCHistPeriodSel(this)" style="'+inpStyle+'">'+
-        '<option value="all"'+(pcHistPeriod==='all'?' selected':'')+'>Todo el tiempo</option>'+
-        '<option value="today"'+(pcHistPeriod==='today'?' selected':'')+'>Hoy</option>'+
-        '<option value="yesterday"'+(pcHistPeriod==='yesterday'?' selected':'')+'>Ayer</option>'+
-        '<option value="week"'+(pcHistPeriod==='week'?' selected':'')+'>Esta semana</option>'+
-        '<option value="15days"'+(pcHistPeriod==='15days'?' selected':'')+'>Últimos 15 días</option>'+
-        '<option value="month"'+(pcHistPeriod==='month'?' selected':'')+'>Último mes</option>'+
-        '<option value="custom"'+(pcHistPeriod==='custom'?' selected':'')+'>Personalizado</option>'+
-      '</select>'+
-    '</div>';
-    var customRange='<div id="pc-hist-custom" style="display:'+(pcHistPeriod==='custom'?'flex':'none')+';flex-direction:column;gap:3px">'+
-      '<label style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em">Rango</label>'+
-      '<div style="display:flex;align-items:center;gap:6px">'+
-        '<input type="date" id="pc-hist-from" style="padding:8px 10px;border:1.5px solid var(--accent);border-radius:8px;background:var(--bg);color:var(--tx);font-size:13px;font-family:inherit;outline:none">'+
-        '<span style="color:var(--tx3)">→</span>'+
-        '<input type="date" id="pc-hist-to" style="padding:8px 10px;border:1.5px solid var(--accent);border-radius:8px;background:var(--bg);color:var(--tx);font-size:13px;font-family:inherit;outline:none">'+
-        '<button onclick="applyPCHistCustom()" style="padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Ver</button>'+
-      '</div>'+
-    '</div>';
-    var statusBtns=['all','pendiente','enviado','entregado','anulado'].map(function(s){
-      var labels={all:'Todos',pendiente:'Pendiente',enviado:'Enviado',entregado:'Entregado',anulado:'Anulado'};
-      var colors={pendiente:'background:var(--pend-bg);color:var(--pend-tx)',
-                  enviado:'background:var(--env-bg);color:var(--env-tx)',
-                  entregado:'background:var(--ent-bg);color:var(--ent-tx)',
-                  anulado:'background:var(--anul-bg);color:var(--anul-tx)'};
-      var active=s===pcHistStatus;
-      var baseStyle=colors[s]||'';
-      return '<button data-status="'+s+'" onclick="setPCHistStatus(this.dataset.status,this)" '+
-        'style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;border:none;cursor:pointer;'+
-        (active?'background:var(--accent);color:#fff':baseStyle||'background:var(--bg2);color:var(--tx2)')+
-        '">'+labels[s]+'</button>';
+
+    // Date select
+    var periods=[
+      ['all','Todo el tiempo'],['today','Hoy'],['yesterday','Ayer'],
+      ['week','Esta semana'],['15days','Últimos 15 días'],
+      ['month','Último mes'],['custom','Personalizado']
+    ];
+    var dateOpts=periods.map(function(p){
+      return '<option value="'+p[0]+'"'+(p[0]===pcHistPeriod?' selected':'')+'>'+p[1]+'</option>';
     }).join('');
-    filtersEl.innerHTML='<div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;padding:14px 16px;background:var(--bg);border-radius:var(--r);border:1px solid var(--bo);margin-bottom:16px">'+
-      vendSel+dateSel+customRange+
-      '<div style="display:flex;flex-direction:column;gap:3px;margin-left:auto">'+
-        '<label style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em">Estado</label>'+
-        '<div style="display:flex;gap:6px;flex-wrap:wrap">'+statusBtns+'</div>'+
-      '</div>'+
-    '</div>';
-    // Restore custom date values if set
-    if(pcHistPeriod==='custom'){
-      var frEl=document.getElementById('pc-hist-from');
-      var toEl=document.getElementById('pc-hist-to');
-      if(frEl&&pcHistCustomFrom)frEl.valueAsNumber=pcHistCustomFrom;
-      if(toEl&&pcHistCustomTo)toEl.valueAsNumber=pcHistCustomTo;
-    }
+    var dateBlock=
+      '<div style="display:flex;flex-direction:column;gap:5px">'+
+        '<label style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em">Fecha</label>'+
+        '<select id="pc-date-sel" onchange="pcSetPeriod(this.value)" style="'+S+';min-width:185px;border-color:var(--accent)">'+dateOpts+'</select>'+
+      '</div>';
+
+    // Custom range
+    var customBlock=
+      '<div id="pc-custom-range" style="display:'+(pcHistPeriod==='custom'?'flex':'none')+';align-items:center;gap:8px;margin-top:20px">'+
+        '<input type="date" id="pc-from" style="'+S+'" '+(pcHistCustomFrom?'value="'+new Date(pcHistCustomFrom).toISOString().split("T")[0]+'"':'')+'>'+
+        '<span style="color:var(--tx3);font-size:16px">→</span>'+
+        '<input type="date" id="pc-to" style="'+S+'" '+(pcHistCustomTo&&pcHistCustomTo!==Date.now()?'value="'+new Date(pcHistCustomTo).toISOString().split("T")[0]+'"':'')+'>'+
+        '<button onclick="pcApplyCustom()" style="padding:9px 16px;background:var(--accent);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Ver</button>'+
+      '</div>';
+
+    // Status chips
+    var chipDefs=[
+      {v:'all',l:'Todos',on:'background:var(--accent);color:#fff',off:'background:var(--bg2);color:var(--tx2)'},
+      {v:'pendiente',l:'Pendiente',on:'background:var(--accent);color:#fff',off:'background:var(--pend-bg);color:var(--pend-tx)'},
+      {v:'enviado',l:'Enviado',on:'background:var(--accent);color:#fff',off:'background:var(--env-bg);color:var(--env-tx)'},
+      {v:'entregado',l:'Entregado',on:'background:var(--accent);color:#fff',off:'background:var(--ent-bg);color:var(--ent-tx)'},
+      {v:'anulado',l:'Anulado',on:'background:var(--accent);color:#fff',off:'background:var(--anul-bg);color:var(--anul-tx)'}
+    ];
+    var chips=chipDefs.map(function(c){
+      var isOn=c.v===pcHistStatus;
+      return '<button data-s="'+c.v+'" onclick="pcSetStatus(this.dataset.s)" '+
+        'style="padding:7px 15px;border-radius:20px;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:inherit;transition:all .15s;'+
+        (isOn?c.on:c.off)+'">'+c.l+'</button>';
+    }).join('');
+
+    filtersEl.innerHTML=
+      '<div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;'+
+        'padding:16px 18px;background:var(--bg);border-radius:var(--r);border:1px solid var(--bo);margin-bottom:16px">'+
+        vendBlock+dateBlock+customBlock+
+        '<div style="display:flex;flex-direction:column;gap:5px;margin-left:auto">'+
+          '<label style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em">Estado</label>'+
+          '<div style="display:flex;gap:6px;flex-wrap:wrap">'+chips+'</div>'+
+        '</div>'+
+      '</div>';
   }
-  // ── Data filtering ──────────────────────────────────────────────────────
-  var {start,end}=getPCHistRange();
-  var source=isVendedor()?orders.filter(function(o){return o.vendedorId===cu.id;}):orders;
+
+  // ── 3. Filter data (same logic as mobile) ──────────────────────────────
+  // Step 1: source by role
+  var source=isVendedor()?orders.filter(function(o){return o.vendedorId===cu.id;}):[...orders];
+  // Step 2: vendor filter by NAME (same as mobile)
   if(isAdmin()&&pcHistVendedor!=='all'){
-    source=source.filter(function(o){return o.vendedorId===pcHistVendedor;});
+    source=source.filter(function(o){return o.vendedor===pcHistVendedor;});
   }
+  // Step 3: date range
+  var rStart=0, rEnd=dayEnd(new Date().getFullYear(),new Date().getMonth(),new Date().getDate());
+  if(pcHistPeriod==='custom'){rStart=pcHistCustomFrom;rEnd=pcHistCustomTo;}
+  else if(pcHistPeriod!=='all'){rStart=periodStart(pcHistPeriod);rEnd=periodEnd(pcHistPeriod);}
   var inRange=pcHistPeriod==='all'?[...source]:source.filter(function(o){
-    var t=o.fv||o.fechaMs||o.ts;return t>=start&&t<=end;
+    var t=o.fv||o.fechaMs||o.ts; return t>=rStart&&t<=rEnd;
   });
-  var filtered=pcHistStatus==='all'?inRange:inRange.filter(function(o){return o.estado===pcHistStatus;});
+  // Step 4: status
+  var filtered=pcHistStatus==='all'?[...inRange]:inRange.filter(function(o){return o.estado===pcHistStatus;});
   filtered.sort(function(a,b){return b.fv-a.fv;});
 
-  // Stats KPIs
+  // ── 4. KPI Stats ───────────────────────────────────────────────────────
   var valid=inRange.filter(function(o){return o.estado!=='anulado';});
   var totalS=valid.reduce(function(s,o){return s+(o.cobrar||0);},0);
   var byS={pendiente:0,enviado:0,entregado:0,anulado:0};
   inRange.forEach(function(o){if(byS[o.estado]!==undefined)byS[o.estado]++;});
-  var statsEl=document.getElementById('pc-hist-stats');
   if(statsEl){
     statsEl.innerHTML=
       '<div class="kpi"><div class="kpi-lbl">Total pedidos</div><div class="kpi-val">'+inRange.length+'</div></div>'+
       '<div class="kpi"><div class="kpi-lbl">Ingresos</div><div class="kpi-val g">'+fmtC0(totalS)+'</div></div>'+
-      '<div class="kpi"><div class="kpi-lbl" style="color:#166534">✅ Entregado</div><div class="kpi-val" style="color:#166534">'+byS.entregado+'</div><div style="font-size:11px;color:var(--tx3)">Enviado: '+byS.enviado+' · Pendiente: '+byS.pendiente+'</div></div>'+
-      '<div class="kpi"><div class="kpi-lbl" style="color:#991b1b">✗ Anulado</div><div class="kpi-val" style="color:#991b1b">'+byS.anulado+'</div></div>';
+      '<div class="kpi">'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'+
+          '<div style="text-align:center"><div style="font-size:18px;font-weight:800;color:#166534">'+byS.entregado+'</div><div style="font-size:10px;color:#166534">Entregado</div></div>'+
+          '<div style="text-align:center"><div style="font-size:18px;font-weight:800;color:#1e40af">'+byS.enviado+'</div><div style="font-size:10px;color:#1e40af">Enviado</div></div>'+
+          '<div style="text-align:center"><div style="font-size:18px;font-weight:800;color:#92400e">'+byS.pendiente+'</div><div style="font-size:10px;color:#92400e">Pendiente</div></div>'+
+          '<div style="text-align:center"><div style="font-size:18px;font-weight:800;color:#991b1b">'+byS.anulado+'</div><div style="font-size:10px;color:#991b1b">Anulado</div></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="kpi"><div class="kpi-lbl">Mostrando</div><div class="kpi-val">'+filtered.length+'</div><div style="font-size:11px;color:var(--tx3);margin-top:2px">'+
+        (pcHistStatus==='all'?'Todos los estados':pcHistStatus)+'</div></div>';
   }
-  // Chart
-  var chartEl=document.getElementById('pc-hist-chart');
-  if(chartEl)chartEl.innerHTML=renderLineChart(buildChartData(source,start||dayStart(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()-60),end),null);
 
-  // Table
-  var totalPg=filtered.length, pages=Math.ceil(totalPg/PAGE_SIZE)||1;
-  pcHistPage=Math.min(pcHistPage,pages);
-  var page=filtered.slice((pcHistPage-1)*PAGE_SIZE,pcHistPage*PAGE_SIZE);
-  var tblEl=document.getElementById('pc-hist-tbl');
+  // ── 5. Chart ───────────────────────────────────────────────────────────
+  if(chartEl){
+    var cs=pcHistPeriod==='all'?dayStart(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()-60):rStart;
+    chartEl.innerHTML=renderLineChart(buildChartData(inRange,cs,rEnd),null);
+  }
+
+  // ── 6. Paginated table ─────────────────────────────────────────────────
   if(!tblEl)return;
+  var totalPg=filtered.length, pages=Math.ceil(totalPg/PAGE_SIZE)||1;
+  pcHistPage=Math.min(Math.max(1,pcHistPage),pages);
+  var page=filtered.slice((pcHistPage-1)*PAGE_SIZE,pcHistPage*PAGE_SIZE);
+  if(!page.length){
+    tblEl.innerHTML='<div class="empty"><div style="font-size:36px;margin-bottom:8px">📋</div><p>Sin ventas para este filtro</p></div>';
+    return;
+  }
   var colV=isAdmin()?'<th>Vendedor</th>':'';
-  var delBtn=isSuper()?'del':'';
   tblEl.innerHTML='<table><thead><tr>'+
     '<th>Fecha</th><th>Cliente</th><th>Celular</th><th>Producto</th>'+
     '<th>Zona</th><th>Cobrar</th>'+colV+'<th>Estado</th><th>Acciones</th>'+
   '</tr></thead><tbody>'+
-  (page.length?page.map(function(o){
-    var waLink=o.celular?'<a href="https://wa.me/51'+(o.celular||'').replace(/\D/g,'')+'" target="_blank" title="WhatsApp" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:#25D366;border-radius:50%;text-decoration:none"><svg viewBox="0 0 24 24" width="11" height="11" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.507 3.934 1.399 5.61L0 24l6.545-1.376A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.368l-.36-.214-3.724.783.838-3.63-.234-.374A9.818 9.818 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182S21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/></svg></a>':'';
-    var vCol=isAdmin()?'<td style="font-size:12px;color:var(--accent);font-weight:600">'+(o.vendedor||'—')+'</td>':'';
+  page.map(function(o){
+    var wa=o.celular?'<a href="https://wa.me/51'+(o.celular||'').replace(/\D/g,'')+'" target="_blank" '+
+      'style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;'+
+      'background:#25D366;border-radius:50%;text-decoration:none;margin-left:4px">'+
+      '<svg viewBox="0 0 24 24" width="12" height="12" fill="#fff">'+
+      '<path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/>'+
+      '<path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.507 3.934 1.399 5.61L0 24l6.545-1.376A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.368l-.36-.214-3.724.783.838-3.63-.234-.374A9.818 9.818 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182S21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/>'+
+      '</svg></a>':'';
+    var vc=isAdmin()?'<td style="font-size:12px;color:var(--accent);font-weight:600">'+(o.vendedor||'—')+'</td>':'';
     return '<tr>'+
-      '<td style="font-size:12px;color:var(--tx2)">'+(o.fechaVenta||'—')+'</td>'+
-      '<td style="font-weight:600">'+(o.cliente||'—')+'</td>'+
-      '<td><div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px">'+(o.celular||'—')+'</span>'+waLink+'</div></td>'+
-      '<td style="font-size:12px">'+(o.producto||'—')+(o.totalCantidad>1?' ×'+o.totalCantidad:'')+'</td>'+
+      '<td style="font-size:12px;color:var(--tx2);white-space:nowrap">'+(o.fechaVenta||'—')+'</td>'+
+      '<td><span style="font-weight:600">'+(o.cliente||'—')+'</span></td>'+
+      '<td><div style="display:flex;align-items:center"><span style="font-size:12px">'+(o.celular||'—')+'</span>'+wa+'</div></td>'+
+      '<td style="font-size:12px">'+(o.producto||'—')+(o.totalCantidad>1?' <span style="color:var(--accent);font-weight:700">×'+o.totalCantidad+'</span>':'')+'</td>'+
       '<td style="font-size:12px">'+(o.zona||'—')+'</td>'+
       '<td style="font-weight:700;color:var(--accent)">'+fmtC(o.cobrar||0)+'</td>'+
-      vCol+
+      vc+
       '<td><span class="badge '+(o.estado||'pendiente')+'">'+statusLabel(o.estado||'pendiente')+'</span></td>'+
       '<td><div class="tbl-actions">'+
         '<button class="act-btn view" onclick="openDetalle(this.dataset.id)" data-id="'+o.id+'">Ver</button>'+
         '<button class="act-btn edit" onclick="openEditVenta(this.dataset.id)" data-id="'+o.id+'">Editar</button>'+
-        (isSuper()?'<button class="act-btn del" onclick="deleteOrder(this.dataset.id)" data-id="'+o.id+'">Eliminar</button>':'')+
+        (isSuper()?'<button class="act-btn del" onclick="deleteOrder(this.dataset.id)" data-id="'+o.id+'">✕</button>':'')+
       '</div></td>'+
     '</tr>';
-  }).join(''):'<tr><td colspan="9"><div class="empty">Sin ventas en este período</div></td></tr>')+
+  }).join('')+
   '</tbody></table>'+
   '<div class="pagination">'+
     '<button class="pg-btn" onclick="pcHistPage--;renderMeta()" '+(pcHistPage<=1?'disabled':'')+'>← Anterior</button>'+
@@ -1617,6 +1564,48 @@ document.querySelectorAll('.modal-ov').forEach(o=>o.addEventListener('click',e=>
 
 // ═══ TOAST ═══════════════════════════════════════════════════
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+
+// ── Historial PC filter handlers ─────────────────────────────────────────
+
+function pcSetVend(val){
+  pcHistVendedor=val;
+  pcHistPage=1;
+  renderMeta();
+}
+
+function pcSetPeriod(val){
+  pcHistPeriod=val;
+  var cr=document.getElementById('pc-custom-range');
+  if(cr)cr.style.display=val==='custom'?'flex':'none';
+  pcHistPage=1;
+  if(val!=='custom')renderMeta();
+}
+
+function pcSetStatus(val){
+  pcHistStatus=val;
+  pcHistPage=1;
+  renderMeta();
+}
+
+function pcApplyCustom(){
+  var f=(document.getElementById('pc-from')||{}).value;
+  var t=(document.getElementById('pc-to')||{}).value;
+  if(!f||!t){toast('Selecciona fechas inicio y fin');return;}
+  pcHistCustomFrom=new Date(f+'T00:00:00').getTime();
+  pcHistCustomTo=new Date(t+'T23:59:59').getTime();
+  pcHistPage=1;
+  renderMeta();
+}
+
+// Legacy compat wrappers (keep in case called from old code)
+function setPCHistPeriodSel(sel){pcSetPeriod(sel.value);}
+function setPCHistVendSel(sel){pcSetVend(sel.value);}
+function setPCHistStatus(s){pcSetStatus(s);}
+function applyPCHistCustom(){pcApplyCustom();}
+function pcBuildVendorSelect(){}  // no longer needed, built in renderMeta
+
+
 </script>
 </body>
 </html>
