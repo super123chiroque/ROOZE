@@ -392,7 +392,9 @@ tbody tr:hover{background:var(--bg3)}
         <button class="btn btn-primary btn-sm" style="flex:1" onclick="downloadPDF()">Descargar PDF</button>
       </div>
       <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="btn btn-sm" style="flex:1;background:#25D366;color:#fff" onclick="sendWA()">WhatsApp</button>
+        <button class="btn btn-sm" id="wa-btn" style="flex:1;background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px" onclick="sendWA()">
+          <span style="font-size:16px">✉️</span> Enviar JPG por WhatsApp
+        </button>
       </div>
     </div>
   </div>
@@ -464,11 +466,62 @@ tbody tr:hover{background:var(--bg3)}
               <option value="gradient">Degradado oscuro</option>
             </select>
           </div>
+          <div class="fld">
+            <label>Color del cupón</label>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+              <input type="color" id="tf-ccolor" value="#1a1a2e" style="width:40px;height:30px;border:1px solid var(--bo2);border-radius:6px;cursor:pointer;padding:2px">
+              <span style="font-size:11px;color:var(--tx2)">Fondo del bloque cupón</span>
+            </div>
+          </div>
+          <div class="fld">
+            <label>Color de texto del recibo</label>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+              <input type="color" id="tf-tcolor" value="#18181b" style="width:40px;height:30px;border:1px solid var(--bo2);border-radius:6px;cursor:pointer;padding:2px">
+              <span style="font-size:11px;color:var(--tx2)">Texto del cuerpo del recibo</span>
+            </div>
+          </div>
+          <div class="fld"><label>Tamaño de texto (px)</label>
+            <select id="tf-fsize">
+              <option value="11">Pequeño (11px)</option>
+              <option value="12">Normal (12px)</option>
+              <option value="13" selected>Mediano (13px)</option>
+              <option value="14">Grande (14px)</option>
+            </select>
+          </div>
+          <div class="fld"><label>Color del cupón</label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px" id="coupon-color-grid">
+              <div class="color-chip on" data-cc="#18181b" style="background:#18181b" onclick="selectCouponColor('#18181b',this)"></div>
+              <div class="color-chip" data-cc="#185fa5" style="background:#185fa5" onclick="selectCouponColor('#185fa5',this)"></div>
+              <div class="color-chip" data-cc="#7c3aed" style="background:#7c3aed" onclick="selectCouponColor('#7c3aed',this)"></div>
+              <div class="color-chip" data-cc="#d97706" style="background:#d97706" onclick="selectCouponColor('#d97706',this)"></div>
+              <div class="color-chip" data-cc="#dc2626" style="background:#dc2626" onclick="selectCouponColor('#dc2626',this)"></div>
+              <div class="color-chip" data-cc="#db2777" style="background:#db2777" onclick="selectCouponColor('#db2777',this)"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+              <input type="color" id="tf-coupon-color" value="#18181b" style="width:36px;height:28px;border:1px solid var(--bo2);border-radius:6px;cursor:pointer;padding:2px" onchange="selectCouponColor(this.value,null)">
+              <span style="font-size:11px;color:var(--tx2)">Color personalizado</span>
+            </div>
+          </div>
+          <div class="fld"><label>Tamaño de texto (nota)</label>
+            <select id="tf-fontsize">
+              <option value="sm">Pequeño (compacto)</option>
+              <option value="md" selected>Mediano (estándar)</option>
+              <option value="lg">Grande (fácil lectura)</option>
+            </select>
+          </div>
+          <div class="fld"><label>Color de texto principal</label>
+            <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+              <div style="width:24px;height:24px;border-radius:50%;background:#18181b;cursor:pointer;border:3px solid transparent" data-tc="#18181b" onclick="selectTextColor('#18181b',this)" class="tc-chip on"></div>
+              <div style="width:24px;height:24px;border-radius:50%;background:#1e3a5f;cursor:pointer;border:3px solid transparent" data-tc="#1e3a5f" onclick="selectTextColor('#1e3a5f',this)" class="tc-chip"></div>
+              <div style="width:24px;height:24px;border-radius:50%;background:#2d4a2d;cursor:pointer;border:3px solid transparent" data-tc="#2d4a2d" onclick="selectTextColor('#2d4a2d',this)" class="tc-chip"></div>
+              <input type="color" id="tf-text-color" value="#18181b" style="width:36px;height:28px;border:1px solid var(--bo2);border-radius:6px;cursor:pointer;padding:2px" onchange="selectTextColor(this.value,null)">
+            </div>
+          </div>
         </div>
       </div>
       <div class="err" id="tf-err"></div>
       <div style="display:flex;gap:10px;margin-top:16px">
-        <button class="btn btn-primary" style="flex:1" id="btn-tf">Guardar tienda</button>
+        <button class="btn btn-primary" style="flex:1" id="btn-tf" onclick="saveTienda()">Guardar tienda</button>
         <button class="btn btn-secondary" onclick="closeModal('ov-tienda')">Cancelar</button>
       </div>
     </div>
@@ -517,6 +570,7 @@ const $=id=>document.getElementById(id);
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let cu=null, stores=[], curStore=null, notes=[], coupons=[], users=[];
+let _tfCouponColor='#18181b', _tfTextColor='#18181b';
 let listeners=[], curMod='dash', notePage=1, curNoteForDL=null;
 let _tfColor='#2d7a4f', _tfLogoB64=null, _editingStoreId=null;
 let noteItems=[{desc:'',qty:1,price:''}];
@@ -557,22 +611,40 @@ function doLogout(){if(!confirm('¿Cerrar sesión?'))return;listeners.forEach(u=
 async function loadApp(fbUser){
   $('pg-login').style.display='none';$('pg-app').style.display='flex';
   try{
-    const ud=await db.collection('nv_users').doc(fbUser.uid).get();
-    if(!ud.exists){
-      // First login - create superadmin
-      await db.collection('nv_users').doc(fbUser.uid).set({
-        name:fbUser.displayName||fbUser.email.split('@')[0],
-        email:fbUser.email,role:'superadmin',storeIds:[],createdAt:FV().serverTimestamp()
-      });
-      cu={id:fbUser.uid,name:fbUser.email.split('@')[0],email:fbUser.email,role:'superadmin',storeIds:[]};
+    let ud=null;
+    try{
+      ud=await db.collection('nv_users').doc(fbUser.uid).get();
+    }catch(permErr){
+      // Firestore rules not yet configured - show helpful message
+      $('pg-app').style.display='none';$('pg-login').style.display='flex';
+      const err=$('li-err');
+      err.style.display='block';
+      err.style.background='#fef3c7';err.style.color='#92400e';err.style.border='1px solid #fde68a';
+      err.innerHTML='⚠️ <strong>Falta configurar Firestore.</strong><br>Ve a Firebase Console → Firestore → Reglas y agrega:<br><code style="font-size:10px;display:block;margin-top:6px;background:#fff3;padding:6px;border-radius:4px">match /nv_{document=**} {<br>&nbsp;&nbsp;allow read, write: if request.auth != null;<br>}</code>';
+      return;
+    }
+    if(!ud||!ud.exists){
+      // First login → create user as superadmin
+      try{
+        const userData={
+          name:fbUser.displayName||fbUser.email.split('@')[0],
+          email:fbUser.email,role:'superadmin',storeIds:[],
+          createdAt:FV().serverTimestamp()
+        };
+        await db.collection('nv_users').doc(fbUser.uid).set(userData);
+        cu={id:fbUser.uid,...userData};
+      }catch(e2){
+        // Can't write → still load with default role
+        cu={id:fbUser.uid,name:fbUser.email.split('@')[0],email:fbUser.email,role:'superadmin',storeIds:[]};
+      }
     } else {
       cu={id:fbUser.uid,...ud.data()};
     }
-    // UI for role
+    // Setup UI
     const ini=(cu.name||'?').slice(0,2).toUpperCase();
-    $('sb-av').textContent=ini;$('sb-av').style.background=_tfColor;
+    $('sb-av').textContent=ini;
     $('sb-nm').textContent=cu.name||cu.email||'—';
-    $('sb-rl').textContent=$('sb-user-rl').textContent=isSuperAdmin()?'Super Admin':isAdmin()?'Administrador':'Vendedor';
+    $('sb-rl').textContent=isSuperAdmin()?'Super Admin':isAdmin()?'Administrador':'Vendedor';
     if(isSuperAdmin()||isAdmin()){
       $('nav-admin-lbl').style.display='block';
       $('nb-tiendas').style.display='flex';
@@ -582,7 +654,10 @@ async function loadApp(fbUser){
     await loadStores();
     startListeners();
     showMod('dash');
-  }catch(e){console.error(e);toast('Error al cargar: '+e.message);}
+  }catch(e){
+    console.error('loadApp error:',e);
+    toast('Error: '+e.message,4000);
+  }
 }
 
 // ── STORES ────────────────────────────────────────────────────────────────────
@@ -630,12 +705,15 @@ function selectStore(id){
 function startListeners(){
   listeners.forEach(u=>{try{u();}catch{}});listeners=[];
   if(!curStore)return;
-  let q=db.collection('nv_notes').where('storeId','==',curStore.id).orderBy('createdAt','desc').limit(200);
-  if(!isAdmin()) q=q.where('vendedorId','==',cu.id);
+  let q=db.collection('nv_notes').where('storeId','==',curStore.id).limit(300);
   const u=q.onSnapshot(s=>{
-    notes=s.docs.map(d=>({id:d.id,...d.data(),ts:d.data().createdAt?.toMillis()||Date.now()}));
+    let arr=s.docs.map(d=>({id:d.id,...d.data(),ts:d.data().createdAt?.toMillis()||Date.now()}));
+    if(!isAdmin()) arr=arr.filter(n=>n.vendedorId===cu.id);
+    arr.sort((a,b)=>b.ts-a.ts);
+    notes=arr;
     if(curMod==='dash')renderDash();
     if(curMod==='hist')renderHist();
+    if(curMod==='cupones')renderCupones();
   });
   listeners.push(u);
 }
@@ -854,7 +932,7 @@ function buildReceiptHTML(note,store,showCoupon){
   const itemsHTML=note.items.filter(it=>it.desc||it.price).map(it=>`
     <div class="rp-row"><span class="rp-lbl">${it.desc||'—'} ×${it.qty}</span><span class="rp-val">${fmtC((it.qty||1)*(it.price||0))}</span></div>`).join('');
   const couponHTML=showCoupon&&note.couponCode?`
-    <div class="rp-coupon" style="background:linear-gradient(135deg,#18181b,${accent}bb)">
+    <div class="rp-coupon" style="background:linear-gradient(135deg,${store.couponColor||"#18181b"},${accent}99)">
       <div class="rp-c-lbl">Cupón exclusivo · 2ª compra</div>
       <div class="rp-c-code">${note.couponCode}</div>
       <div class="rp-c-desc">S/ ${store.couponDiscount||10} de descuento · válido ${store.couponDuration||90} días</div>
@@ -870,9 +948,9 @@ function buildReceiptHTML(note,store,showCoupon){
       <div class="rp-num">${note.noteNum||'NV-0000'}</div>
       <div class="rp-date">${fmtDate(note.ts||Date.now())} · ${note.vendedorNm||''}</div>
     </div>
-    <div class="rp-body">
+    <div class="rp-body" style="font-size:${store.fontSize==='lg'?'13px':store.fontSize==='sm'?'10px':'11px'}">
       <div style="display:flex;justify-content:space-between;margin-bottom:10px">
-        <div style="font-size:12px"><div style="font-weight:600;color:#18181b">${note.cliente||'—'}</div>
+        <div style="font-size:12px"><div style="font-weight:600;color:${store.textColor||'#18181b'}">${note.cliente||'—'}</div>
           ${note.dni?`<div style="color:#888;font-size:11px">DNI: ${note.dni}</div>`:''}
           <div style="color:#888;font-size:11px">${note.celular||''}</div>
           <div style="color:#888;font-size:11px">${note.ciudad||''}</div></div>
@@ -953,36 +1031,76 @@ async function generateNota(){
 // ── HISTORIAL ──────────────────────────────────────────────────────────────────
 function renderHist(){
   const el=$('mod-hist');if(!el)return;
+  if(!curStore){el.innerHTML='<div class="empty">Selecciona una tienda primero</div>';return;}
+  if(!notes.length){el.innerHTML='<div class="spin"></div>';return;}
   const total=notes.length,pages=Math.ceil(total/PAGE)||1;
   notePage=Math.min(notePage,pages);
   const page=notes.slice((notePage-1)*PAGE,notePage*PAGE);
-  el.innerHTML=`
-    <div class="tbl-wrap">
-      <div style="padding:12px 16px;border-bottom:1px solid var(--bo);display:flex;align-items:center;gap:10px">
-        <span style="font-size:12px;font-weight:600;color:var(--tx)">${total} notas emitidas</span>
-        <span style="font-size:11px;color:var(--tx3);margin-left:auto">Total: ${fmtC0(notes.reduce((s,n)=>s+(n.total||0),0))}</span>
-      </div>
-      <table><thead><tr><th>Nº Nota</th><th>Cliente</th><th>Celular</th><th>Zona</th><th>Total</th><th>Adelanto</th><th>Saldo</th><th>Cupón</th><th>Vendedor</th><th>Fecha</th><th></th></tr></thead>
-      <tbody>${page.map(n=>`<tr>
-        <td><span style="font-family:var(--mono);font-size:11px;font-weight:500">${n.noteNum||'—'}</span></td>
-        <td style="font-weight:500">${n.cliente||'—'}</td>
-        <td style="font-size:11px;color:var(--tx2)">${n.celular||'—'}</td>
-        <td><span class="badge badge-${n.zona==='Lima'?'lima':'prov'}">${n.zona||'—'}</span></td>
-        <td style="font-weight:500;color:var(--store-accent,#2d7a4f)">${fmtC0(n.total)}</td>
-        <td style="color:var(--tx2)">${n.adelanto>0?fmtC0(n.adelanto):'—'}</td>
-        <td style="${n.saldo>0?'color:#dc2626;font-weight:500':'color:var(--tx3)'}">${n.saldo>0?fmtC0(n.saldo):'✓ Pagado'}</td>
-        <td style="font-family:var(--mono);font-size:10px;color:var(--tx3)">${n.couponCode||'—'}</td>
-        <td style="font-size:11px;color:var(--tx2)">${n.vendedorNm||'—'}</td>
-        <td style="font-size:11px;color:var(--tx3)">${fmtDate(n.ts)}</td>
-        <td><button class="btn btn-secondary btn-sm" onclick="viewNote('${n.id}')">Ver</button></td>
-      </tr>`).join('')||`<tr><td colspan="11"><div class="empty">Sin notas en esta tienda</div></td></tr>`}
-      </tbody></table>
-      <div class="pgn">
-        <button class="pgn-btn" onclick="notePage--;renderHist()" ${notePage<=1?'disabled':''}>← Ant.</button>
-        <span class="pgn-info">Pág. ${notePage} / ${pages} · ${total} notas</span>
-        <button class="pgn-btn" onclick="notePage++;renderHist()" ${notePage>=pages?'disabled':''}>Sig. →</button>
-      </div>
-    </div>`;
+  const totalIngr=notes.reduce(function(s,n){return s+(n.total||0);},0);
+  // Mobile-friendly cards + desktop table
+  const isMobile=window.innerWidth<640;
+  let content='';
+  if(isMobile){
+    content='<div style="display:flex;flex-direction:column;gap:8px">'+
+      (page.length?page.map(function(n){
+        return '<div style="background:var(--bg2);border-radius:10px;border:1px solid var(--bo);padding:12px;cursor:pointer" data-nid="'+n.id+'" onclick="viewNote(this.dataset.nid)">'  +
+          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'+
+            '<span style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--store-accent,#2d7a4f)">'+n.noteNum+'</span>'+
+            '<span class="badge badge-'+(n.zona==='Lima'?'lima':'prov')+'">'+n.zona+'</span>'+
+          '</div>'+
+          '<div style="font-weight:600;font-size:14px;color:var(--tx);margin-bottom:2px">'+n.cliente+'</div>'+
+          '<div style="font-size:12px;color:var(--tx2);margin-bottom:6px">'+n.celular+'</div>'+
+          '<div style="display:flex;justify-content:space-between;align-items:center">'+
+            '<div style="font-size:15px;font-weight:600;color:var(--store-accent,#2d7a4f)">'+fmtC0(n.total)+'</div>'+
+            '<div style="font-size:11px;color:var(--tx3)">'+fmtDate(n.ts)+'</div>'+
+          '</div>'+
+          (n.saldo>0?'<div style="font-size:11px;color:#dc2626;margin-top:4px">Saldo: '+fmtC0(n.saldo)+'</div>':'')+
+        '</div>';
+      }).join(''):'<div class="empty">Sin notas en esta tienda</div>')+
+    '</div>';
+  } else {
+    content='<div class="tbl-wrap">'+
+      '<div style="padding:12px 16px;border-bottom:1px solid var(--bo);display:flex;align-items:center;gap:10px">'+
+        '<span style="font-size:12px;font-weight:600;color:var(--tx)">'+total+' notas emitidas</span>'+
+        '<span style="font-size:11px;color:var(--tx3);margin-left:auto">Total: '+fmtC0(totalIngr)+'</span>'+
+      '</div>'+
+      '<div style="overflow-x:auto"><table><thead><tr>'+
+        '<th>Nº Nota</th><th>Cliente</th><th>DNI</th><th>Celular</th><th>Zona</th>'+
+        '<th>Total</th><th>Saldo</th><th>Cupón</th><th>Vendedor</th><th>Fecha</th><th></th>'+
+      '</tr></thead><tbody>'+
+      (page.length?page.map(function(n){
+        return '<tr>'+
+          '<td><span style="font-family:var(--mono);font-size:11px;font-weight:500">'+n.noteNum+'</span></td>'+
+          '<td style="font-weight:500">'+n.cliente+'</td>'+
+          '<td style="font-size:11px;color:var(--tx2)">'+( n.dni||'—')+'</td>'+
+          '<td style="font-size:11px;color:var(--tx2)">'+n.celular+'</td>'+
+          '<td><span class="badge badge-'+(n.zona==='Lima'?'lima':'prov')+'">'+n.zona+'</span></td>'+
+          '<td style="font-weight:500;color:var(--store-accent,#2d7a4f)">'+fmtC0(n.total)+'</td>'+
+          '<td style="'+(n.saldo>0?'color:#dc2626;font-weight:500':'color:var(--tx3)')+'">'+
+            (n.saldo>0?fmtC0(n.saldo):'✓ Pagado')+'</td>'+
+          '<td style="font-family:var(--mono);font-size:10px;color:var(--tx3)">'+( n.couponCode||'—')+'</td>'+
+          '<td style="font-size:11px;color:var(--tx2)">'+n.vendedorNm+'</td>'+
+          '<td style="font-size:11px;color:var(--tx3)">'+fmtDate(n.ts)+'</td>'+
+          '<td><button class="btn btn-secondary btn-sm" data-nid="'+n.id+'" onclick="viewNote(this.dataset.nid)">Ver</button></td>'+
+        '</tr>';
+      }).join(''):'<tr><td colspan="11"><div class="empty">Sin notas</div></td></tr>')+
+      '</tbody></table></div>'+
+    '</div>';
+  }
+  el.innerHTML=
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">'+
+      '<div class="kpi" style="flex:1;min-width:100px"><div class="kpi-lbl">Total notas</div><div class="kpi-val">'+total+'</div></div>'+
+      '<div class="kpi" style="flex:1;min-width:100px"><div class="kpi-lbl">Ingresos</div><div class="kpi-val accent">'+fmtC0(totalIngr)+'</div></div>'+
+      '<div class="kpi" style="flex:1;min-width:100px"><div class="kpi-lbl">Saldos pendientes</div><div class="kpi-val" style="color:#dc2626">'+
+        fmtC0(notes.filter(function(n){return n.saldo>0;}).reduce(function(s,n){return s+(n.saldo||0);},0))+
+      '</div></div>'+
+    '</div>'+
+    content+
+    '<div class="pgn" style="margin-top:8px">'+
+      '<button class="pgn-btn" onclick="notePage--;renderHist()" '+(notePage<=1?'disabled':'')+'>← Ant.</button>'+
+      '<span class="pgn-info">Pág. '+notePage+' / '+pages+' · '+total+' notas</span>'+
+      '<button class="pgn-btn" onclick="notePage++;renderHist()" '+(notePage>=pages?'disabled':'')+'>Sig. →</button>'+
+    '</div>';
 }
 
 function viewNote(id){
@@ -1017,27 +1135,44 @@ async function downloadPDF(){
     toast('✓ PDF descargado');
   }catch(e){toast('Error al generar PDF: '+e.message);}
 }
-function sendWA(){
+async function sendWA(){
   if(!curNoteForDL||!curStore)return;
-  const n=curNoteForDL,s=curStore;
-  const msg=`Hola ${n.cliente||''}! 👋
-
-*${s.name||'Tienda'}* — Nota de venta
-📄 *${n.noteNum||''}*
-📅 Fecha: ${fmtDate(n.ts||Date.now())}${n.dni?'\n🪪 DNI: '+n.dni:''}
-
-*Resumen:*
-${(n.items||[]).filter(it=>it.desc).map(it=>`• ${it.desc} ×${it.qty} — ${fmtC((it.qty||1)*(it.price||0))}`).join('\n')}
-${n.delivery>0?`• Delivery — ${fmtC(n.delivery)}`:''}
-
-*Total: ${fmtC(n.total||0)}*
-${n.adelanto>0?`✅ Adelanto: ${fmtC(n.adelanto)}\n💳 Saldo: ${fmtC(n.saldo||0)}`:''}
-${n.deliveryDate?`\n📦 Entrega estimada: ${n.deliveryDate}`:''}
-${n.couponCode?`\n🎁 *Cupón 2da compra:* \`${n.couponCode}\` — S/ ${s.couponDiscount||10} de descuento`:''}
-
-_${s.footerMsg||'¡Gracias por tu compra!'}_`;
-  const cel=(n.celular||'').replace(/\D/g,'');
-  window.open(`https://wa.me/51${cel}?text=${encodeURIComponent(msg)}`,'_blank');
+  const n=curNoteForDL, s=curStore;
+  const waBtn=document.getElementById('wa-btn');
+  if(waBtn){waBtn.disabled=true;waBtn.textContent='Generando JPG...';}
+  try{
+    // Generate JPG from receipt
+    const el=document.getElementById('receipt-render').firstElementChild;
+    if(!el)throw new Error('No hay recibo visible');
+    const canvas=await html2canvas(el,{scale:2.5,useCORS:true,backgroundColor:'#fff',logging:false});
+    const blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.95));
+    const fileName=(n.noteNum||'nota')+'.jpg';
+    const file=new File([blob],fileName,{type:'image/jpeg'});
+    const cel=(n.celular||'').replace(/\D/g,'');
+    // Try Web Share API (Android/iOS native share → WhatsApp)
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      await navigator.share({
+        files:[file],
+        title:'Nota de venta '+n.noteNum,
+        text:'Nota de venta '+s.name
+      });
+    } else {
+      // Fallback: download JPG + open WhatsApp text
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;a.download=fileName;a.click();
+      URL.revokeObjectURL(url);
+      setTimeout(()=>{
+        const msg='Hola '+n.cliente+'! Te adjunto tu nota de venta *'+n.noteNum+'* de '+s.name+'. Total: '+fmtC(n.total)+(n.couponCode?' | Cupón: '+n.couponCode:'');
+        window.open('https://wa.me/51'+cel+'?text='+encodeURIComponent(msg),'_blank');
+      },800);
+      toast('JPG descargado — ábrelo y envíalo por WhatsApp');
+    }
+  }catch(e){
+    if(e.name!=='AbortError')toast('Error: '+e.message);
+  }finally{
+    if(waBtn){waBtn.disabled=false;waBtn.innerHTML='<span style="font-size:16px">✉️</span> Enviar JPG por WhatsApp';}
+  }
 }
 
 // ── TIENDAS ────────────────────────────────────────────────────────────────────
@@ -1063,8 +1198,8 @@ function renderTiendas(){
               <div class="sc-stat"><div class="sc-stat-n">${fmtC0(notes.filter(n=>n.storeId===s.id).reduce((sum,n)=>sum+(n.total||0),0))}</div><div class="sc-stat-l">facturado</div></div>
             </div>
             <div style="display:flex;gap:6px;margin-top:10px">
-              <button class="btn btn-secondary btn-sm" style="flex:1" onclick="editTienda('${s.id}')">Editar</button>
-              ${isSuperAdmin()?`<button class="btn btn-danger btn-sm" style="padding:6px 10px" onclick="deleteTienda('${s.id}')">✕</button>`:''}
+              <button class="btn btn-secondary btn-sm" style="flex:1" data-sid="${s.id}" onclick="editTienda(this.dataset.sid)">Editar</button>
+              ${isSuperAdmin()?`<button class="btn btn-danger btn-sm" style="padding:6px 10px" data-sid="${s.id}" onclick="deleteTienda(this.dataset.sid)">✕</button>`:''}
             </div>
           </div>
         </div>`;
@@ -1081,8 +1216,18 @@ function openTiendaForm(id){
   $('tf-ig').value=s?.instagram||'';$('tf-web').value=s?.web||'';
   $('tf-foot').value=s?.footerMsg||'';
   $('tf-disc').value=s?.couponDiscount||10;$('tf-cdur').value=s?.couponDuration||90;
-  $('tf-hbg').value=s?.headerBg||'dark';$('tf-err').style.display='none';
+  $('tf-hbg').value=s?.headerBg||'dark';
+  const ccEl=$('tf-ccolor');if(ccEl)ccEl.value=s?.couponColor||'#1a1a2e';
+  const tcEl=$('tf-tcolor');if(tcEl)tcEl.value=s?.receiptTextColor||'#18181b';
+  const fsEl=$('tf-fsize');if(fsEl)fsEl.value=String(s?.receiptFontSize||13);
+  $('tf-err').style.display='none';
   if(s?.color){_tfColor=s.color;selectColor(s.color,null);}
+  _tfCouponColor=s?.couponColor||'#18181b';
+  _tfTextColor=s?.textColor||'#18181b';
+  if($('tf-coupon-color'))$('tf-coupon-color').value=_tfCouponColor;
+  if($('tf-text-color'))$('tf-text-color').value=_tfTextColor;
+  if($('tf-fontsize'))$('tf-fontsize').value=s?.fontSize||'md';
+  document.querySelectorAll('.color-chip[data-cc]').forEach(ch=>ch.classList.toggle('on',ch.dataset.cc===_tfCouponColor));
   // Logo preview
   $('tf-logo-ph').textContent=(s?.name||'T').slice(0,2).toUpperCase();
   $('tf-logo-ph').style.background=_tfColor;
@@ -1096,6 +1241,18 @@ function openTiendaForm(id){
 function editTienda(id){openTiendaForm(id);}
 
 // Logo upload
+function selectCouponColor(c,el){
+  _tfCouponColor=c;
+  document.querySelectorAll('.color-chip[data-cc]').forEach(ch=>ch.classList.remove('on'));
+  if(el)el.classList.add('on');
+  $('tf-coupon-color').value=c;
+}
+function selectTextColor(c,el){
+  _tfTextColor=c;
+  document.querySelectorAll('.tc-chip').forEach(ch=>{ch.classList.remove('on');ch.style.borderColor='transparent';});
+  if(el){el.classList.add('on');el.style.borderColor='var(--tx)';}
+  $('tf-text-color').value=c;
+}
 $('tf-logo-inp').onchange=function(e){
   const f=e.target.files[0];if(!f)return;
   if(f.size>5*1024*1024){toast('Imagen máx 5MB');return;}
@@ -1116,32 +1273,52 @@ function selectColor(c,el){
   const ph=$('tf-logo-ph');if(ph)ph.style.background=c;
 }
 
-$('btn-tf').onclick=async function(){
-  const nm=$('tf-nm').value.trim();const err=$('tf-err');err.style.display='none';
-  if(!nm){err.textContent='Ingresa el nombre de la tienda';err.style.display='block';return;}
-  const btn=$('btn-tf');btn.disabled=true;btn.textContent='Guardando...';
+async function saveTienda(){
+  const nm=($('tf-nm')?.value||'').trim();
+  const err=$('tf-err');if(err)err.style.display='none';
+  if(!nm){if(err){err.textContent='Ingresa el nombre de la tienda';err.style.display='block';}return;}
+  const btn=$('btn-tf');if(btn){btn.disabled=true;btn.textContent='Guardando...';}
   try{
-    const data={name:nm,category:$('tf-cat').value,phone:$('tf-tel').value,
-      address:$('tf-addr').value,instagram:$('tf-ig').value,web:$('tf-web').value,
-      footerMsg:$('tf-foot').value,color:_tfColor,headerBg:$('tf-hbg').value,
-      couponDiscount:parseFloat($('tf-disc').value)||10,
-      couponDuration:parseInt($('tf-cdur').value)||90,
-      updatedAt:FV().serverTimestamp()};
+    const data={
+      name:nm,
+      category:$('tf-cat')?.value||'',
+      phone:$('tf-tel')?.value||'',
+      address:$('tf-addr')?.value||'',
+      instagram:$('tf-ig')?.value||'',
+      web:$('tf-web')?.value||'',
+      footerMsg:$('tf-foot')?.value||'',
+      color:_tfColor,
+      headerBg:$('tf-hbg')?.value||'dark',
+      couponDiscount:parseFloat($('tf-disc')?.value)||10,
+      couponDuration:parseInt($('tf-cdur')?.value)||90,
+      couponColor:$('tf-ccolor')?.value||'#1a1a2e',
+      receiptTextColor:$('tf-tcolor')?.value||'#18181b',
+      receiptFontSize:parseInt($('tf-fsize')?.value)||13,
+      updatedAt:FV().serverTimestamp()
+    };
     if(_tfLogoB64)data.logoUrl=_tfLogoB64;
     if(_editingStoreId){
       await db.collection('nv_stores').doc(_editingStoreId).update(data);
-      const idx=stores.findIndex(s=>s.id===_editingStoreId);
-      if(idx>=0)stores[idx]={...stores[idx],...data};
+      const si=stores.findIndex(s=>s.id===_editingStoreId);
+      if(si>=0)stores[si]={...stores[si],...data};
       if(curStore?.id===_editingStoreId){curStore={...curStore,...data};selectStore(_editingStoreId);}
     } else {
       data.createdAt=FV().serverTimestamp();data.lastNoteNum=0;
       const ref=await db.collection('nv_stores').add(data);
-      stores.push({id:ref.id,...data});
+      const newStore={id:ref.id,...data};
+      stores.push(newStore);
+      buildStoreSel();
+      selectStore(ref.id);
     }
-    buildStoreSel();closeModal('ov-tienda');renderTiendas();
+    buildStoreSel();
+    closeModal('ov-tienda');
+    renderTiendas();
     toast('✓ Tienda guardada: '+nm);
-  }catch(e){err.textContent='Error: '+e.message;err.style.display='block';}
-  finally{btn.disabled=false;btn.textContent='Guardar tienda';}
+  }catch(e2){
+    if(err){err.textContent='Error: '+e2.message;err.style.display='block';}
+    else toast('Error: '+e2.message);
+  }
+  finally{if(btn){btn.disabled=false;btn.textContent='Guardar tienda';}}
 };
 
 async function deleteTienda(id){
@@ -1224,33 +1401,42 @@ async function toggleUserRole(uid,currentRole){
 }
 
 // ── CUPONES ────────────────────────────────────────────────────────────────────
-async function renderCupones(){
+function renderCupones(){
   const el=$('mod-cupones');if(!el)return;
+  if(!curStore){el.innerHTML='<div class="empty">Selecciona una tienda primero</div>';return;}
   el.innerHTML='<div class="spin"></div>';
-  try{
-    let q=db.collection('nv_coupons').orderBy('createdAt','desc').limit(100);
-    if(curStore)q=q.where('storeId','==',curStore.id);
-    const snap=await q.get();
-    const cps=snap.docs.map(d=>({id:d.id,...d.data()}));
-    const used=cps.filter(c=>c.used).length;
-    el.innerHTML=`
-      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);max-width:480px;margin-bottom:16px">
-        <div class="kpi"><div class="kpi-lbl">Total cupones</div><div class="kpi-val">${cps.length}</div></div>
-        <div class="kpi"><div class="kpi-lbl">Canjeados</div><div class="kpi-val accent">${used}</div></div>
-        <div class="kpi"><div class="kpi-lbl">Activos</div><div class="kpi-val">${cps.length-used}</div></div>
-      </div>
-      <div class="tbl-wrap">
-        <table><thead><tr><th>Código</th><th>Descuento</th><th>Estado</th><th>Nota</th><th>Expira</th></tr></thead>
-        <tbody>${cps.map(c=>`<tr>
-          <td><span style="font-family:var(--mono);font-weight:500;color:var(--store-accent,#2d7a4f)">${c.code}</span></td>
-          <td style="font-weight:500">S/ ${c.discount||10}</td>
-          <td><span class="badge ${c.used?'badge-pen':'badge-ok'}">${c.used?'Canjeado':'Activo'}</span></td>
-          <td style="font-family:var(--mono);font-size:11px;color:var(--tx3)">${c.noteId?.slice(-8)||'—'}</td>
-          <td style="font-size:11px;color:var(--tx3)">${c.expiresAt?fmtDate(c.expiresAt):'—'}</td>
-        </tr>`).join('')||`<tr><td colspan="5"><div class="empty">Sin cupones registrados</div></td></tr>`}
-        </tbody></table>
-      </div>`;
-  }catch(e){el.innerHTML=`<div class="empty">Error: ${e.message}</div>`;}
+  db.collection('nv_coupons').where('storeId','==',curStore.id).get()
+    .then(function(snap){
+      const cps=snap.docs.map(function(d){
+        const data=d.data();
+        return {id:d.id,...data,ts:data.createdAt?.toMillis?.()??0};
+      }).sort(function(a,b){return b.ts-a.ts;});
+      const used=cps.filter(function(c){return c.used;}).length;
+      el.innerHTML=`
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);max-width:560px;margin-bottom:20px">
+          <div class="kpi"><div class="kpi-lbl">Total cupones</div><div class="kpi-val">${cps.length}</div></div>
+          <div class="kpi"><div class="kpi-lbl">Canjeados</div><div class="kpi-val" style="color:var(--store-accent,#2d7a4f)">${used}</div></div>
+          <div class="kpi"><div class="kpi-lbl">Activos</div><div class="kpi-val">${cps.length-used}</div></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Código</th><th>Descuento</th><th>Estado</th><th>Nota</th><th>Vence</th><th>Fecha</th></tr></thead>
+            <tbody>
+              ${cps.length?cps.map(function(c){return '<tr>'+
+                '<td><span style="font-family:var(--mono);font-weight:600;color:var(--store-accent,#2d7a4f)">'+c.code+'</span></td>'+
+                '<td style="font-weight:500">S/ '+(c.discount||10)+'</td>'+
+                '<td><span class="badge '+(c.used?'badge-pen':'badge-ok')+'">'+(c.used?'Canjeado':'Activo')+'</span></td>'+
+                '<td style="font-family:var(--mono);font-size:11px;color:var(--tx3)">'+(c.noteId?c.noteId.slice(-6):'—')+'</td>'+
+                '<td style="font-size:11px;color:var(--tx3)">'+(c.expiresAt?fmtDate(c.expiresAt):'—')+'</td>'+
+                '<td style="font-size:11px;color:var(--tx3)">'+(c.ts?fmtDate(c.ts):'—')+'</td>'+
+              '</tr>';}).join(''):'<tr><td colspan="6"><div class="empty">Sin cupones registrados en esta tienda</div></td></tr>'}
+            </tbody>
+          </table>
+        </div>`;
+    })
+    .catch(function(e){
+      el.innerHTML='<div class="empty">Error al cargar cupones: '+e.message+'</div>';
+    });
 }
 </script>
 <!-- MOBILE BOTTOM NAV -->
