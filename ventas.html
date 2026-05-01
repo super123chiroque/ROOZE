@@ -885,7 +885,7 @@ function openDetalle(id){
         <div style="display:flex;align-items:center;gap:8px">
           <span class="dv">${o.celular||'—'}</span>
           ${o.celular?'<a href="https://wa.me/51'+o.celular.replace(/\D/g,'')+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#25D366;color:#fff;border-radius:8px;text-decoration:none;font-size:12px;font-weight:600"><svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.507 3.934 1.399 5.61L0 24l6.545-1.376A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.368l-.36-.214-3.724.783.838-3.63-.234-.374A9.818 9.818 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182S21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/></svg> WhatsApp</a>':''}
-          <button onclick="openNotaWA(o)" style="margin-left:6px;display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">📄 Nota</button>
+          <button onclick="openNotaModal(o)" style="margin-left:6px;display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">📄 Nota</button>
         </div>
       </div>
       <div class="dr"><span class="dl">Zona</span><span class="dv ${o.zona==='Lima'?'blue':''}">${o.zona||'—'}</span></div>
@@ -2147,166 +2147,211 @@ function toast(msg){
 // ─── NOTA DE VENTA INTEGRADA ──────────────────────────────────────────────────
 
 function buildNotaHTML(o){
-  var accent   = cfg.notaAccent || getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#2d7a4f';
-  var couponBg = cfg.notaCouponBg || '#18181b';
-  var headerBg = cfg.notaHeaderBg==='color' ? accent
-               : cfg.notaHeaderBg==='gradient' ? 'linear-gradient(135deg,#0f172a,'+accent+'aa)'
-               : '#18181b';
-  var fs       = parseInt(cfg.notaFontSize)||12;
-  var storeName  = cfg.storeName || 'Rooze';
-  var storePhone = cfg.storePhone||cfg.whatsapp||cfg.phone||'';
-  var footerMsg  = cfg.notaFooter || ('¡Gracias por tu compra! 🛍️'+(storePhone?'\nConsultas: '+storePhone:''));
-  var logoUrl    = cfg.logoUrl||'';
-  var showCoupon = cfg.notaShowCoupon!==false;
-  var couponDisc = cfg.notaCouponDisc||10;
-  var couponDays = cfg.notaCouponDays||90;
-  var fecha = o.fechaVenta||(o.fechaMs?new Date(o.fechaMs).toLocaleDateString('es-PE'):new Date().toLocaleDateString('es-PE'));
+  var accent    = cfg.notaAccent || '#2d7a4f';
+  var couponBg  = cfg.notaCouponBg || '#1a1a2e';
+  var headerBg  = cfg.notaHeaderBg==='color' ? accent
+                : cfg.notaHeaderBg==='gradient'
+                  ? 'linear-gradient(135deg,#0f172a 0%,'+accent+' 100%)'
+                : '#0f172a';
+  var fs        = parseInt(cfg.notaFontSize)||13;
+  var storeName = cfg.storeName || 'Rooze';
+  var phone     = cfg.storePhone||cfg.whatsapp||cfg.phone||'';
+  var footer    = cfg.notaFooter || ('¡Gracias por tu compra! 🛍️'+(phone?'\nConsultas: '+phone:''));
+  var logo      = cfg.logoUrl||'';
+  var showCpn   = cfg.notaShowCoupon!==false;
+  var cpnDisc   = cfg.notaCouponDisc||10;
+  var cpnDays   = cfg.notaCouponDays||90;
+
+  var fecha = o.fechaVenta
+    || (o.fechaMs ? (function(t){var d=new Date(t);return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();})(o.fechaMs) : '');
+
   if(!o._noteNum){
-    var pref=(storeName.slice(0,3)).toUpperCase().replace(/\s/g,'');
-    o._noteNum=pref+'-'+String(Math.floor(Math.random()*8000)+1000);
+    var p=storeName.replace(/\s+/g,'').slice(0,4).toUpperCase();
+    o._noteNum=p+String(Math.floor(Math.random()*8999)+1000);
   }
-  if(showCoupon&&!o._coupon){
-    var cpref=(storeName.slice(0,4)).toUpperCase().replace(/\s/g,'');
-    o._coupon=cpref+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
+  if(showCpn&&!o._coupon){
+    var cp=storeName.replace(/\s+/g,'').slice(0,4).toUpperCase();
+    o._coupon=cp+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
   }
-  var productList=(o.productos&&o.productos.length)?o.productos:[{nombre:o.producto||'Producto',cantidad:o.totalCantidad||1,precio:o.cobrar}];
-  var prods=productList.map(function(p){
+
+  var prods=(o.productos&&o.productos.length)
+    ?o.productos:[{nombre:o.producto||'Producto',cantidad:o.totalCantidad||1,precio:o.cobrar}];
+
+  var prodsHtml=prods.map(function(p){
     var sub=(parseFloat(p.precio)||0)*(parseInt(p.cantidad)||1);
-    return '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:0.5px solid #f0f0f0">'
-      +'<span style="color:#555;font-size:'+fs+'px;line-height:1.3;flex:1;padding-right:8px">'+p.nombre+(p.cantidad>1?' x'+p.cantidad:'')+'</span>'
-      +'<span style="font-weight:600;color:#18181b;font-size:'+(fs+1)+'px;white-space:nowrap">S/ '+sub.toFixed(2)+'</span>'
-    +'</div>';
+    return '<tr>'
+      +'<td style="padding:7px 8px;font-size:'+fs+'px;color:#334155;line-height:1.3;vertical-align:top">'+p.nombre+(p.cantidad>1?' <span style="color:#64748b">x'+p.cantidad+'</span>':'')+'</td>'
+      +'<td style="padding:7px 8px;font-size:'+fs+'px;font-weight:700;color:#0f172a;text-align:right;white-space:nowrap;vertical-align:top">S/ '+sub.toFixed(2)+'</td>'
+    +'</tr>';
   }).join('');
-  var delivery=o.costoDelivery||0;
-  var adelantoBlock=o.adelanto>0
-    ?'<div style="display:flex;justify-content:space-between;font-size:'+(fs-1)+'px;margin-top:3px"><span style="color:rgba(0,0,0,.5)">Adelanto</span><span style="color:#16a34a;font-weight:600">- S/ '+o.adelanto.toFixed(2)+'</span></div>'
-     +'<div style="display:flex;justify-content:space-between;font-size:'+(fs-1)+'px"><span style="color:#dc2626;font-weight:600">Saldo pendiente</span><span style="color:#dc2626;font-weight:700">S/ '+((o.saldo||Math.max(0,o.cobrar-o.adelanto))).toFixed(2)+'</span></div>'
-    :'';
-  var couponBlock=(showCoupon&&o._coupon)
-    ?'<div style="background:'+couponBg+';border-radius:10px;padding:10px 14px;text-align:center;position:relative;overflow:hidden;margin-top:8px">'
-       +'<div style="position:absolute;left:-7px;top:50%;transform:translateY(-50%);width:14px;height:14px;border-radius:50%;background:#fff"></div>'
-       +'<div style="position:absolute;right:-7px;top:50%;transform:translateY(-50%);width:14px;height:14px;border-radius:50%;background:#fff"></div>'
-       +'<div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em">Cupon exclusivo - 2da compra</div>'
-       +'<div style="font-size:17px;font-weight:700;color:#fff;letter-spacing:.12em;font-family:monospace;margin:3px 0">'+o._coupon+'</div>'
-       +'<div style="font-size:10px;color:rgba(255,255,255,.55)">S/ '+couponDisc+' de descuento - valido '+couponDays+' dias</div>'
-     +'</div>'
-    :'';
-  var logoEl=logoUrl
-    ?'<img src="'+logoUrl+'" style="width:28px;height:28px;border-radius:7px;object-fit:cover">'
-    :'<div style="width:24px;height:24px;border-radius:6px;background:'+accent+';display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff">'+storeName.slice(0,2).toUpperCase()+'</div>';
-  var zonaColor=o.zona==='Lima'?'#854f0b':'#185fa5';
-  var zonaBg=o.zona==='Lima'?'#faeeda':'#e8f0fb';
-  return '<div id="nota-receipt" style="width:320px;font-family:-apple-system,sans-serif;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.1)">'
-    +'<div style="background:'+headerBg+';padding:16px;text-align:center">'
-      +'<div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.07);padding:6px 14px;border-radius:20px;margin-bottom:8px">'
-        +logoEl
-        +'<span style="font-size:12px;color:#fff;font-weight:600">'+storeName+'</span>'
+
+  var delivery=parseFloat(o.costoDelivery)||0;
+  if(delivery>0){
+    prodsHtml+='<tr>'
+      +'<td style="padding:5px 8px;font-size:'+(fs-1)+'px;color:#64748b">Delivery</td>'
+      +'<td style="padding:5px 8px;font-size:'+(fs-1)+'px;color:#64748b;text-align:right">S/ '+delivery.toFixed(2)+'</td>'
+    +'</tr>';
+  }
+
+  var adelantoHtml='';
+  if(o.adelanto>0){
+    var saldo=o.saldo||Math.max(0,o.cobrar-o.adelanto);
+    adelantoHtml='<div style="margin-top:8px;padding:8px 10px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0">'
+      +'<div style="display:flex;justify-content:space-between;font-size:'+(fs-1)+'px;margin-bottom:3px">'
+        +'<span style="color:#166534">Adelanto recibido</span>'
+        +'<span style="color:#166534;font-weight:600">- S/ '+o.adelanto.toFixed(2)+'</span>'
       +'</div>'
-      +'<div style="font-size:9px;color:rgba(255,255,255,.3);letter-spacing:.1em;text-transform:uppercase">Nota de venta</div>'
-      +'<div style="font-size:20px;font-weight:700;color:#fff;margin:5px 0 2px">'+o._noteNum+'</div>'
-      +'<div style="font-size:10px;color:rgba(255,255,255,.35)">'+fecha+' · '+o.vendedor+'</div>'
-    +'</div>'
-    +'<div style="padding:14px;background:#fff;font-size:'+fs+'px">'
-      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:8px">'
+      +'<div style="display:flex;justify-content:space-between;font-size:'+fs+'px;font-weight:700">'
+        +'<span style="color:#dc2626">Saldo pendiente</span>'
+        +'<span style="color:#dc2626">S/ '+saldo.toFixed(2)+'</span>'
+      +'</div>'
+    +'</div>';
+  }
+
+  var contraHtml=o.contraEntrega
+    ?'<div style="margin-top:6px;text-align:center"><span style="display:inline-block;background:#fef3c7;color:#92400e;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:700">💳 Pago contra entrega</span></div>'
+    :'';
+
+  var couponHtml='';
+  if(showCpn&&o._coupon){
+    couponHtml='<div style="margin-top:14px;background:'+couponBg
+      +';border-radius:12px;padding:14px 16px;text-align:center;position:relative;overflow:hidden">'
+      +'<div style="position:absolute;left:-10px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:#f1f5f9"></div>'
+      +'<div style="position:absolute;right:-10px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:#f1f5f9"></div>'
+      +'<div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">🎁 CUPÓN EXCLUSIVO · 2DA COMPRA</div>'
+      +'<div style="font-size:22px;font-weight:900;color:#ffffff;font-family:monospace;letter-spacing:0.15em;text-shadow:0 2px 8px rgba(0,0,0,0.3);margin-bottom:6px">'+o._coupon+'</div>'
+      +'<div style="display:inline-block;background:rgba(255,255,255,0.12);border-radius:20px;padding:4px 14px">'
+        +'<span style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.9)">S/ '+cpnDisc+' de descuento · válido '+cpnDays+' días</span>'
+      +'</div>'
+    +'</div>';
+  }
+
+  var logoHtml=logo
+    ?'<div style="width:40px;height:40px;border-radius:10px;overflow:hidden;flex-shrink:0"><img src="'+logo+'" style="width:100%;height:100%;object-fit:cover"></div>'
+    :'<div style="width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0">'+storeName.slice(0,2).toUpperCase()+'</div>';
+
+  var zonaColor=o.zona==='Lima'?'#854f0b':'#1e40af';
+  var zonaBg=o.zona==='Lima'?'#fef9c3':'#dbeafe';
+
+  return '<div id="nota-receipt" style="width:340px;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;background:#f8fafc;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.15)">'
+
+    // HEADER
+    +'<div style="background:'+headerBg+';padding:20px 18px 16px">'
+      +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">'
+        +logoHtml
         +'<div style="flex:1;min-width:0">'
-          +'<div style="font-weight:700;font-size:'+(fs+2)+'px;color:#18181b;line-height:1.25;word-break:break-word">'+o.cliente+'</div>'
-          +(o.dni?'<div style="color:#888;font-size:'+(fs-1)+'px">DNI: '+o.dni+'</div>':'')
-          +'<div style="color:#888;font-size:'+(fs-1)+'px;margin-top:2px">'+o.celular+'</div>'
-          +(o.ciudad?'<div style="color:#888;font-size:'+(fs-1)+'px">'+o.ciudad+'</div>':'')
-        +'</div>'
-        +'<div style="flex-shrink:0">'
-          +'<span style="background:'+zonaBg+';color:'+zonaColor+';padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap">'+(o.zona||'Lima')+'</span>'
+          +'<div style="font-size:16px;font-weight:800;color:#ffffff;line-height:1.2">'+storeName+'</div>'
+          +'<div style="font-size:10px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.1em;margin-top:2px">Nota de venta</div>'
         +'</div>'
       +'</div>'
-      +'<div style="background:#f9fafb;border-radius:9px;padding:10px;margin-bottom:8px">'
-        +prods
-        +(delivery>0?'<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:'+fs+'px"><span style="color:#555">Delivery</span><span>S/ '+delivery.toFixed(2)+'</span></div>':'')
+      +'<div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:12px 14px">'
+        +'<div style="font-size:22px;font-weight:900;color:#ffffff;letter-spacing:0.04em;margin-bottom:4px">'+o._noteNum+'</div>'
+        +'<div style="display:flex;justify-content:space-between;align-items:center">'
+          +'<span style="font-size:11px;color:rgba(255,255,255,0.65)">📅 '+fecha+'</span>'
+          +'<span style="font-size:11px;color:rgba(255,255,255,0.65)">👤 '+o.vendedor+'</span>'
+        +'</div>'
       +'</div>'
-      +'<div style="background:'+accent+'12;border:1px solid '+accent+'33;border-radius:9px;padding:10px;text-align:center;margin-bottom:6px">'
-        +'<div style="font-size:9px;color:'+accent+';font-weight:700;text-transform:uppercase;letter-spacing:.06em">Total del pedido</div>'
-        +'<div style="font-size:22px;font-weight:700;color:'+accent+'">S/ '+o.cobrar.toFixed(2)+'</div>'
-        +adelantoBlock
+    +'</div>'
+
+    // BODY
+    +'<div style="background:#ffffff;padding:16px 18px">'
+
+      // Client
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;gap:8px">'
+        +'<div style="flex:1;min-width:0">'
+          +'<div style="font-size:'+( fs+3)+'px;font-weight:800;color:#0f172a;line-height:1.2;word-break:break-word;margin-bottom:4px">'+o.cliente+'</div>'
+          +(o.dni?'<div style="font-size:'+(fs-1)+'px;color:#64748b;margin-bottom:2px">🪪 DNI: '+o.dni+'</div>':'')
+          +'<div style="font-size:'+(fs-1)+'px;color:#64748b">📱 '+o.celular+'</div>'
+          +(o.ciudad?'<div style="font-size:'+(fs-1)+'px;color:#64748b;margin-top:1px">📍 '+o.ciudad+'</div>':'')
+        +'</div>'
+        +'<span style="flex-shrink:0;background:'+zonaBg+';color:'+zonaColor+';padding:4px 12px;border-radius:20px;font-size:10px;font-weight:700;margin-top:2px">'+(o.zona||'Lima')+'</span>'
       +'</div>'
-      +(o.contraEntrega?'<div style="text-align:center;margin-bottom:6px"><span style="font-size:11px;background:#fef3c7;color:#92400e;padding:4px 12px;border-radius:20px;font-weight:600">Pago contra entrega</span></div>':'')
-      +(o.nota?'<div style="font-size:11px;color:#888;background:#f5f5f3;border-radius:6px;padding:6px 8px;margin-bottom:6px">'+o.nota+'</div>':'')
-      +couponBlock
-      +'<div style="font-size:10px;color:#bbb;text-align:center;margin-top:10px;line-height:1.6;white-space:pre-line">'+footerMsg+'</div>'
+
+      // Products table
+      +'<div style="background:#f8fafc;border-radius:10px;overflow:hidden;margin-bottom:10px">'
+        +'<table style="width:100%;border-collapse:collapse">'
+          +'<thead><tr style="background:#f1f5f9">'
+            +'<th style="padding:7px 8px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;text-align:left">Producto</th>'
+            +'<th style="padding:7px 8px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;text-align:right">Total</th>'
+          +'</tr></thead>'
+          +'<tbody>'+prodsHtml+'</tbody>'
+        +'</table>'
+      +'</div>'
+
+      // Total box
+      +'<div style="background:'+accent+'08;border:2px solid '+accent+'22;border-radius:12px;padding:12px 14px;text-align:center;margin-bottom:6px">'
+        +'<div style="font-size:10px;font-weight:700;color:'+accent+';text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">💰 Total del pedido</div>'
+        +'<div style="font-size:28px;font-weight:900;color:'+accent+'">S/ '+o.cobrar.toFixed(2)+'</div>'
+      +'</div>'
+
+      +adelantoHtml
+      +contraHtml
+
+      +(o.nota?'<div style="margin-top:8px;background:#fefce8;border-left:3px solid #eab308;border-radius:0 8px 8px 0;padding:8px 10px;font-size:'+(fs-1)+'px;color:#713f12;line-height:1.4">📝 '+o.nota+'</div>':'')
+
+      +couponHtml
+
+      // Footer
+      +'<div style="margin-top:14px;padding-top:12px;border-top:1px dashed #e2e8f0;text-align:center">'
+        +'<div style="font-size:11px;color:#94a3b8;line-height:1.7;white-space:pre-line">'+footer+'</div>'
+      +'</div>'
+
     +'</div>'
   +'</div>';
 }
 
 
-function openNotaWA(o){
-  // Build receipt and show in bottom sheet
-  const existing=document.getElementById('ov-nota-wa');
-  if(existing)existing.remove();
-  const ov=document.createElement('div');
-  ov.id='ov-nota-wa';
-  ov.className='ov';
-  ov.innerHTML=
-    '<div class="sheet" style="max-height:90vh;overflow-y:auto">'+
-      '<div class="sh"></div>'+
-      '<h3 style="margin-bottom:12px">📄 Nota de venta</h3>'+
-      '<div id="nota-receipt-wrap" style="transform:scale(0.85);transform-origin:top center;margin-bottom:-40px">'+
-        buildNotaHTML(o)+
-      '</div>'+
-      '<div style="display:flex;gap:8px;margin-top:12px">'+
-        '<button onclick="sendNotaWA()" style="flex:1;padding:12px;background:#25D366;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px" id="wa-nota-btn">'+
-          '<svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>'+
-          'Enviar nota JPG por WhatsApp'+
-        '</button>'+
-        '<button onclick="document.getElementById(\'ov-nota-wa\').classList.remove(\'open\')" style="padding:12px;background:var(--bg2);border:0.5px solid rgba(0,0,0,0.12);border-radius:10px;font-size:13px;cursor:pointer;font-family:inherit">Cerrar</button>'+
-      '</div>'+
-      '<div style="margin-top:6px">'+
-        '<button onclick="downloadNotaPDF()" style="width:100%;padding:10px;background:var(--bg2);border:0.5px solid rgba(0,0,0,0.12);border-radius:10px;font-size:13px;cursor:pointer;font-family:inherit;color:var(--tx)">📥 Descargar JPG</button>'+
-      '</div>'+
-    '</div>';
-  document.body.appendChild(ov);
-  ov.addEventListener('click',function(e){if(e.target===ov)ov.classList.remove('open');});
-  setTimeout(function(){ov.classList.add('open');},10);
-  window._lastNota=o;
-}
+
+
+
 
 async function sendNotaWA(){
   var el=document.getElementById('nota-receipt');
-  if(!el){toast('Error: recibo no encontrado');return;}
+  if(!el){toast('Genera la nota primero');return;}
   var btn=document.getElementById('wa-nota-btn');
   if(btn){btn.disabled=true;btn.textContent='Generando JPG...';}
   try{
-    var canvas=await html2canvas(el,{scale:2.5,useCORS:true,backgroundColor:'#fff',logging:false});
+    var canvas=await html2canvas(el,{scale:3,useCORS:true,backgroundColor:'#f8fafc',logging:false,allowTaint:true});
     var blob=await new Promise(function(res){canvas.toBlob(res,'image/jpeg',0.95);});
     var o=window._lastNota||{};
+
+    // Normalize phone to 51XXXXXXXXX
     var raw=(o.celular||'').replace(/[^0-9]/g,'');
     var cel=raw.length===9?'51'+raw:raw.length===11&&raw.slice(0,2)==='51'?raw:raw;
-    var storePref=(cfg.storeName||'Rooze').slice(0,3).toUpperCase();
-    var prodNames=(o.productos||[]).filter(function(p){return p.nombre;}).map(function(p){return p.nombre+(p.cantidad>1?' x'+p.cantidad:'');}).join(', ')||o.producto||'';
-    var waMsg='Hola '+(o.cliente||'').split(' ')[0]+'! '
-      +'Nota de venta: '+(o._noteNum||'')+' | '
-      +(prodNames?'Producto: '+prodNames+' | ':'')
-      +'Total: S/ '+o.cobrar.toFixed(2)
-      +(o.adelanto>0?' | Adelanto: S/ '+o.adelanto.toFixed(2)+' Saldo: S/ '+(o.saldo||0).toFixed(2):'')
-      +(o._coupon?' | Cupon 2da compra: '+o._coupon+' (S/ '+(cfg.notaCouponDisc||10)+' dscto)':'')
-      +' Gracias por tu compra!';
-    var fileName='nota-'+(o.cliente||'cliente').slice(0,20)+'.jpg';
+
+    var nombre=(o.cliente||'').split(' ')[0]||'cliente';
+    var waMsg='¡Felicidades por tu compra '+nombre+'! Te adjuntamos tu Nota de Venta ☝️'
+      +'\n\n*'+o._noteNum+'* · '+(o.fechaVenta||'')
+      +'\n\n*Total: S/ '+o.cobrar.toFixed(2)+'*'
+      +(o.adelanto>0?'\n✅ Adelanto: S/ '+o.adelanto.toFixed(2)+' | Saldo: S/ '+(o.saldo||Math.max(0,o.cobrar-o.adelanto)).toFixed(2):'')
+      +(o._coupon?'\n\n🎁 Tu cupón: *'+o._coupon+'* (S/ '+(cfg.notaCouponDisc||10)+' en tu próxima compra)':'')
+      +'\n\n_Gracias por confiar en nosotros_ 🙌';
+
+    var fileName='nota-'+nombre.toLowerCase()+'-'+o._noteNum+'.jpg';
     var file=new File([blob],fileName,{type:'image/jpeg'});
+
+    // MOBILE: native share (Android → WhatsApp)
     if(navigator.canShare&&navigator.canShare({files:[file]})){
-      await navigator.share({files:[file],title:'Nota '+(o._noteNum||''),text:waMsg});
+      await navigator.share({files:[file],title:o._noteNum,text:waMsg});
     } else {
+      // DESKTOP: download + open wa.me direct to client
       var url=URL.createObjectURL(blob);
       var a=document.createElement('a');a.href=url;a.download=fileName;a.click();
       URL.revokeObjectURL(url);
       setTimeout(function(){
-        var waUrl=cel?'https://wa.me/'+cel+'?text='+encodeURIComponent(waMsg):'https://web.whatsapp.com/';
-        window.open(waUrl,'_blank');
-        if(!cel)toast('Sin numero de celular registrado');
-      },500);
+        if(!cel){toast('⚠️ Número no registrado. JPG descargado.');return;}
+        window.open('https://wa.me/'+cel+'?text='+encodeURIComponent(waMsg),'_blank');
+      },600);
     }
+    toast('✓ Nota enviada');
   }catch(e){
     if(e.name!=='AbortError')toast('Error: '+e.message);
   }finally{
-    if(btn){btn.disabled=false;btn.textContent='Enviar nota JPG por WhatsApp';}
+    if(btn){btn.disabled=false;btn.textContent='Enviar JPG por WhatsApp';}
   }
 }
+
+
 
 
 async function downloadNotaPDF(){
@@ -2333,7 +2378,7 @@ function addNotaButtonToDetalle(o){
   btn.className='btn';
   btn.style.cssText='background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px';
   btn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg> Enviar nota por WhatsApp';
-  btn.onclick=function(){openNotaWA(o);};
+  btn.onclick=function(){openNotaModal(o);};
   actSection.appendChild(btn);
 }
 
@@ -2538,23 +2583,42 @@ async function confirmSendNota(){
   if(sel)sel.style.borderColor='';
   var btn=document.getElementById('btn-nota-wa');
   if(btn){btn.disabled=true;btn.textContent='Generando...';}
+
+  // Load tienda cfg temporarily
   var tiendaCfg=buildNotaCfgFromTienda(tiendaId);
-  var savedCfg=Object.assign({},cfg);
+  var savedCfg={};
+  var keys=['storeName','storePhone','notaFooter','logoUrl','notaAccent','notaCouponBg','notaHeaderBg','notaFontSize','notaCouponDisc','notaCouponDays','notaShowCoupon'];
+  keys.forEach(function(k){savedCfg[k]=cfg[k];});
   Object.assign(cfg,tiendaCfg);
+
+  // Reset per-order state so fresh data generates
   o._noteNum=null;o._coupon=null;
   var receipt=buildNotaHTML(o);
+
+  // Restore cfg
   Object.assign(cfg,savedCfg);
   window._lastNota=o;
+
+  // Build & show WA modal
   var existing=document.getElementById('ov-nota-wa');if(existing)existing.remove();
   var ov=document.createElement('div');
   ov.id='ov-nota-wa';ov.className='ov';ov.style.zIndex='320';
   ov.innerHTML='<div class="sheet" style="max-height:90vh;overflow-y:auto">'
     +'<div class="sh"></div>'
-    +'<h3 style="margin-bottom:12px">Nota generada ✓</h3>'
-    +'<div id="nota-receipt-wrap" style="transform:scale(0.85);transform-origin:top center;margin-bottom:-36px">'+receipt+'</div>'
-    +'<button onclick="sendNotaWA()" id="wa-nota-btn" style="width:100%;padding:13px;background:#25D366;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px">Enviar JPG por WhatsApp</button>'
-    +'<button onclick="downloadNotaOnly()" style="width:100%;padding:11px;background:var(--bg2);border:0.5px solid rgba(0,0,0,.12);border-radius:12px;font-size:13px;cursor:pointer;font-family:inherit;margin-bottom:8px">Descargar JPG</button>'
-    +'<button onclick="backToNotaConfirm()" style="width:100%;padding:10px;background:none;border:none;font-size:13px;color:var(--tx2);cursor:pointer;font-family:inherit">← Volver</button>'
+    +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">'
+      +'<div style="width:36px;height:36px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0">📄</div>'
+      +'<div><div style="font-size:16px;font-weight:700;color:var(--tx)">Nota generada</div>'
+        +'<div style="font-size:12px;color:var(--tx2)">'+o._noteNum+'</div></div>'
+    +'</div>'
+    +'<div id="nota-receipt-wrap" style="transform:scale(0.82);transform-origin:top center;margin-bottom:-60px">'+receipt+'</div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">'
+      +'<button onclick="sendNotaWA()" id="wa-nota-btn" style="width:100%;padding:14px;background:#25D366;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">'
+        +'<svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.507 3.934 1.399 5.61L0 24l6.545-1.376A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.368l-.36-.214-3.724.783.838-3.63-.234-.374A9.818 9.818 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182S21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/></svg>'
+        +' Enviar JPG por WhatsApp'
+      +'</button>'
+      +'<button onclick="downloadNotaOnly()" style="width:100%;padding:12px;background:var(--bg2);border:0.5px solid var(--bo2);border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--tx)">📥 Descargar JPG</button>'
+      +'<button onclick="backToNotaConfirm()" style="width:100%;padding:10px;background:none;border:none;font-size:13px;color:var(--tx3);cursor:pointer;font-family:inherit">← Cambiar tienda</button>'
+    +'</div>'
   +'</div>';
   document.body.appendChild(ov);
   ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
@@ -2562,6 +2626,8 @@ async function confirmSendNota(){
   setTimeout(function(){ov.classList.add('open');},10);
   if(btn){btn.disabled=false;btn.textContent='Generar y enviar por WhatsApp';}
 }
+
+
 
 async function downloadNotaOnly(){
   var el=document.getElementById('nota-receipt');
