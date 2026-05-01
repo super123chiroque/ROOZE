@@ -94,7 +94,7 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
 /* MODAL / OVERLAY */
 .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;align-items:flex-end;justify-content:center}
 .ov.open{display:flex}
-.sheet{background:var(--bg);border-radius:20px 20px 0 0;width:100%;max-width:430px;padding:0 16px 20px;max-height:90vh;overflow-y:auto}
+.sheet{position:relative;background:var(--bg);border-radius:20px 20px 0 0;width:100%;max-width:430px;padding:0 16px 20px;max-height:90vh;overflow-y:auto}
 .sh{width:36px;height:4px;background:var(--bo2);border-radius:2px;margin:12px auto 16px}
 .sheet h3{font-size:16px;font-weight:700;color:var(--tx);margin-bottom:16px}
 /* STEPS */
@@ -363,6 +363,7 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
 <!-- MODAL: NUEVA VENTA -->
 <div class="ov" id="ov-nueva">
   <div class="sheet">
+    <button onclick="closeOv('ov-nueva')" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:22px;color:var(--tx3);cursor:pointer;line-height:1;padding:0;z-index:1">&#x2715;</button>
     <div class="sh"></div>
     <h3>Nueva venta</h3>
     <div style="display:flex;flex-direction:column;gap:12px">
@@ -410,6 +411,7 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
 <!-- MODAL: DETALLE VENTA -->
 <div class="ov" id="ov-detalle">
   <div class="sheet">
+    <button onclick="closeOv('ov-detalle')" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:22px;color:var(--tx3);cursor:pointer;line-height:1;padding:0;z-index:1">&#x2715;</button>
     <div class="sh"></div>
     <div id="detalle-body"></div>
   </div>
@@ -418,6 +420,7 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
 <!-- MODAL: EDITAR ESTADO -->
 <div class="ov" id="ov-estado">
   <div class="sheet">
+    <button onclick="closeOv('ov-estado')" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:22px;color:var(--tx3);cursor:pointer;line-height:1;padding:0;z-index:1">&#x2715;</button>
     <div class="sh"></div>
     <h3>Cambiar estado</h3>
     <div class="status-opts" style="margin-bottom:16px">
@@ -435,6 +438,7 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
 <!-- MODAL: EDITAR PEDIDO -->
 <div class="ov" id="ov-edit-order">
   <div class="sheet">
+    <button onclick="closeOv('ov-edit-order')" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:22px;color:var(--tx3);cursor:pointer;line-height:1;padding:0;z-index:1">&#x2715;</button>
     <div class="sh"></div>
     <h3>Editar pedido</h3>
     <div style="display:flex;flex-direction:column;gap:10px">
@@ -858,7 +862,7 @@ function openDetalle(id){
   let editBtn='';
   if(isAdmin()||o.vendedorId===cu?.id){
     editBtn=`<button class="btn" style="margin-top:12px" onclick="openEditEstado('${o.id}','${o.estado||'pendiente'}')">Cambiar estado</button>
-    <button class="btn" style="margin-top:8px;background:var(--bg2);color:var(--tx)" onclick="openEditOrder('${o.id}')">✏️ Editar pedido</button>`;
+    <button class="btn" style="margin-top:8px;background:var(--bg2);color:var(--tx)" onclick="openEditOrder('${o.id}')">Editar pedido</button>`;
   }
   const delBtn=isSuper()?`<button class="btn" style="margin-top:8px;background:#fee2e2;color:#991b1b" onclick="deleteOrder('${o.id}')">Eliminar venta</button>`:'';
 
@@ -885,7 +889,7 @@ function openDetalle(id){
         <div style="display:flex;align-items:center;gap:8px">
           <span class="dv">${o.celular||'—'}</span>
           ${o.celular?'<a href="https://wa.me/51'+o.celular.replace(/\D/g,'')+'" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#25D366;color:#fff;border-radius:8px;text-decoration:none;font-size:12px;font-weight:600"><svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.507 3.934 1.399 5.61L0 24l6.545-1.376A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.368l-.36-.214-3.724.783.838-3.63-.234-.374A9.818 9.818 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182S21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/></svg> WhatsApp</a>':''}
-          <button onclick="openNotaModal(o)" style="margin-left:6px;display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">📄 Nota</button>
+          
         </div>
       </div>
       <div class="dr"><span class="dl">Zona</span><span class="dv ${o.zona==='Lima'?'blue':''}">${o.zona||'—'}</span></div>
@@ -905,6 +909,7 @@ function openDetalle(id){
     ${finHtml}
     ${editBtn}
     ${delBtn}
+    <button class="btn" style="margin-top:8px;background:var(--bg2);color:var(--tx)" onclick="openNotaModal(o)">Generar nota</button>
     <button class="btn gray" style="margin-top:8px" onclick="closeOv('ov-detalle')">Cerrar</button>`;
   openOv('ov-detalle');
 }
@@ -2146,19 +2151,20 @@ function toast(msg){
 }
 // ─── NOTA DE VENTA INTEGRADA ──────────────────────────────────────────────────
 
-function buildNotaHTML(o){
-  var acc   = cfg.notaAccent   || '#2d7a4f';
-  var cpnBg = cfg.notaCouponBg || '#1a1a2e';
-  var hdr   = cfg.notaHeaderBg==='color' ? acc
-            : cfg.notaHeaderBg==='gradient' ? '#1e293b'
+function buildNotaHTML(o, tiendaCfg){
+  var C = tiendaCfg || cfg;
+  var acc   = C.notaAccent   || '#2d7a4f';
+  var cpnBg = C.notaCouponBg || '#1a1a2e';
+  var hdr   = C.notaHeaderBg==='color' ? acc
+            : C.notaHeaderBg==='gradient' ? '#1e293b'
             : '#0f172a';
-  var store  = cfg.storeName || 'Rooze';
-  var tel    = cfg.storePhone||cfg.whatsapp||cfg.phone||'';
-  var footer = cfg.notaFooter||(tel?'Consultas: '+tel:'Gracias por tu compra!');
-  var logo   = cfg.logoUrl||'';
-  var showC  = cfg.notaShowCoupon!==false;
-  var cDisc  = cfg.notaCouponDisc||10;
-  var cDays  = cfg.notaCouponDays||90;
+  var store  = C.storeName || 'Rooze';
+  var tel    = C.storePhone||C.whatsapp||C.phone||'';
+  var footer = C.notaFooter||(tel?'Consultas: '+tel:'Gracias por tu compra!');
+  var logo   = C.logoUrl||'';
+  var showC  = C.notaShowCoupon!==false;
+  var cDisc  = C.notaCouponDisc||10;
+  var cDays  = C.notaCouponDays||90;
 
   if(!o._noteNum){
     var px=store.replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,4);
@@ -2187,7 +2193,7 @@ function buildNotaHTML(o){
   var pRows='';
   prods.forEach(function(p){
     var qty=parseInt(p.cantidad)||1;
-    var cfgP=(cfg.productos||[]).find(function(cp){return cp.nombre===p.nombre;});
+    var cfgP=(C.productos||[]).find(function(cp){return cp.nombre===p.nombre;});
     var unitP=cfgP&&parseFloat(cfgP.precio)?parseFloat(cfgP.precio):parseFloat(p.precio||p.costo||0);
     if(!unitP&&subtotal>0) unitP=+(subtotal*qty/totalQty/qty).toFixed(2);
     pRows+='<tr>'
@@ -2317,7 +2323,7 @@ function buildNotaHTML(o){
 async function captureNotaJPG(){
   var o=window._lastNota;
   if(!o){throw new Error('Sin nota generada');}
-  var freshHtml=buildNotaHTML(o);
+  var freshHtml=buildNotaHTML(o, window._lastNotaTiendaCfg||null);
 
   var container=document.createElement('div');
   container.id='_nota_capture_container';
@@ -2403,7 +2409,7 @@ async function sendNotaWA(){
   }catch(e){
     if(e.name!=='AbortError')toast('Error: '+e.message);
   }finally{
-    if(btn){btn.disabled=false;btn.textContent='Enviar JPG por WhatsApp';}
+    if(btn){btn.disabled=false;btn.textContent='DESCARGAR NOTA';}
   }
 }
 
@@ -2533,13 +2539,11 @@ async function confirmSendNota(){
   var btn=document.getElementById('btn-nota-wa');
   if(btn){btn.disabled=true;btn.textContent='Generando...';}
   var tiendaCfg=buildNotaCfgFromTienda(tiendaId);
-  var savedCfg={};
-  ['storeName','storePhone','notaFooter','logoUrl','notaAccent','notaCouponBg','notaHeaderBg','notaFontSize','notaCouponDisc','notaCouponDays','notaShowCoupon'].forEach(function(k){savedCfg[k]=cfg[k];});
-  Object.assign(cfg,tiendaCfg);
   o._noteNum=null;o._coupon=null;
-  var receipt=buildNotaHTML(o);
-  Object.assign(cfg,savedCfg);
+  var receipt=buildNotaHTML(o, tiendaCfg);
+  // No need to restore cfg — never mutated
   window._lastNota=o;
+  window._lastNotaTiendaCfg=tiendaCfg;
   var existing=document.getElementById('ov-nota-wa');if(existing)existing.remove();
   var ov=document.createElement('div');
   ov.id='ov-nota-wa';ov.className='ov';ov.style.zIndex='320';
@@ -2549,22 +2553,18 @@ async function confirmSendNota(){
       +'<div style="width:36px;height:36px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📄</div>'
       +'<div><div style="font-size:16px;font-weight:700;color:var(--tx)">Nota generada</div>'
         +'<div style="font-size:12px;color:var(--tx2)">'+o._noteNum+'</div></div>'
+    +'<button onclick="var ov=document.getElementById(\'ov-nota-wa\');if(ov)ov.remove();" style="margin-left:auto;background:var(--bg2);border:0.5px solid var(--bo2);border-radius:50%;width:28px;height:28px;font-size:16px;color:var(--tx2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;flex-shrink:0">&#x2715;</button>'
     +'</div>'
     +'<div id="nota-receipt-wrap" style="width:100%;overflow:hidden;margin-bottom:14px;display:flex;justify-content:center">'+receipt+'</div>'
     +'<div style="display:flex;flex-direction:column;gap:8px">'
-      +'<button onclick="sendNotaWA()" id="wa-nota-btn" style="width:100%;padding:14px;background:#25D366;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">'
-        +'<svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.507 3.934 1.399 5.61L0 24l6.545-1.376A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.368l-.36-.214-3.724.783.838-3.63-.234-.374A9.818 9.818 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182S21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/></svg>'
-        +' Enviar JPG por WhatsApp'
-      +'</button>'
-      +'<button onclick="downloadNotaOnly()" style="width:100%;padding:12px;background:var(--bg2);border:0.5px solid var(--bo2);border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--tx)">📥 Descargar JPG</button>'
-      +'<button onclick="backToNotaConfirm()" style="width:100%;padding:10px;background:none;border:none;font-size:13px;color:var(--tx3);cursor:pointer;font-family:inherit">← Cambiar tienda</button>'
+      +'<button onclick="downloadNotaOnly()" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:0.3px">DESCARGAR NOTA</button>'
     +'</div>'
-  +'</div>';
+  +'</div>';'</div>';
   document.body.appendChild(ov);
   ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
   closeOv('ov-nota-confirm');
   setTimeout(function(){ov.classList.add('open');},10);
-  if(btn){btn.disabled=false;btn.textContent='Generar y enviar por WhatsApp';}
+  if(btn){btn.disabled=false;btn.textContent='GENERAR NOTA';}
 }
 
 // ── TIENDAS CONFIG (multi-store) ─────────────────────────────────────────────
@@ -2677,6 +2677,7 @@ function loadNotaLogoFile(inp){
 <!-- ── MODAL: NOTA DE VENTA (confirmar y enviar) ─────────────── -->
 <div class="ov" id="ov-nota-confirm" style="z-index:310">
   <div class="sheet" style="max-height:92vh;overflow-y:auto">
+    <button onclick="closeOv('ov-nota-confirm')" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:22px;color:var(--tx3);cursor:pointer;line-height:1;padding:0;z-index:1">&#x2715;</button>
     <div class="sh"></div>
     <h3 style="margin-bottom:4px">📄 Enviar nota de venta</h3>
     <p style="font-size:12px;color:var(--tx2);margin-bottom:14px">Confirma los datos antes de generar</p>
@@ -2697,12 +2698,7 @@ function loadNotaLogoFile(inp){
     <div class="err" id="nota-confirm-err" style="margin-bottom:10px"></div>
 
     <!-- Buttons -->
-    <button id="btn-nota-wa" onclick="confirmSendNota()" style="width:100%;padding:13px;background:#25D366;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.507 3.934 1.399 5.61L0 24l6.545-1.376A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.368l-.36-.214-3.724.783.838-3.63-.234-.374A9.818 9.818 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182S21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/></svg>
-      Generar y enviar por WhatsApp
-    </button>
-    <button onclick="downloadNotaOnly()" style="width:100%;padding:11px;background:var(--bg2);border:0.5px solid rgba(0,0,0,.12);border-radius:12px;font-size:13px;cursor:pointer;font-family:inherit;margin-bottom:8px">📥 Solo descargar JPG</button>
-    <button onclick="closeOv('ov-nota-confirm')" style="width:100%;padding:10px;background:none;border:none;font-size:13px;color:var(--tx2);cursor:pointer;font-family:inherit">Cancelar</button>
+    <button id="btn-nota-wa" onclick="confirmSendNota()" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:0.3px">GENERAR NOTA</button>
   </div>
 </div>
 
