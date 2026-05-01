@@ -2242,7 +2242,7 @@ function openNotaWA(o){
   if(existing)existing.remove();
   const ov=document.createElement('div');
   ov.id='ov-nota-wa';
-  ov.className='modal-ov';
+  ov.className='ov';
   ov.innerHTML=
     '<div class="sheet" style="max-height:90vh;overflow-y:auto">'+
       '<div class="sh"></div>'+
@@ -2547,7 +2547,7 @@ async function confirmSendNota(){
   window._lastNota=o;
   var existing=document.getElementById('ov-nota-wa');if(existing)existing.remove();
   var ov=document.createElement('div');
-  ov.id='ov-nota-wa';ov.className='modal-ov';ov.style.zIndex='320';
+  ov.id='ov-nota-wa';ov.className='ov';ov.style.zIndex='320';
   ov.innerHTML='<div class="sheet" style="max-height:90vh;overflow-y:auto">'
     +'<div class="sh"></div>'
     +'<h3 style="margin-bottom:12px">Nota generada ✓</h3>'
@@ -2591,7 +2591,7 @@ function backToNotaConfirm(){var ov=document.getElementById('ov-nota-wa');if(ov)
 </script>
 
 <!-- ── MODAL: NOTA DE VENTA (confirmar y enviar) ─────────────── -->
-<div class="modal-ov" id="ov-nota-confirm" style="z-index:310">
+<div class="ov" id="ov-nota-confirm" style="z-index:310">
   <div class="sheet" style="max-height:92vh;overflow-y:auto">
     <div class="sh"></div>
     <h3 style="margin-bottom:4px">📄 Enviar nota de venta</h3>
