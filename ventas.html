@@ -2147,157 +2147,173 @@ function toast(msg){
 // ─── NOTA DE VENTA INTEGRADA ──────────────────────────────────────────────────
 
 function buildNotaHTML(o){
-  var accent    = cfg.notaAccent || '#2d7a4f';
-  var couponBg  = cfg.notaCouponBg || '#1a1a2e';
-  var headerBg  = cfg.notaHeaderBg==='color' ? accent
-                : cfg.notaHeaderBg==='gradient'
-                  ? 'linear-gradient(135deg,#0f172a 0%,'+accent+' 100%)'
-                : '#0f172a';
-  var fs        = parseInt(cfg.notaFontSize)||13;
-  var storeName = cfg.storeName || 'Rooze';
-  var phone     = cfg.storePhone||cfg.whatsapp||cfg.phone||'';
-  var footer    = cfg.notaFooter || ('¡Gracias por tu compra! 🛍️'+(phone?'\nConsultas: '+phone:''));
-  var logo      = cfg.logoUrl||'';
-  var showCpn   = cfg.notaShowCoupon!==false;
-  var cpnDisc   = cfg.notaCouponDisc||10;
-  var cpnDays   = cfg.notaCouponDays||90;
-
-  var fecha = o.fechaVenta
-    || (o.fechaMs ? (function(t){var d=new Date(t);return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();})(o.fechaMs) : '');
+  var acc=cfg.notaAccent||'#2d7a4f';
+  var cpnBg=cfg.notaCouponBg||'#1a1a2e';
+  var hdr=cfg.notaHeaderBg==='color'?acc:cfg.notaHeaderBg==='gradient'?'#1e293b':'#0f172a';
+  var fs=parseInt(cfg.notaFontSize)||13;
+  var store=cfg.storeName||'Rooze';
+  var tel=cfg.storePhone||cfg.whatsapp||cfg.phone||'';
+  var footer=cfg.notaFooter||(tel?'Consultas: '+tel:'Gracias por tu compra!');
+  var logo=cfg.logoUrl||'';
+  var showC=cfg.notaShowCoupon!==false;
+  var cDisc=cfg.notaCouponDisc||10;
+  var cDays=cfg.notaCouponDays||90;
 
   if(!o._noteNum){
-    var p=storeName.replace(/\s+/g,'').slice(0,4).toUpperCase();
-    o._noteNum=p+String(Math.floor(Math.random()*8999)+1000);
+    var px=store.replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,4);
+    o._noteNum=px+String(Math.floor(Math.random()*8999)+1000);
   }
-  if(showCpn&&!o._coupon){
-    var cp=storeName.replace(/\s+/g,'').slice(0,4).toUpperCase();
-    o._coupon=cp+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
+  if(showC&&!o._coupon){
+    var cpx=store.replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,4);
+    o._coupon=cpx+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
   }
+
+  var fecha=o.fechaVenta||(o.fechaMs?(function(t){
+    var d=new Date(t);
+    return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+  })(o.fechaMs):'');
 
   var prods=(o.productos&&o.productos.length)
     ?o.productos:[{nombre:o.producto||'Producto',cantidad:o.totalCantidad||1,precio:o.cobrar}];
 
-  var prodsHtml=prods.map(function(p){
+  // Build product rows
+  var pRows='';
+  prods.forEach(function(p){
     var sub=(parseFloat(p.precio)||0)*(parseInt(p.cantidad)||1);
-    return '<tr>'
-      +'<td style="padding:7px 8px;font-size:'+fs+'px;color:#334155;line-height:1.3;vertical-align:top">'+p.nombre+(p.cantidad>1?' <span style="color:#64748b">x'+p.cantidad+'</span>':'')+'</td>'
-      +'<td style="padding:7px 8px;font-size:'+fs+'px;font-weight:700;color:#0f172a;text-align:right;white-space:nowrap;vertical-align:top">S/ '+sub.toFixed(2)+'</td>'
+    var nm=(p.nombre||'')+(p.cantidad>1?' x'+p.cantidad:'');
+    pRows+='<tr>'
+      +'<td style="padding:6px 10px 6px 10px;font-size:'+fs+'px;color:#374151;font-family:Arial,sans-serif;line-height:1.4;vertical-align:top">'+nm+'</td>'
+      +'<td style="padding:6px 10px 6px 0;font-size:'+fs+'px;font-weight:700;color:#111827;text-align:right;white-space:nowrap;vertical-align:top;font-family:Arial,sans-serif">S/ '+sub.toFixed(2)+'</td>'
     +'</tr>';
-  }).join('');
-
-  var delivery=parseFloat(o.costoDelivery)||0;
-  if(delivery>0){
-    prodsHtml+='<tr>'
-      +'<td style="padding:5px 8px;font-size:'+(fs-1)+'px;color:#64748b">Delivery</td>'
-      +'<td style="padding:5px 8px;font-size:'+(fs-1)+'px;color:#64748b;text-align:right">S/ '+delivery.toFixed(2)+'</td>'
+  });
+  var dlv=parseFloat(o.costoDelivery)||0;
+  if(dlv>0){
+    pRows+='<tr>'
+      +'<td style="padding:4px 10px 6px 10px;font-size:'+(fs-1)+'px;color:#9ca3af;font-family:Arial,sans-serif">Delivery</td>'
+      +'<td style="padding:4px 10px 6px 0;font-size:'+(fs-1)+'px;color:#9ca3af;text-align:right;white-space:nowrap;font-family:Arial,sans-serif">S/ '+dlv.toFixed(2)+'</td>'
     +'</tr>';
   }
 
-  var adelantoHtml='';
+  // Logo
+  var logoHtml=logo
+    ?'<img src="'+logo+'" width="38" height="38" style="border-radius:9px;display:block;object-fit:cover">'
+    :'<div style="width:38px;height:38px;background:rgba(255,255,255,0.18);border-radius:9px;font-size:14px;font-weight:900;color:#fff;text-align:center;line-height:38px;font-family:Arial,sans-serif">'+store.slice(0,2).toUpperCase()+'</div>';
+
+  // Zona
+  var zC=o.zona==='Lima'?'#854f0b':'#1e40af';
+  var zBg=o.zona==='Lima'?'#fef3c7':'#dbeafe';
+
+  // Adelanto
+  var adHtml='';
   if(o.adelanto>0){
-    var saldo=o.saldo||Math.max(0,o.cobrar-o.adelanto);
-    adelantoHtml='<div style="margin-top:8px;padding:8px 10px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0">'
-      +'<div style="display:flex;justify-content:space-between;font-size:'+(fs-1)+'px;margin-bottom:3px">'
-        +'<span style="color:#166534">Adelanto recibido</span>'
-        +'<span style="color:#166534;font-weight:600">- S/ '+o.adelanto.toFixed(2)+'</span>'
-      +'</div>'
-      +'<div style="display:flex;justify-content:space-between;font-size:'+fs+'px;font-weight:700">'
-        +'<span style="color:#dc2626">Saldo pendiente</span>'
-        +'<span style="color:#dc2626">S/ '+saldo.toFixed(2)+'</span>'
-      +'</div>'
+    var sal=o.saldo||Math.max(0,o.cobrar-o.adelanto);
+    adHtml='<div style="margin-top:8px;background:#f0fdf4;border-radius:8px;border:1px solid #86efac;padding:0">'
+      +'<table width="100%" cellpadding="0" cellspacing="0"><tr>'
+        +'<td style="padding:7px 10px;font-size:'+(fs-1)+'px;color:#166534;font-family:Arial,sans-serif">Adelanto recibido</td>'
+        +'<td style="padding:7px 10px;font-size:'+(fs-1)+'px;font-weight:700;color:#16a34a;text-align:right;white-space:nowrap;font-family:Arial,sans-serif">- S/ '+o.adelanto.toFixed(2)+'</td>'
+      +'</tr><tr>'
+        +'<td style="padding:7px 10px;font-size:'+fs+'px;font-weight:700;color:#dc2626;border-top:1px solid #bbf7d0;font-family:Arial,sans-serif">Saldo pendiente</td>'
+        +'<td style="padding:7px 10px;font-size:'+fs+'px;font-weight:700;color:#dc2626;text-align:right;white-space:nowrap;border-top:1px solid #bbf7d0;font-family:Arial,sans-serif">S/ '+sal.toFixed(2)+'</td>'
+      +'</tr></table>'
     +'</div>';
   }
 
-  var contraHtml=o.contraEntrega
-    ?'<div style="margin-top:6px;text-align:center"><span style="display:inline-block;background:#fef3c7;color:#92400e;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:700">💳 Pago contra entrega</span></div>'
+  // Coupon
+  var cpnHtml='';
+  if(showC&&o._coupon){
+    cpnHtml='<div style="margin-top:14px;background:'+cpnBg+';border-radius:12px;padding:16px 14px;text-align:center;position:relative;overflow:hidden">'
+      +'<div style="position:absolute;left:-10px;top:42%;width:20px;height:20px;background:#f8fafc;border-radius:50%"></div>'
+      +'<div style="position:absolute;right:-10px;top:42%;width:20px;height:20px;background:#f8fafc;border-radius:50%"></div>'
+      +'<p style="margin:0 0 8px 0;font-size:9px;font-weight:700;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:2px;font-family:Arial,sans-serif">CUPON EXCLUSIVO &bull; 2DA COMPRA</p>'
+      +'<p style="margin:0 0 8px 0;font-size:26px;font-weight:900;color:#fff;letter-spacing:4px;font-family:Courier New,Courier,monospace">'+o._coupon+'</p>'
+      +'<p style="margin:0;font-size:12px;color:rgba(255,255,255,0.75);font-weight:600;font-family:Arial,sans-serif">S/ '+cDisc+' de descuento &middot; valido '+cDays+' dias</p>'
+    +'</div>';
+  }
+
+  // Note
+  var notaHtml=o.nota
+    ?'<div style="margin-top:8px;background:#fefce8;border-left:3px solid #eab308;padding:8px 10px">'
+      +'<p style="margin:0;font-size:'+(fs-1)+'px;color:#713f12;line-height:1.5;font-family:Arial,sans-serif">'+o.nota+'</p>'
+    +'</div>'
     :'';
 
-  var couponHtml='';
-  if(showCpn&&o._coupon){
-    couponHtml='<div style="margin-top:14px;background:'+couponBg
-      +';border-radius:12px;padding:14px 16px;text-align:center;position:relative;overflow:hidden">'
-      +'<div style="position:absolute;left:-10px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:#f1f5f9"></div>'
-      +'<div style="position:absolute;right:-10px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:#f1f5f9"></div>'
-      +'<div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">🎁 CUPÓN EXCLUSIVO · 2DA COMPRA</div>'
-      +'<div style="font-size:22px;font-weight:900;color:#ffffff;font-family:monospace;letter-spacing:0.15em;text-shadow:0 2px 8px rgba(0,0,0,0.3);margin-bottom:6px">'+o._coupon+'</div>'
-      +'<div style="display:inline-block;background:rgba(255,255,255,0.12);border-radius:20px;padding:4px 14px">'
-        +'<span style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.9)">S/ '+cpnDisc+' de descuento · válido '+cpnDays+' días</span>'
-      +'</div>'
-    +'</div>';
-  }
+  var contraHtml=o.contraEntrega
+    ?'<div style="margin-top:6px;text-align:center">'
+      +'<span style="background:#fef3c7;color:#92400e;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:700;font-family:Arial,sans-serif;display:inline-block">Pago contra entrega</span>'
+    +'</div>'
+    :'';
 
-  var logoHtml=logo
-    ?'<div style="width:40px;height:40px;border-radius:10px;overflow:hidden;flex-shrink:0"><img src="'+logo+'" style="width:100%;height:100%;object-fit:cover"></div>'
-    :'<div style="width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0">'+storeName.slice(0,2).toUpperCase()+'</div>';
+  return (
+  '<div id="nota-receipt" style="width:340px;background:#f8fafc;border-radius:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box">'
 
-  var zonaColor=o.zona==='Lima'?'#854f0b':'#1e40af';
-  var zonaBg=o.zona==='Lima'?'#fef9c3':'#dbeafe';
+  // HEADER
+  +'<div style="background:'+hdr+';padding:18px 16px 16px 16px">'
 
-  return '<div id="nota-receipt" style="width:340px;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;background:#f8fafc;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.15)">'
+    // Logo + store row
+    +'<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px"><tr>'
+      +'<td width="48" style="vertical-align:middle;padding-right:10px">'+logoHtml+'</td>'
+      +'<td style="vertical-align:middle">'
+        +'<p style="margin:0;font-size:17px;font-weight:900;color:#ffffff;line-height:1.25;font-family:Arial,sans-serif">'+store+'</p>'
+        +'<p style="margin:2px 0 0 0;font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;font-family:Arial,sans-serif">NOTA DE VENTA</p>'
+      +'</td>'
+    +'</tr></table>'
 
-    // HEADER
-    +'<div style="background:'+headerBg+';padding:20px 18px 16px">'
-      +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">'
-        +logoHtml
-        +'<div style="flex:1;min-width:0">'
-          +'<div style="font-size:16px;font-weight:800;color:#ffffff;line-height:1.2">'+storeName+'</div>'
-          +'<div style="font-size:10px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:0.1em;margin-top:2px">Nota de venta</div>'
-        +'</div>'
-      +'</div>'
-      +'<div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:12px 14px">'
-        +'<div style="font-size:22px;font-weight:900;color:#ffffff;letter-spacing:0.04em;margin-bottom:4px">'+o._noteNum+'</div>'
-        +'<div style="display:flex;justify-content:space-between;align-items:center">'
-          +'<span style="font-size:11px;color:rgba(255,255,255,0.65)">📅 '+fecha+'</span>'
-          +'<span style="font-size:11px;color:rgba(255,255,255,0.65)">👤 '+o.vendedor+'</span>'
-        +'</div>'
-      +'</div>'
+    // Note number box
+    +'<div style="background:rgba(255,255,255,0.12);border-radius:10px;padding:12px 14px">'
+      +'<p style="margin:0 0 6px 0;font-size:26px;font-weight:900;color:#ffffff;letter-spacing:1px;font-family:Arial,sans-serif">'+o._noteNum+'</p>'
+      +'<table width="100%" cellpadding="0" cellspacing="0"><tr>'
+        +'<td style="font-size:11px;color:rgba(255,255,255,0.6);font-family:Arial,sans-serif">'+fecha+'</td>'
+        +'<td style="font-size:11px;color:rgba(255,255,255,0.6);text-align:right;font-family:Arial,sans-serif">'+o.vendedor+'</td>'
+      +'</tr></table>'
+    +'</div>'
+  +'</div>'
+
+  // BODY
+  +'<div style="background:#ffffff;padding:16px 16px 16px 16px">'
+
+    // Client
+    +'<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px"><tr>'
+      +'<td style="vertical-align:top;padding-right:6px">'
+        +'<p style="margin:0 0 5px 0;font-size:'+(fs+4)+'px;font-weight:900;color:#0f172a;line-height:1.25;word-break:break-word;font-family:Arial,sans-serif">'+o.cliente+'</p>'
+        +(o.dni?'<p style="margin:0 0 2px 0;font-size:'+(fs-1)+'px;color:#6b7280;font-family:Arial,sans-serif">DNI: '+o.dni+'</p>':'')
+        +'<p style="margin:0 0 2px 0;font-size:'+(fs-1)+'px;color:#6b7280;font-family:Arial,sans-serif">'+o.celular+'</p>'
+        +(o.ciudad?'<p style="margin:0;font-size:'+(fs-1)+'px;color:#6b7280;font-family:Arial,sans-serif">'+o.ciudad+'</p>':'')
+      +'</td>'
+      +'<td style="vertical-align:top;text-align:right;white-space:nowrap;padding-left:6px">'
+        +'<span style="background:'+zBg+';color:'+zC+';padding:4px 12px;border-radius:20px;font-size:10px;font-weight:700;font-family:Arial,sans-serif;display:inline-block">'+(o.zona||'Lima')+'</span>'
+      +'</td>'
+    +'</tr></table>'
+
+    // Products table
+    +'<div style="background:#f8fafc;border-radius:10px;overflow:hidden;margin-bottom:10px">'
+      +'<table width="100%" cellpadding="0" cellspacing="0">'
+        +'<tr style="background:#f1f5f9">'
+          +'<th style="padding:7px 10px;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;text-align:left;font-family:Arial,sans-serif">Producto</th>'
+          +'<th style="padding:7px 10px 7px 0;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;text-align:right;font-family:Arial,sans-serif">Importe</th>'
+        +'</tr>'
+        +pRows
+      +'</table>'
     +'</div>'
 
-    // BODY
-    +'<div style="background:#ffffff;padding:16px 18px">'
-
-      // Client
-      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;gap:8px">'
-        +'<div style="flex:1;min-width:0">'
-          +'<div style="font-size:'+( fs+3)+'px;font-weight:800;color:#0f172a;line-height:1.2;word-break:break-word;margin-bottom:4px">'+o.cliente+'</div>'
-          +(o.dni?'<div style="font-size:'+(fs-1)+'px;color:#64748b;margin-bottom:2px">🪪 DNI: '+o.dni+'</div>':'')
-          +'<div style="font-size:'+(fs-1)+'px;color:#64748b">📱 '+o.celular+'</div>'
-          +(o.ciudad?'<div style="font-size:'+(fs-1)+'px;color:#64748b;margin-top:1px">📍 '+o.ciudad+'</div>':'')
-        +'</div>'
-        +'<span style="flex-shrink:0;background:'+zonaBg+';color:'+zonaColor+';padding:4px 12px;border-radius:20px;font-size:10px;font-weight:700;margin-top:2px">'+(o.zona||'Lima')+'</span>'
-      +'</div>'
-
-      // Products table
-      +'<div style="background:#f8fafc;border-radius:10px;overflow:hidden;margin-bottom:10px">'
-        +'<table style="width:100%;border-collapse:collapse">'
-          +'<thead><tr style="background:#f1f5f9">'
-            +'<th style="padding:7px 8px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;text-align:left">Producto</th>'
-            +'<th style="padding:7px 8px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;text-align:right">Total</th>'
-          +'</tr></thead>'
-          +'<tbody>'+prodsHtml+'</tbody>'
-        +'</table>'
-      +'</div>'
-
-      // Total box
-      +'<div style="background:'+accent+'08;border:2px solid '+accent+'22;border-radius:12px;padding:12px 14px;text-align:center;margin-bottom:6px">'
-        +'<div style="font-size:10px;font-weight:700;color:'+accent+';text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">💰 Total del pedido</div>'
-        +'<div style="font-size:28px;font-weight:900;color:'+accent+'">S/ '+o.cobrar.toFixed(2)+'</div>'
-      +'</div>'
-
-      +adelantoHtml
-      +contraHtml
-
-      +(o.nota?'<div style="margin-top:8px;background:#fefce8;border-left:3px solid #eab308;border-radius:0 8px 8px 0;padding:8px 10px;font-size:'+(fs-1)+'px;color:#713f12;line-height:1.4">📝 '+o.nota+'</div>':'')
-
-      +couponHtml
-
-      // Footer
-      +'<div style="margin-top:14px;padding-top:12px;border-top:1px dashed #e2e8f0;text-align:center">'
-        +'<div style="font-size:11px;color:#94a3b8;line-height:1.7;white-space:pre-line">'+footer+'</div>'
-      +'</div>'
-
+    // Total
+    +'<div style="background:'+acc+'12;border:2px solid '+acc+'35;border-radius:12px;padding:13px;text-align:center;margin-bottom:6px">'
+      +'<p style="margin:0 0 4px 0;font-size:10px;font-weight:700;color:'+acc+';text-transform:uppercase;letter-spacing:2px;font-family:Arial,sans-serif">TOTAL DEL PEDIDO</p>'
+      +'<p style="margin:0;font-size:30px;font-weight:900;color:'+acc+';font-family:Arial,sans-serif">S/ '+o.cobrar.toFixed(2)+'</p>'
     +'</div>'
-  +'</div>';
+
+    +adHtml
+    +contraHtml
+    +notaHtml
+    +cpnHtml
+
+    // Footer
+    +'<div style="margin-top:14px;padding-top:12px;border-top:1px dashed #e2e8f0;text-align:center">'
+      +'<p style="margin:0;font-size:11px;color:#94a3b8;line-height:1.8;font-family:Arial,sans-serif">'+footer+'</p>'
+    +'</div>'
+
+  +'</div>'
+  +'</div>'
+  );
 }
 
 
@@ -2305,45 +2321,115 @@ function buildNotaHTML(o){
 
 
 
+
+
+
+
+// ── CORE CAPTURE FUNCTION (off-screen, unscaled) ────────────────────────────
+async function captureNotaJPG(){
+  var o = window._lastNota;
+  if(!o){ throw new Error('Sin nota generada'); }
+
+  // Build fresh unscaled receipt HTML
+  var freshHtml = buildNotaHTML(o);
+
+  // Create hidden off-screen container (not scaled, not transformed)
+  var container = document.createElement('div');
+  container.setAttribute('id', '_nota_capture_container');
+  container.style.cssText = [
+    'position:fixed',
+    'top:-9999px',
+    'left:-9999px',
+    'width:340px',
+    'height:auto',
+    'transform:none',
+    'zoom:1',
+    'pointer-events:none',
+    'z-index:-1',
+    'background:#f8fafc'
+  ].join(';');
+  container.innerHTML = freshHtml;
+  document.body.appendChild(container);
+
+  // Wait for DOM paint + fonts
+  await new Promise(function(r){ requestAnimationFrame(function(){ setTimeout(r, 80); }); });
+  if(document.fonts && document.fonts.ready) await document.fonts.ready;
+
+  var el = container.querySelector('#nota-receipt') || container;
+
+  try{
+    var canvas = await html2canvas(el, {
+      scale: 3,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#f8fafc',
+      logging: false,
+      removeContainer: false,
+      imageTimeout: 5000,
+      onclone: function(clonedDoc, clonedEl){
+        // Strip any remaining transforms from ALL elements in clone
+        var allEls = clonedDoc.querySelectorAll('*');
+        allEls.forEach(function(e){
+          var s = e.style;
+          s.transform = 'none';
+          s.webkitTransform = 'none';
+          s.zoom = '1';
+          s.fontFamily = 'Arial, Helvetica, sans-serif';
+          s.textRendering = 'geometricPrecision';
+          s.webkitFontSmoothing = 'antialiased';
+        });
+        // Ensure root has correct size
+        clonedEl.style.width = '340px';
+        clonedEl.style.height = 'auto';
+        clonedEl.style.overflow = 'visible';
+      }
+    });
+    return canvas;
+  } finally {
+    document.body.removeChild(container);
+  }
+}
+
 async function sendNotaWA(){
-  var el=document.getElementById('nota-receipt');
-  if(!el){toast('Genera la nota primero');return;}
   var btn=document.getElementById('wa-nota-btn');
   if(btn){btn.disabled=true;btn.textContent='Generando JPG...';}
   try{
-    var canvas=await html2canvas(el,{scale:3,useCORS:true,backgroundColor:'#f8fafc',logging:false,allowTaint:true});
+    var canvas=await captureNotaJPG();
     var blob=await new Promise(function(res){canvas.toBlob(res,'image/jpeg',0.95);});
     var o=window._lastNota||{};
 
-    // Normalize phone to 51XXXXXXXXX
+    // Normalize phone → 51XXXXXXXXX
     var raw=(o.celular||'').replace(/[^0-9]/g,'');
     var cel=raw.length===9?'51'+raw:raw.length===11&&raw.slice(0,2)==='51'?raw:raw;
 
-    var nombre=(o.cliente||'').split(' ')[0]||'cliente';
-    var waMsg='¡Felicidades por tu compra '+nombre+'! Te adjuntamos tu Nota de Venta ☝️'
-      +'\n\n*'+o._noteNum+'* · '+(o.fechaVenta||'')
-      +'\n\n*Total: S/ '+o.cobrar.toFixed(2)+'*'
-      +(o.adelanto>0?'\n✅ Adelanto: S/ '+o.adelanto.toFixed(2)+' | Saldo: S/ '+(o.saldo||Math.max(0,o.cobrar-o.adelanto)).toFixed(2):'')
-      +(o._coupon?'\n\n🎁 Tu cupón: *'+o._coupon+'* (S/ '+(cfg.notaCouponDisc||10)+' en tu próxima compra)':'')
-      +'\n\n_Gracias por confiar en nosotros_ 🙌';
+    // Clean simple message — just the greeting
+    var nombre=(o.cliente||'').split(' ')[0]||'';
+    var waMsg='\u00a1Felicidades por tu compra '+(nombre?nombre+'':'')+'! Te adjuntamos tu Nota de Venta \u261d\ufe0f';
 
-    var fileName='nota-'+nombre.toLowerCase()+'-'+o._noteNum+'.jpg';
+    var fileName='nota-'+o._noteNum+'.jpg';
     var file=new File([blob],fileName,{type:'image/jpeg'});
 
-    // MOBILE: native share (Android → WhatsApp)
+    // MOBILE (Android/iOS): Web Share API → native share sheet → pick WhatsApp
     if(navigator.canShare&&navigator.canShare({files:[file]})){
-      await navigator.share({files:[file],title:o._noteNum,text:waMsg});
+      await navigator.share({files:[file],title:'Nota de venta '+o._noteNum});
+      // After sharing image, open WA with just the text message
+      if(cel){
+        setTimeout(function(){
+          window.open('https://wa.me/'+cel+'?text='+encodeURIComponent(waMsg),'_blank');
+        },1500);
+      }
     } else {
-      // DESKTOP: download + open wa.me direct to client
+      // DESKTOP: download JPG + open WA direct to client number with message
       var url=URL.createObjectURL(blob);
-      var a=document.createElement('a');a.href=url;a.download=fileName;a.click();
+      var a=document.createElement('a');
+      a.href=url;a.download=fileName;a.click();
       URL.revokeObjectURL(url);
+      if(!cel){toast('JPG descargado. Agrega un celular al pedido para enviar por WA.');return;}
       setTimeout(function(){
-        if(!cel){toast('⚠️ Número no registrado. JPG descargado.');return;}
         window.open('https://wa.me/'+cel+'?text='+encodeURIComponent(waMsg),'_blank');
-      },600);
+      },700);
     }
-    toast('✓ Nota enviada');
+    toast('Nota enviada correctamente');
   }catch(e){
     if(e.name!=='AbortError')toast('Error: '+e.message);
   }finally{
@@ -2353,293 +2439,21 @@ async function sendNotaWA(){
 
 
 
-
-async function downloadNotaPDF(){
-  const el=document.getElementById('nota-receipt');if(!el)return;
-  try{
-    const canvas=await html2canvas(el,{scale:2.5,useCORS:true,backgroundColor:'#fff',logging:false});
-    const a=document.createElement('a');
-    a.href=canvas.toDataURL('image/jpeg',0.95);
-    const o=window._lastNota||{};
-    a.download='nota-'+(o.cliente||'venta')+'.jpg';
-    a.click();
-    toast('✓ JPG descargado');
-  }catch(e){toast('Error: '+e.message);}
-}
-
-// Also add nota button in openDetalle
-function addNotaButtonToDetalle(o){
-  const existing=document.getElementById('nota-btn-detalle');
-  if(existing)return;
-  const actSection=document.querySelector('.detalle-actions');
-  if(!actSection)return;
-  const btn=document.createElement('button');
-  btn.id='nota-btn-detalle';
-  btn.className='btn';
-  btn.style.cssText='background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px';
-  btn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg> Enviar nota por WhatsApp';
-  btn.onclick=function(){openNotaModal(o);};
-  actSection.appendChild(btn);
-}
-
-
-// ── MULTI-TIENDA ──────────────────────────────────────────────
-function buildTiendasList(){
-  var tiendas=cfg.tiendas||[];
-  if(!tiendas.length) tiendas=[{id:'default',name:cfg.storeName||'Mi Tienda',color:cfg.notaAccent||'#2d7a4f',phone:cfg.storePhone||'',notaFooter:cfg.notaFooter||'',logoUrl:cfg.logoUrl||'',couponDisc:cfg.notaCouponDisc||10,couponDays:cfg.notaCouponDays||90,couponBg:cfg.notaCouponBg||'#18181b',headerBg:cfg.notaHeaderBg||'dark',fontSize:cfg.notaFontSize||12,showCoupon:cfg.notaShowCoupon!==false}];
-  if(!cfg.tiendas)cfg.tiendas=tiendas;
-  return tiendas.map(function(t,i){
-    var isActive=(cfg.activeTiendaId===t.id)||(i===0&&!cfg.activeTiendaId);
-    var c=t.color||'#2d7a4f';
-    return '<div style="border:1px solid '+(isActive?c:'var(--bo2)')+';border-radius:10px;overflow:hidden;margin-bottom:2px">'
-      +'<div onclick="toggleTiendaPanel(this)" style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;background:'+(isActive?c+'12':'var(--bg2)')+'">'
-        +'<div style="width:32px;height:32px;border-radius:8px;background:'+c+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden">'+(t.logoUrl?'<img src="'+t.logoUrl+'" style="width:100%;height:100%;object-fit:cover">':t.name.slice(0,2).toUpperCase())+'</div>'
-        +'<div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px">'+t.name+'</div><div style="font-size:11px;color:var(--tx2)">'+(t.phone||'Sin teléfono')+'</div></div>'
-        +(isActive?'<span style="padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;background:'+c+';color:#fff">Activa</span>':'')
-        +'<span class="tc-arrow" style="color:var(--tx3);font-size:11px;transition:.2s">▼</span>'
-      +'</div>'
-      +'<div class="tc-body" style="display:none;padding:12px;background:var(--bg2);border-top:1px solid var(--bo);display:flex;gap:6px;flex-wrap:wrap">'
-        +'<button data-tid="'+t.id+'" onclick="selectTiendaAndEdit(this.dataset.tid)" style="flex:1;padding:8px;background:'+c+';color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Activar y editar</button>'
-        +(i>0?'<button data-tid="'+t.id+'" onclick="deleteTiendaById(this.dataset.tid)" style="padding:8px 12px;background:#fee2e2;color:#991b1b;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit">Eliminar</button>':'')
-      +'</div>'
-    +'</div>';
-  }).join('');
-}
-
-function toggleTiendaPanel(hdr){
-  var card=hdr.parentElement;
-  var body=card.querySelector('.tc-body');
-  var arrow=card.querySelector('.tc-arrow');
-  var open=body.style.display!=='none';
-  document.querySelectorAll('.tc-body').forEach(function(b){b.style.display='none';});
-  document.querySelectorAll('.tc-arrow').forEach(function(a){a.style.transform='';});
-  if(!open){body.style.display='flex';arrow.style.transform='rotate(180deg)';}
-}
-
-function selectTiendaAndEdit(id){
-  var tiendas=cfg.tiendas||[];
-  var t=tiendas.find(function(x){return x.id===id;})||{};
-  cfg.activeTiendaId=id;
-  cfg.storeName=t.name||'';cfg.storePhone=t.phone||'';cfg.notaFooter=t.notaFooter||'';
-  cfg.logoUrl=t.logoUrl||'';cfg.notaAccent=t.color||'#2d7a4f';cfg.notaCouponBg=t.couponBg||'#18181b';
-  cfg.notaHeaderBg=t.headerBg||'dark';cfg.notaFontSize=t.fontSize||12;
-  cfg.notaCouponDisc=t.couponDisc||10;cfg.notaCouponDays=t.couponDays||90;cfg.notaShowCoupon=t.showCoupon!==false;
-  renderConfig();
-  toast('Tienda activa: '+t.name+' — edita y guarda');
-}
-
-function addTiendaPrompt(){
-  var name=prompt('Nombre de la nueva tienda:','');
-  if(!name||!name.trim())return;
-  var tiendas=cfg.tiendas||[];
-  if(!tiendas.length) tiendas=[{id:'default',name:cfg.storeName||'Mi Tienda',color:cfg.notaAccent||'#2d7a4f',phone:cfg.storePhone||'',notaFooter:cfg.notaFooter||'',logoUrl:cfg.logoUrl||'',couponDisc:10,couponDays:90,couponBg:'#18181b',headerBg:'dark',fontSize:12,showCoupon:true}];
-  tiendas.push({id:'t'+Date.now(),name:name.trim(),color:'#2d7a4f',phone:'',notaFooter:'',logoUrl:'',couponDisc:10,couponDays:90,couponBg:'#18181b',headerBg:'dark',fontSize:12,showCoupon:true});
-  cfg.tiendas=tiendas;
-  renderConfig();
-  toast('Tienda agregada. Actívala para configurarla.');
-}
-
-function deleteTiendaById(id){
-  if(!confirm('¿Eliminar esta tienda?'))return;
-  cfg.tiendas=(cfg.tiendas||[]).filter(function(t){return t.id!==id;});
-  if(cfg.activeTiendaId===id)cfg.activeTiendaId='';
-  renderConfig();
-  toast('Tienda eliminada');
-}
-
-async function syncTiendaToCfg(){
-  var tiendas=cfg.tiendas||[];
-  var id=cfg.activeTiendaId||'default';
-  var idx=tiendas.findIndex(function(t){return t.id===id;});
-  var entry={id:id,name:cfg.storeName||'Mi Tienda',phone:cfg.storePhone||'',notaFooter:cfg.notaFooter||'',logoUrl:cfg.logoUrl||'',color:cfg.notaAccent||'#2d7a4f',couponBg:cfg.notaCouponBg||'#18181b',headerBg:cfg.notaHeaderBg||'dark',fontSize:cfg.notaFontSize||12,couponDisc:cfg.notaCouponDisc||10,couponDays:cfg.notaCouponDays||90,showCoupon:cfg.notaShowCoupon!==false};
-  if(idx>=0)tiendas[idx]=entry; else tiendas.push(entry);
-  cfg.tiendas=tiendas;
-  try{await db.collection('config').doc('ventas').update({tiendas:tiendas,activeTiendaId:id});}catch(e){toast('Error guardando tiendas: '+e.message);}
-}
-
-async function saveNotaConfig(){
-  try{
-    var updates={
-      storeName:(document.getElementById('cfg-sn')||{}).value||cfg.storeName||'',
-      storePhone:(document.getElementById('cfg-sp')||{}).value||'',
-      notaFooter:(document.getElementById('cfg-nf')||{}).value||'',
-      logoUrl:cfg.logoUrl||'',
-      notaAccent:(document.getElementById('cfg-na')||{}).value||cfg.notaAccent||'#2d7a4f',
-      notaCouponBg:(document.getElementById('cfg-cb')||{}).value||cfg.notaCouponBg||'#18181b',
-      notaHeaderBg:(document.getElementById('cfg-hb')||{}).value||'dark',
-      notaFontSize:parseInt((document.getElementById('cfg-fs')||{}).value)||12,
-      notaCouponDisc:cfg.notaCouponDisc||10,
-      notaCouponDays:cfg.notaCouponDays||90,
-      notaShowCoupon:(document.getElementById('cfg-sc')||{}).checked!==false
-    };
-    Object.assign(cfg,updates);
-    await db.collection('config').doc('ventas').update(updates);
-    await syncTiendaToCfg();
-    toast('Configuracion guardada');
-    renderConfig();
-  }catch(e){toast('Error: '+e.message);}
-}
-
-function loadNotaLogoFile(inp){
-  var f=inp.files[0];if(!f)return;
-  if(f.size>3*1024*1024){toast('Logo max 3MB');return;}
-  var r=new FileReader();
-  r.onload=function(ev){
-    cfg.logoUrl=ev.target.result;
-    var el=document.getElementById('cfg-lu');if(el)el.value='[logo cargado]';
-    toast('Logo listo - guarda la configuracion');
-  };
-  r.readAsDataURL(f);
-}
-
-
-// ── NOTA DE VENTA MODAL ──────────────────────────────────────────────────────
-var _notaCurrentOrder = null;
-
-function openNotaModal(orderId){
-  var o = typeof orderId === 'object' ? orderId
-    : (orders.find(function(x){return x.id===orderId;})||null);
-  if(!o&&typeof orderId==='string'){
-    // Fallback: fetch directly from Firestore
-    toast('Cargando...');
-    db.collection('orders').doc(orderId).get().then(function(doc){
-      if(!doc.exists){toast('Pedido no encontrado');return;}
-      var dat=doc.data();
-      var fetched=Object.assign({id:doc.id},dat,{cobrar:dat.cobrar||0,adelanto:dat.adelanto||0,saldo:dat.saldo||0});
-      openNotaModal(fetched);
-    }).catch(function(e){toast('Error: '+e.message);});
-    return;
-  }
-  if(!o){toast('Pedido no encontrado');return;}
-  _notaCurrentOrder = o;
-  var summary = document.getElementById('nota-confirm-summary');
-  if(summary){
-    var prods = (o.productos&&o.productos.length)?o.productos:[{nombre:o.producto||'—',cantidad:o.totalCantidad||1}];
-    summary.innerHTML =
-      '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:0.5px solid var(--bo)"><span style="color:var(--tx2)">Cliente</span><strong>'+o.cliente+'</strong></div>'
-      +'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:0.5px solid var(--bo)"><span style="color:var(--tx2)">Celular</span><span>'+o.celular+'</span></div>'
-      +(o.dni?'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:0.5px solid var(--bo)"><span style="color:var(--tx2)">DNI</span><span>'+o.dni+'</span></div>':'')
-      +'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:0.5px solid var(--bo)"><span style="color:var(--tx2)">Productos</span><span style="text-align:right;max-width:55%;font-size:12px">'+prods.map(function(p){return p.nombre+(p.cantidad>1?' x'+p.cantidad:'');}).join(', ')+'</span></div>'
-      +'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:0.5px solid var(--bo)"><span style="color:var(--tx2)">Total</span><strong style="color:var(--accent)">S/ '+o.cobrar.toFixed(2)+'</strong></div>'
-      +(o.adelanto>0?'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:0.5px solid var(--bo)"><span style="color:var(--tx2)">Adelanto</span><span style="color:#16a34a">S/ '+o.adelanto.toFixed(2)+'</span></div>':'')
-      +(o.saldo>0?'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:0.5px solid var(--bo)"><span style="color:var(--tx2)">Saldo</span><strong style="color:#dc2626">S/ '+o.saldo.toFixed(2)+'</strong></div>':'')
-      +(o.fechaVenta?'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:0.5px solid var(--bo)"><span style="color:var(--tx2)">Fecha</span><span>'+o.fechaVenta+'</span></div>':'')
-      +(o.ciudad?'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:0.5px solid var(--bo)"><span style="color:var(--tx2)">Ciudad</span><span>'+o.ciudad+' · '+o.zona+'</span></div>':'')
-      +'<div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--tx2)">Estado</span><span>'+o.estado+'</span></div>'
-      +(o.contraEntrega?'<div style="background:#fef3c7;color:#92400e;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:600;text-align:center;margin-top:4px">Pago contra entrega</div>':'');
-  }
-  var sel = document.getElementById('nota-tienda-sel');
-  if(sel){
-    var tiendas=cfg.tiendas||[];
-    if(!tiendas.length)tiendas=[{id:'default',name:cfg.storeName||'Mi Tienda',color:cfg.notaAccent||'var(--accent)',phone:cfg.storePhone||''}];
-    var activeId=cfg.activeTiendaId||'default';
-    sel.innerHTML='<option value="">— Selecciona la tienda —</option>'
-      +tiendas.map(function(t){return '<option value="'+t.id+'"'+(t.id===activeId?' selected':'')+'>'+t.name+'</option>';}).join('');
-    sel.value=activeId;
-    updateTiendaPreview();
-    sel.onchange=updateTiendaPreview;
-  }
-  var err=document.getElementById('nota-confirm-err');
-  if(err)err.style.display='none';
-  openOv('ov-nota-confirm');
-}
-
-function updateTiendaPreview(){
-  var sel=document.getElementById('nota-tienda-sel');
-  var prev=document.getElementById('nota-tienda-preview');
-  if(!sel||!prev)return;
-  var id=sel.value;
-  var tiendas=cfg.tiendas||[];
-  var t=tiendas.find(function(x){return x.id===id;})||(id?{id:id,name:cfg.storeName||'Mi Tienda',phone:cfg.storePhone||'',color:'var(--accent)'}:null);
-  if(!t||!id){prev.style.display='none';return;}
-  prev.style.display='block';
-  prev.innerHTML='<div style="display:flex;align-items:center;gap:8px">'
-    +'<div style="width:28px;height:28px;border-radius:7px;background:'+(t.color||'var(--accent)')+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;overflow:hidden">'
-      +(t.logoUrl?'<img src="'+t.logoUrl+'" style="width:100%;height:100%;object-fit:cover">':t.name.slice(0,2).toUpperCase())
-    +'</div><div><strong style="font-size:13px">'+t.name+'</strong><div style="font-size:11px;color:var(--tx2)">'+(t.phone||'Sin teléfono')+'</div></div></div>';
-}
-
-function buildNotaCfgFromTienda(tiendaId){
-  var tiendas=cfg.tiendas||[];
-  var t=tiendas.find(function(x){return x.id===tiendaId;});
-  if(!t)return {};
-  return {storeName:t.name,storePhone:t.phone||'',notaFooter:t.notaFooter||'',logoUrl:t.logoUrl||'',
-    notaAccent:t.color||'#2d7a4f',notaCouponBg:t.couponBg||'#18181b',notaHeaderBg:t.headerBg||'dark',
-    notaFontSize:t.fontSize||12,notaCouponDisc:t.couponDisc||10,notaCouponDays:t.couponDays||90,notaShowCoupon:t.showCoupon!==false};
-}
-
-async function confirmSendNota(){
-  var o=_notaCurrentOrder;
-  if(!o){toast('Error: pedido no cargado');return;}
-  var sel=document.getElementById('nota-tienda-sel');
-  var tiendaId=sel?sel.value:'';
-  var err=document.getElementById('nota-confirm-err');
-  if(!tiendaId){
-    if(err){err.textContent='Selecciona una tienda antes de continuar';err.style.display='block';}
-    if(sel)sel.style.borderColor='#dc2626';
-    return;
-  }
-  if(err)err.style.display='none';
-  if(sel)sel.style.borderColor='';
-  var btn=document.getElementById('btn-nota-wa');
-  if(btn){btn.disabled=true;btn.textContent='Generando...';}
-
-  // Load tienda cfg temporarily
-  var tiendaCfg=buildNotaCfgFromTienda(tiendaId);
-  var savedCfg={};
-  var keys=['storeName','storePhone','notaFooter','logoUrl','notaAccent','notaCouponBg','notaHeaderBg','notaFontSize','notaCouponDisc','notaCouponDays','notaShowCoupon'];
-  keys.forEach(function(k){savedCfg[k]=cfg[k];});
-  Object.assign(cfg,tiendaCfg);
-
-  // Reset per-order state so fresh data generates
-  o._noteNum=null;o._coupon=null;
-  var receipt=buildNotaHTML(o);
-
-  // Restore cfg
-  Object.assign(cfg,savedCfg);
-  window._lastNota=o;
-
-  // Build & show WA modal
-  var existing=document.getElementById('ov-nota-wa');if(existing)existing.remove();
-  var ov=document.createElement('div');
-  ov.id='ov-nota-wa';ov.className='ov';ov.style.zIndex='320';
-  ov.innerHTML='<div class="sheet" style="max-height:90vh;overflow-y:auto">'
-    +'<div class="sh"></div>'
-    +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">'
-      +'<div style="width:36px;height:36px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0">📄</div>'
-      +'<div><div style="font-size:16px;font-weight:700;color:var(--tx)">Nota generada</div>'
-        +'<div style="font-size:12px;color:var(--tx2)">'+o._noteNum+'</div></div>'
-    +'</div>'
-    +'<div id="nota-receipt-wrap" style="transform:scale(0.82);transform-origin:top center;margin-bottom:-60px">'+receipt+'</div>'
-    +'<div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">'
-      +'<button onclick="sendNotaWA()" id="wa-nota-btn" style="width:100%;padding:14px;background:#25D366;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">'
-        +'<svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.507 3.934 1.399 5.61L0 24l6.545-1.376A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.368l-.36-.214-3.724.783.838-3.63-.234-.374A9.818 9.818 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182S21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/></svg>'
-        +' Enviar JPG por WhatsApp'
-      +'</button>'
-      +'<button onclick="downloadNotaOnly()" style="width:100%;padding:12px;background:var(--bg2);border:0.5px solid var(--bo2);border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--tx)">📥 Descargar JPG</button>'
-      +'<button onclick="backToNotaConfirm()" style="width:100%;padding:10px;background:none;border:none;font-size:13px;color:var(--tx3);cursor:pointer;font-family:inherit">← Cambiar tienda</button>'
-    +'</div>'
-  +'</div>';
-  document.body.appendChild(ov);
-  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
-  closeOv('ov-nota-confirm');
-  setTimeout(function(){ov.classList.add('open');},10);
-  if(btn){btn.disabled=false;btn.textContent='Generar y enviar por WhatsApp';}
-}
-
-
-
 async function downloadNotaOnly(){
-  var el=document.getElementById('nota-receipt');
-  if(!el){toast('Genera la nota primero');return;}
+  var btn_d = event && event.target;
   try{
-    var canvas=await html2canvas(el,{scale:2.5,useCORS:true,backgroundColor:'#fff',logging:false});
-    var a=document.createElement('a');
-    a.href=canvas.toDataURL('image/jpeg',0.95);
-    a.download='nota-'+((window._lastNota||{}).cliente||'venta').slice(0,20)+'.jpg';
-    a.click();toast('JPG descargado');
-  }catch(e){toast('Error: '+e.message);}
+    var canvas = await captureNotaJPG();
+    var a = document.createElement('a');
+    a.href = canvas.toDataURL('image/jpeg', 0.95);
+    a.download = 'nota-'+((window._lastNota||{})._noteNum||'venta')+'.jpg';
+    a.click();
+    toast('JPG descargado');
+  } catch(e){
+    toast('Error: '+e.message);
+  }
 }
+
+
 
 function openOv(id){
   var el=document.getElementById(id);
