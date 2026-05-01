@@ -2147,17 +2147,19 @@ function toast(msg){
 // ─── NOTA DE VENTA INTEGRADA ──────────────────────────────────────────────────
 
 function buildNotaHTML(o){
-  var acc=cfg.notaAccent||'#2d7a4f';
-  var cpnBg=cfg.notaCouponBg||'#1a1a2e';
-  var hdr=cfg.notaHeaderBg==='color'?acc:cfg.notaHeaderBg==='gradient'?'#1e293b':'#0f172a';
-  var fs=parseInt(cfg.notaFontSize)||13;
-  var store=cfg.storeName||'Rooze';
-  var tel=cfg.storePhone||cfg.whatsapp||cfg.phone||'';
-  var footer=cfg.notaFooter||(tel?'Consultas: '+tel:'Gracias por tu compra!');
-  var logo=cfg.logoUrl||'';
-  var showC=cfg.notaShowCoupon!==false;
-  var cDisc=cfg.notaCouponDisc||10;
-  var cDays=cfg.notaCouponDays||90;
+  var acc    = cfg.notaAccent    || '#2d7a4f';
+  var cpnBg  = cfg.notaCouponBg  || '#1a1a2e';
+  var hdr    = cfg.notaHeaderBg==='color' ? acc
+             : cfg.notaHeaderBg==='gradient' ? '#1e293b'
+             : '#0f172a';
+  var fs     = parseInt(cfg.notaFontSize)||12;
+  var store  = cfg.storeName     || 'Rooze';
+  var tel    = cfg.storePhone||cfg.whatsapp||cfg.phone||'';
+  var footer = cfg.notaFooter    || (tel?'Consultas: '+tel:'Gracias por tu compra');
+  var logo   = cfg.logoUrl       || '';
+  var showC  = cfg.notaShowCoupon!==false;
+  var cDisc  = cfg.notaCouponDisc||10;
+  var cDays  = cfg.notaCouponDays||90;
 
   if(!o._noteNum){
     var px=store.replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,4);
@@ -2176,140 +2178,140 @@ function buildNotaHTML(o){
   var prods=(o.productos&&o.productos.length)
     ?o.productos:[{nombre:o.producto||'Producto',cantidad:o.totalCantidad||1,precio:o.cobrar}];
 
-  // Build product rows
+  // ── Product rows
   var pRows='';
   prods.forEach(function(p){
     var sub=(parseFloat(p.precio)||0)*(parseInt(p.cantidad)||1);
-    var nm=(p.nombre||'')+(p.cantidad>1?' x'+p.cantidad:'');
     pRows+='<tr>'
-      +'<td style="padding:6px 10px 6px 10px;font-size:'+fs+'px;color:#374151;font-family:Arial,sans-serif;line-height:1.4;vertical-align:top">'+nm+'</td>'
-      +'<td style="padding:6px 10px 6px 0;font-size:'+fs+'px;font-weight:700;color:#111827;text-align:right;white-space:nowrap;vertical-align:top;font-family:Arial,sans-serif">S/ '+sub.toFixed(2)+'</td>'
+      +'<td style="padding:8px 12px 8px 0;font-size:'+fs+'px;color:#374151;line-height:1.4;font-family:Arial,sans-serif;border-bottom:1px solid #f1f5f9">'
+        +'<span style="font-weight:600;color:#1e293b">'+p.nombre+'</span>'
+        +(p.cantidad>1?'<br><span style="font-size:'+(fs-1)+'px;color:#94a3b8">Cantidad: '+p.cantidad+'</span>':'')
+      +'</td>'
+      +'<td style="padding:8px 0 8px 0;font-size:'+fs+'px;font-weight:700;color:#1e293b;text-align:right;white-space:nowrap;font-family:Arial,sans-serif;border-bottom:1px solid #f1f5f9">S/&nbsp;'+sub.toFixed(2)+'</td>'
     +'</tr>';
   });
+
   var dlv=parseFloat(o.costoDelivery)||0;
   if(dlv>0){
     pRows+='<tr>'
-      +'<td style="padding:4px 10px 6px 10px;font-size:'+(fs-1)+'px;color:#9ca3af;font-family:Arial,sans-serif">Delivery</td>'
-      +'<td style="padding:4px 10px 6px 0;font-size:'+(fs-1)+'px;color:#9ca3af;text-align:right;white-space:nowrap;font-family:Arial,sans-serif">S/ '+dlv.toFixed(2)+'</td>'
+      +'<td style="padding:7px 12px 7px 0;font-size:'+(fs-1)+'px;color:#94a3b8;font-family:Arial,sans-serif">Envío / Delivery</td>'
+      +'<td style="padding:7px 0;font-size:'+(fs-1)+'px;color:#94a3b8;text-align:right;font-family:Arial,sans-serif">S/&nbsp;'+dlv.toFixed(2)+'</td>'
     +'</tr>';
   }
 
-  // Logo
+  // ── Logo block
   var logoHtml=logo
-    ?'<img src="'+logo+'" width="38" height="38" style="border-radius:9px;display:block;object-fit:cover">'
-    :'<div style="width:38px;height:38px;background:rgba(255,255,255,0.18);border-radius:9px;font-size:14px;font-weight:900;color:#fff;text-align:center;line-height:38px;font-family:Arial,sans-serif">'+store.slice(0,2).toUpperCase()+'</div>';
+    ?'<img src="'+logo+'" width="42" height="42" style="border-radius:10px;display:block">'
+    :'<div style="width:42px;height:42px;background:rgba(255,255,255,0.15);border-radius:10px;font-size:15px;font-weight:900;color:#fff;text-align:center;line-height:42px;font-family:Arial,sans-serif;letter-spacing:0">'+store.slice(0,2).toUpperCase()+'</div>';
 
-  // Zona
+  // ── Zona
   var zC=o.zona==='Lima'?'#854f0b':'#1e40af';
   var zBg=o.zona==='Lima'?'#fef3c7':'#dbeafe';
 
-  // Adelanto
+  // ── Adelanto
+  var saldo=o.saldo||Math.max(0,o.cobrar-(o.adelanto||0));
   var adHtml='';
   if(o.adelanto>0){
-    var sal=o.saldo||Math.max(0,o.cobrar-o.adelanto);
-    adHtml='<div style="margin-top:8px;background:#f0fdf4;border-radius:8px;border:1px solid #86efac;padding:0">'
-      +'<table width="100%" cellpadding="0" cellspacing="0"><tr>'
-        +'<td style="padding:7px 10px;font-size:'+(fs-1)+'px;color:#166534;font-family:Arial,sans-serif">Adelanto recibido</td>'
-        +'<td style="padding:7px 10px;font-size:'+(fs-1)+'px;font-weight:700;color:#16a34a;text-align:right;white-space:nowrap;font-family:Arial,sans-serif">- S/ '+o.adelanto.toFixed(2)+'</td>'
-      +'</tr><tr>'
-        +'<td style="padding:7px 10px;font-size:'+fs+'px;font-weight:700;color:#dc2626;border-top:1px solid #bbf7d0;font-family:Arial,sans-serif">Saldo pendiente</td>'
-        +'<td style="padding:7px 10px;font-size:'+fs+'px;font-weight:700;color:#dc2626;text-align:right;white-space:nowrap;border-top:1px solid #bbf7d0;font-family:Arial,sans-serif">S/ '+sal.toFixed(2)+'</td>'
-      +'</tr></table>'
-    +'</div>';
+    adHtml='<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:10px;border-radius:8px;overflow:hidden;border:1px solid #d1fae5"><tr style="background:#f0fdf4">'
+      +'<td style="padding:8px 12px;font-size:'+(fs-1)+'px;color:#065f46;font-family:Arial,sans-serif">Adelanto recibido</td>'
+      +'<td style="padding:8px 12px;font-size:'+(fs-1)+'px;font-weight:700;color:#059669;text-align:right;font-family:Arial,sans-serif">&#8722;&nbsp;S/&nbsp;'+o.adelanto.toFixed(2)+'</td>'
+    +'</tr><tr style="background:#fff7f7">'
+      +'<td style="padding:8px 12px;font-size:'+fs+'px;font-weight:700;color:#dc2626;border-top:1px solid #fecaca;font-family:Arial,sans-serif">Saldo pendiente</td>'
+      +'<td style="padding:8px 12px;font-size:'+fs+'px;font-weight:900;color:#dc2626;text-align:right;border-top:1px solid #fecaca;font-family:Arial,sans-serif">S/&nbsp;'+saldo.toFixed(2)+'</td>'
+    +'</tr></table>';
   }
 
-  // Coupon
+  // ── Contra entrega
+  var ceHtml=o.contraEntrega
+    ?'<div style="margin-top:10px;text-align:center"><span style="background:#fef3c7;color:#92400e;padding:5px 16px;border-radius:20px;font-size:11px;font-weight:700;font-family:Arial,sans-serif;display:inline-block;letter-spacing:0.3px">&#128179; Pago contra entrega</span></div>'
+    :'';
+
+  // ── Note
+  var noteHtml=o.nota
+    ?'<div style="margin-top:10px;background:#f8fafc;border-left:3px solid '+acc+';padding:8px 12px;border-radius:0 8px 8px 0"><p style="margin:0;font-size:'+(fs-1)+'px;color:#64748b;line-height:1.5;font-family:Arial,sans-serif">'+o.nota+'</p></div>'
+    :'';
+
+  // ── Coupon
   var cpnHtml='';
   if(showC&&o._coupon){
-    cpnHtml='<div style="margin-top:14px;background:'+cpnBg+';border-radius:12px;padding:16px 14px;text-align:center;position:relative;overflow:hidden">'
-      +'<div style="position:absolute;left:-10px;top:42%;width:20px;height:20px;background:#f8fafc;border-radius:50%"></div>'
-      +'<div style="position:absolute;right:-10px;top:42%;width:20px;height:20px;background:#f8fafc;border-radius:50%"></div>'
-      +'<p style="margin:0 0 8px 0;font-size:9px;font-weight:700;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:2px;font-family:Arial,sans-serif">CUPON EXCLUSIVO &bull; 2DA COMPRA</p>'
-      +'<p style="margin:0 0 8px 0;font-size:26px;font-weight:900;color:#fff;letter-spacing:4px;font-family:Courier New,Courier,monospace">'+o._coupon+'</p>'
-      +'<p style="margin:0;font-size:12px;color:rgba(255,255,255,0.75);font-weight:600;font-family:Arial,sans-serif">S/ '+cDisc+' de descuento &middot; valido '+cDays+' dias</p>'
+    cpnHtml='<div style="margin-top:16px;position:relative;overflow:hidden">'
+      +'<div style="position:absolute;left:-10px;top:50%;margin-top:-10px;width:20px;height:20px;background:#f1f5f9;border-radius:50%"></div>'
+      +'<div style="position:absolute;right:-10px;top:50%;margin-top:-10px;width:20px;height:20px;background:#f1f5f9;border-radius:50%"></div>'
+      +'<div style="background:'+cpnBg+';border-radius:12px;padding:18px 20px;text-align:center">'
+        +'<p style="margin:0 0 6px;font-size:9px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:2.5px;font-family:Arial,sans-serif">CUPÓN EXCLUSIVO · 2DA COMPRA</p>'
+        +'<p style="margin:0 0 8px;font-size:26px;font-weight:900;color:#ffffff;letter-spacing:5px;font-family:Courier New,Courier,monospace">'+o._coupon+'</p>'
+        +'<div style="display:inline-block;background:rgba(255,255,255,0.1);border-radius:20px;padding:4px 16px"><p style="margin:0;font-size:11px;color:rgba(255,255,255,0.75);font-weight:600;font-family:Arial,sans-serif">S/'+cDisc+' de descuento &middot; v&aacute;lido '+cDays+' d&iacute;as</p></div>'
+      +'</div>'
     +'</div>';
   }
 
-  // Note
-  var notaHtml=o.nota
-    ?'<div style="margin-top:8px;background:#fefce8;border-left:3px solid #eab308;padding:8px 10px">'
-      +'<p style="margin:0;font-size:'+(fs-1)+'px;color:#713f12;line-height:1.5;font-family:Arial,sans-serif">'+o.nota+'</p>'
-    +'</div>'
-    :'';
-
-  var contraHtml=o.contraEntrega
-    ?'<div style="margin-top:6px;text-align:center">'
-      +'<span style="background:#fef3c7;color:#92400e;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:700;font-family:Arial,sans-serif;display:inline-block">Pago contra entrega</span>'
-    +'</div>'
-    :'';
+  // ── Divider dotted
+  var sep='<div style="border-top:1.5px dashed #e2e8f0;margin:14px 0"></div>';
 
   return (
-  '<div id="nota-receipt" style="width:340px;background:#f8fafc;border-radius:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box">'
+  '<div id="nota-receipt" style="width:400px;background:#ffffff;font-family:Arial,Helvetica,sans-serif;box-sizing:border-box">'
 
-  // HEADER
-  +'<div style="background:'+hdr+';padding:18px 16px 16px 16px">'
+  // ════ HEADER ════
+  +'<div style="background:'+hdr+';padding:22px 22px 18px">'
 
-    // Logo + store row
-    +'<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px"><tr>'
-      +'<td width="48" style="vertical-align:middle;padding-right:10px">'+logoHtml+'</td>'
+    // Logo + Brand row
+    +'<table width="100%" cellpadding="0" cellspacing="0"><tr>'
+      +'<td width="50" style="vertical-align:middle;padding-right:14px">'+logoHtml+'</td>'
       +'<td style="vertical-align:middle">'
-        +'<p style="margin:0;font-size:17px;font-weight:900;color:#ffffff;line-height:1.25;font-family:Arial,sans-serif">'+store+'</p>'
-        +'<p style="margin:2px 0 0 0;font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;font-family:Arial,sans-serif">NOTA DE VENTA</p>'
+        +'<p style="margin:0;font-size:18px;font-weight:900;color:#ffffff;letter-spacing:0.3px;font-family:Arial,sans-serif;line-height:1.2">'+store+'</p>'
+        +'<p style="margin:3px 0 0;font-size:9px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:2.5px;font-family:Arial,sans-serif">NOTA DE VENTA</p>'
       +'</td>'
     +'</tr></table>'
 
-    // Note number box
-    +'<div style="background:rgba(255,255,255,0.12);border-radius:10px;padding:12px 14px">'
-      +'<p style="margin:0 0 6px 0;font-size:26px;font-weight:900;color:#ffffff;letter-spacing:1px;font-family:Arial,sans-serif">'+o._noteNum+'</p>'
+    // Note number + date row
+    +'<div style="margin-top:16px;background:rgba(255,255,255,0.08);border-radius:10px;padding:14px 16px">'
+      +'<p style="margin:0 0 8px;font-size:28px;font-weight:900;color:#ffffff;letter-spacing:1px;font-family:Arial,sans-serif;line-height:1">'+o._noteNum+'</p>'
       +'<table width="100%" cellpadding="0" cellspacing="0"><tr>'
-        +'<td style="font-size:11px;color:rgba(255,255,255,0.6);font-family:Arial,sans-serif">'+fecha+'</td>'
-        +'<td style="font-size:11px;color:rgba(255,255,255,0.6);text-align:right;font-family:Arial,sans-serif">'+o.vendedor+'</td>'
+        +'<td style="font-size:11px;color:rgba(255,255,255,0.55);font-family:Arial,sans-serif">'+fecha+'</td>'
+        +'<td style="font-size:11px;color:rgba(255,255,255,0.55);text-align:right;font-family:Arial,sans-serif">'+o.vendedor+'</td>'
       +'</tr></table>'
     +'</div>'
   +'</div>'
 
-  // BODY
-  +'<div style="background:#ffffff;padding:16px 16px 16px 16px">'
+  // ════ BODY ════
+  +'<div style="padding:20px 22px">'
 
-    // Client
-    +'<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px"><tr>'
-      +'<td style="vertical-align:top;padding-right:6px">'
-        +'<p style="margin:0 0 5px 0;font-size:'+(fs+4)+'px;font-weight:900;color:#0f172a;line-height:1.25;word-break:break-word;font-family:Arial,sans-serif">'+o.cliente+'</p>'
-        +(o.dni?'<p style="margin:0 0 2px 0;font-size:'+(fs-1)+'px;color:#6b7280;font-family:Arial,sans-serif">DNI: '+o.dni+'</p>':'')
-        +'<p style="margin:0 0 2px 0;font-size:'+(fs-1)+'px;color:#6b7280;font-family:Arial,sans-serif">'+o.celular+'</p>'
-        +(o.ciudad?'<p style="margin:0;font-size:'+(fs-1)+'px;color:#6b7280;font-family:Arial,sans-serif">'+o.ciudad+'</p>':'')
+    // Client section
+    +'<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px"><tr>'
+      +'<td style="vertical-align:top;padding-right:8px">'
+        +'<p style="margin:0 0 5px;font-size:'+(fs+5)+'px;font-weight:900;color:#0f172a;line-height:1.2;word-break:break-word;font-family:Arial,sans-serif">'+o.cliente+'</p>'
+        +(o.dni?'<p style="margin:0 0 3px;font-size:'+(fs-1)+'px;color:#94a3b8;font-family:Arial,sans-serif">DNI '+o.dni+'</p>':'')
+        +'<p style="margin:0 0 3px;font-size:'+(fs-1)+'px;color:#64748b;font-family:Arial,sans-serif">'+o.celular+'</p>'
+        +(o.ciudad?'<p style="margin:0;font-size:'+(fs-1)+'px;color:#64748b;font-family:Arial,sans-serif">'+o.ciudad+'</p>':'')
       +'</td>'
-      +'<td style="vertical-align:top;text-align:right;white-space:nowrap;padding-left:6px">'
-        +'<span style="background:'+zBg+';color:'+zC+';padding:4px 12px;border-radius:20px;font-size:10px;font-weight:700;font-family:Arial,sans-serif;display:inline-block">'+(o.zona||'Lima')+'</span>'
+      +'<td style="vertical-align:top;text-align:right;white-space:nowrap">'
+        +'<span style="background:'+zBg+';color:'+zC+';padding:5px 14px;border-radius:20px;font-size:10px;font-weight:700;font-family:Arial,sans-serif;display:inline-block;letter-spacing:0.3px">'+(o.zona||'Lima')+'</span>'
       +'</td>'
     +'</tr></table>'
 
-    // Products table
-    +'<div style="background:#f8fafc;border-radius:10px;overflow:hidden;margin-bottom:10px">'
-      +'<table width="100%" cellpadding="0" cellspacing="0">'
-        +'<tr style="background:#f1f5f9">'
-          +'<th style="padding:7px 10px;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;text-align:left;font-family:Arial,sans-serif">Producto</th>'
-          +'<th style="padding:7px 10px 7px 0;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;text-align:right;font-family:Arial,sans-serif">Importe</th>'
-        +'</tr>'
-        +pRows
-      +'</table>'
-    +'</div>'
+    +sep
+
+    // Products
+    +'<p style="margin:0 0 10px;font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;font-family:Arial,sans-serif">DETALLE DE PEDIDO</p>'
+    +'<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:4px">'+pRows+'</table>'
+
+    +sep
 
     // Total
-    +'<div style="background:'+acc+'12;border:2px solid '+acc+'35;border-radius:12px;padding:13px;text-align:center;margin-bottom:6px">'
-      +'<p style="margin:0 0 4px 0;font-size:10px;font-weight:700;color:'+acc+';text-transform:uppercase;letter-spacing:2px;font-family:Arial,sans-serif">TOTAL DEL PEDIDO</p>'
-      +'<p style="margin:0;font-size:30px;font-weight:900;color:'+acc+';font-family:Arial,sans-serif">S/ '+o.cobrar.toFixed(2)+'</p>'
+    +'<div style="background:'+acc+'0d;border:2px solid '+acc+'2a;border-radius:12px;padding:16px;text-align:center;margin-bottom:4px">'
+      +'<p style="margin:0 0 4px;font-size:9px;font-weight:700;color:'+acc+';text-transform:uppercase;letter-spacing:2.5px;font-family:Arial,sans-serif">TOTAL DEL PEDIDO</p>'
+      +'<p style="margin:0;font-size:34px;font-weight:900;color:'+acc+';font-family:Arial,sans-serif;line-height:1.1">S/&nbsp;'+o.cobrar.toFixed(2)+'</p>'
     +'</div>'
 
     +adHtml
-    +contraHtml
-    +notaHtml
+    +ceHtml
+    +noteHtml
     +cpnHtml
 
+    +sep
+
     // Footer
-    +'<div style="margin-top:14px;padding-top:12px;border-top:1px dashed #e2e8f0;text-align:center">'
-      +'<p style="margin:0;font-size:11px;color:#94a3b8;line-height:1.8;font-family:Arial,sans-serif">'+footer+'</p>'
-    +'</div>'
+    +'<p style="margin:0;font-size:11px;color:#94a3b8;text-align:center;line-height:1.8;font-family:Arial,sans-serif">'+footer+'</p>'
 
   +'</div>'
   +'</div>'
@@ -2325,70 +2327,67 @@ function buildNotaHTML(o){
 
 
 
+
+
 // ── CORE CAPTURE FUNCTION (off-screen, unscaled) ────────────────────────────
 async function captureNotaJPG(){
-  var o = window._lastNota;
-  if(!o){ throw new Error('Sin nota generada'); }
+  var o=window._lastNota;
+  if(!o){throw new Error('Sin nota generada');}
+  var freshHtml=buildNotaHTML(o);
 
-  // Build fresh unscaled receipt HTML
-  var freshHtml = buildNotaHTML(o);
-
-  // Create hidden off-screen container (not scaled, not transformed)
-  var container = document.createElement('div');
-  container.setAttribute('id', '_nota_capture_container');
-  container.style.cssText = [
-    'position:fixed',
-    'top:-9999px',
-    'left:-9999px',
-    'width:340px',
-    'height:auto',
-    'transform:none',
-    'zoom:1',
-    'pointer-events:none',
-    'z-index:-1',
-    'background:#f8fafc'
-  ].join(';');
-  container.innerHTML = freshHtml;
+  // Off-screen container — 400px wide, no transforms
+  var container=document.createElement('div');
+  container.id='_nota_capture_container';
+  container.style.cssText='position:fixed;top:-9999px;left:-9999px;width:400px;height:auto;transform:none;zoom:1;pointer-events:none;z-index:-1;background:#ffffff';
+  container.innerHTML=freshHtml;
   document.body.appendChild(container);
 
-  // Wait for DOM paint + fonts
-  await new Promise(function(r){ requestAnimationFrame(function(){ setTimeout(r, 80); }); });
-  if(document.fonts && document.fonts.ready) await document.fonts.ready;
+  await new Promise(function(r){requestAnimationFrame(function(){setTimeout(r,120);});});
+  if(document.fonts&&document.fonts.ready)await document.fonts.ready;
 
-  var el = container.querySelector('#nota-receipt') || container;
+  var el=container.querySelector('#nota-receipt')||container;
 
   try{
-    var canvas = await html2canvas(el, {
-      scale: 3,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#f8fafc',
-      logging: false,
-      removeContainer: false,
-      imageTimeout: 5000,
-      onclone: function(clonedDoc, clonedEl){
-        // Strip any remaining transforms from ALL elements in clone
-        var allEls = clonedDoc.querySelectorAll('*');
-        allEls.forEach(function(e){
-          var s = e.style;
-          s.transform = 'none';
-          s.webkitTransform = 'none';
-          s.zoom = '1';
-          s.fontFamily = 'Arial, Helvetica, sans-serif';
-          s.textRendering = 'geometricPrecision';
-          s.webkitFontSmoothing = 'antialiased';
+    var receiptCanvas=await html2canvas(el,{
+      scale:3,
+      useCORS:true,
+      allowTaint:true,
+      backgroundColor:'#ffffff',
+      logging:false,
+      removeContainer:false,
+      imageTimeout:5000,
+      onclone:function(clonedDoc,clonedEl){
+        clonedDoc.querySelectorAll('*').forEach(function(e){
+          e.style.transform='none';
+          e.style.webkitTransform='none';
+          e.style.zoom='1';
+          e.style.fontFamily='Arial,Helvetica,sans-serif';
         });
-        // Ensure root has correct size
-        clonedEl.style.width = '340px';
-        clonedEl.style.height = 'auto';
-        clonedEl.style.overflow = 'visible';
+        clonedEl.style.width='400px';
+        clonedEl.style.height='auto';
+        clonedEl.style.overflow='visible';
       }
     });
-    return canvas;
-  } finally {
+
+    // 4:5 ratio canvas (width:height = 4:5)
+    var W=receiptCanvas.width;
+    var H=Math.max(receiptCanvas.height, Math.round(W*5/4));
+    var finalCanvas=document.createElement('canvas');
+    finalCanvas.width=W;
+    finalCanvas.height=H;
+    var ctx=finalCanvas.getContext('2d');
+    ctx.fillStyle='#ffffff';
+    ctx.fillRect(0,0,W,H);
+    // Center vertically if receipt is shorter than 4:5
+    var offsetY=Math.round((H-receiptCanvas.height)/2);
+    ctx.drawImage(receiptCanvas,0,offsetY);
+    return finalCanvas;
+  }finally{
     document.body.removeChild(container);
   }
 }
+
+
 
 async function sendNotaWA(){
   var btn=document.getElementById('wa-nota-btn');
@@ -2402,40 +2401,41 @@ async function sendNotaWA(){
     var raw=(o.celular||'').replace(/[^0-9]/g,'');
     var cel=raw.length===9?'51'+raw:raw.length===11&&raw.slice(0,2)==='51'?raw:raw;
 
-    // Clean simple message — just the greeting
+    // Personalized message
     var nombre=(o.cliente||'').split(' ')[0]||'';
-    var waMsg='\u00a1Felicidades por tu compra '+(nombre?nombre+'':'')+'! Te adjuntamos tu Nota de Venta \u261d\ufe0f';
+    var waMsg='\u00a1Felicidades por tu compra'+(nombre?' '+nombre:'')+'\u0021 \uD83E\uDD73 Te adjuntamos tu Nota de Venta. _Gracias por confiar en nosotros_ \uD83D\uDE4C';
 
     var fileName='nota-'+o._noteNum+'.jpg';
     var file=new File([blob],fileName,{type:'image/jpeg'});
 
-    // MOBILE (Android/iOS): Web Share API → native share sheet → pick WhatsApp
+    // MOBILE: Web Share API (Android/iOS) → native share → pick WhatsApp
     if(navigator.canShare&&navigator.canShare({files:[file]})){
-      await navigator.share({files:[file],title:'Nota de venta '+o._noteNum});
-      // After sharing image, open WA with just the text message
+      await navigator.share({files:[file],title:'Nota '+o._noteNum});
+      // Then open WA with the text message directly to client
       if(cel){
         setTimeout(function(){
           window.open('https://wa.me/'+cel+'?text='+encodeURIComponent(waMsg),'_blank');
-        },1500);
+        },1200);
       }
     } else {
-      // DESKTOP: download JPG + open WA direct to client number with message
+      // DESKTOP: download + open wa.me direct to client number
       var url=URL.createObjectURL(blob);
-      var a=document.createElement('a');
-      a.href=url;a.download=fileName;a.click();
+      var a=document.createElement('a');a.href=url;a.download=fileName;a.click();
       URL.revokeObjectURL(url);
-      if(!cel){toast('JPG descargado. Agrega un celular al pedido para enviar por WA.');return;}
       setTimeout(function(){
+        if(!cel){toast('JPG descargado. Agrega celular al pedido para abrir WA.');return;}
         window.open('https://wa.me/'+cel+'?text='+encodeURIComponent(waMsg),'_blank');
       },700);
     }
-    toast('Nota enviada correctamente');
+    toast('Nota enviada');
   }catch(e){
     if(e.name!=='AbortError')toast('Error: '+e.message);
   }finally{
     if(btn){btn.disabled=false;btn.textContent='Enviar JPG por WhatsApp';}
   }
 }
+
+
 
 
 
@@ -2467,6 +2467,236 @@ function closeOv(id){
   el.style.display='';
 }
 function backToNotaConfirm(){var ov=document.getElementById('ov-nota-wa');if(ov)ov.remove();openOv('ov-nota-confirm');}
+
+
+// ── NOTA MODAL (openNotaModal + confirmSendNota) ─────────────────────────────
+var _notaCurrentOrder=null;
+
+function openNotaModal(orderId){
+  var o=typeof orderId==='object'?orderId
+    :(orders.find(function(x){return x.id===orderId;})||null);
+  if(!o&&typeof orderId==='string'){
+    toast('Cargando...');
+    db.collection('orders').doc(orderId).get().then(function(doc){
+      if(!doc.exists){toast('Pedido no encontrado');return;}
+      var d=doc.data();
+      openNotaModal(Object.assign({id:doc.id},d,{cobrar:d.cobrar||0,adelanto:d.adelanto||0,saldo:d.saldo||0}));
+    }).catch(function(e){toast('Error: '+e.message);});
+    return;
+  }
+  if(!o){toast('Pedido no encontrado');return;}
+  _notaCurrentOrder=o;
+  var sum=document.getElementById('nota-confirm-summary');
+  if(sum){
+    var prods=(o.productos&&o.productos.length)?o.productos:[{nombre:o.producto||'—',cantidad:o.totalCantidad||1}];
+    var rows=''
+      +'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid var(--bo)"><span style="color:var(--tx2);font-size:13px">Cliente</span><strong style="font-size:13px">'+o.cliente+'</strong></div>'
+      +'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid var(--bo)"><span style="color:var(--tx2);font-size:13px">Celular</span><span style="font-size:13px">'+o.celular+'</span></div>'
+      +(o.dni?'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid var(--bo)"><span style="color:var(--tx2);font-size:13px">DNI</span><span style="font-size:13px">'+o.dni+'</span></div>':'')
+      +'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid var(--bo)"><span style="color:var(--tx2);font-size:13px">Productos</span><span style="font-size:12px;text-align:right;max-width:60%">'+prods.map(function(p){return p.nombre+(p.cantidad>1?' x'+p.cantidad:'');}).join(', ')+'</span></div>'
+      +'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid var(--bo)"><span style="color:var(--tx2);font-size:13px">Total</span><strong style="color:var(--accent);font-size:14px">S/ '+o.cobrar.toFixed(2)+'</strong></div>'
+      +(o.adelanto>0?'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid var(--bo)"><span style="color:var(--tx2);font-size:13px">Adelanto</span><span style="color:#16a34a;font-size:13px">S/ '+o.adelanto.toFixed(2)+'</span></div>':'')
+      +(o.saldo>0?'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid var(--bo)"><span style="color:var(--tx2);font-size:13px">Saldo</span><strong style="color:#dc2626;font-size:13px">S/ '+o.saldo.toFixed(2)+'</strong></div>':'')
+      +(o.fechaVenta?'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid var(--bo)"><span style="color:var(--tx2);font-size:13px">Fecha</span><span style="font-size:13px">'+o.fechaVenta+'</span></div>':'')
+      +(o.ciudad?'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid var(--bo)"><span style="color:var(--tx2);font-size:13px">Ciudad</span><span style="font-size:13px">'+o.ciudad+' · '+o.zona+'</span></div>':'')
+      +'<div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--tx2);font-size:13px">Estado</span><span style="font-size:13px">'+o.estado+'</span></div>'
+      +(o.contraEntrega?'<div style="background:#fef3c7;color:#92400e;padding:5px 10px;border-radius:8px;font-size:12px;font-weight:700;text-align:center;margin-top:6px">Pago contra entrega</div>':'');
+    sum.innerHTML=rows;
+  }
+  var sel=document.getElementById('nota-tienda-sel');
+  if(sel){
+    var tiendas=cfg.tiendas||[];
+    if(!tiendas.length)tiendas=[{id:'default',name:cfg.storeName||'Mi Tienda',color:cfg.notaAccent||'#2d7a4f',phone:cfg.storePhone||''}];
+    var activeId=cfg.activeTiendaId||'default';
+    sel.innerHTML='<option value="">— Selecciona la tienda —</option>'
+      +tiendas.map(function(t){return '<option value="'+t.id+'"'+(t.id===activeId?' selected':'')+'>'+t.name+'</option>';}).join('');
+    sel.value=activeId;
+    updateTiendaPreview();
+    sel.onchange=updateTiendaPreview;
+  }
+  var err=document.getElementById('nota-confirm-err');
+  if(err)err.style.display='none';
+  openOv('ov-nota-confirm');
+}
+
+function updateTiendaPreview(){
+  var sel=document.getElementById('nota-tienda-sel');
+  var prev=document.getElementById('nota-tienda-preview');
+  if(!sel||!prev)return;
+  var id=sel.value;
+  var tiendas=cfg.tiendas||[];
+  var t=tiendas.find(function(x){return x.id===id;})||(id?{id:id,name:cfg.storeName||'Mi Tienda',phone:cfg.storePhone||'',color:cfg.notaAccent||'#2d7a4f'}:null);
+  if(!t||!id){prev.style.display='none';return;}
+  prev.style.display='block';
+  prev.innerHTML='<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg2);border-radius:10px">'
+    +'<div style="width:32px;height:32px;border-radius:8px;background:'+(t.color||'var(--accent)')+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;overflow:hidden;flex-shrink:0">'
+      +(t.logoUrl?'<img src="'+t.logoUrl+'" style="width:100%;height:100%;object-fit:cover">':t.name.slice(0,2).toUpperCase())
+    +'</div><div><strong style="font-size:13px">'+t.name+'</strong><div style="font-size:11px;color:var(--tx2)">'+(t.phone||'Sin teléfono')+'</div></div></div>';
+}
+
+function buildNotaCfgFromTienda(tiendaId){
+  var tiendas=cfg.tiendas||[];
+  var t=tiendas.find(function(x){return x.id===tiendaId;});
+  if(!t)return {};
+  return {storeName:t.name,storePhone:t.phone||'',notaFooter:t.notaFooter||'',logoUrl:t.logoUrl||'',
+    notaAccent:t.color||'#2d7a4f',notaCouponBg:t.couponBg||'#1a1a2e',notaHeaderBg:t.headerBg||'dark',
+    notaFontSize:t.fontSize||13,notaCouponDisc:t.couponDisc||10,notaCouponDays:t.couponDays||90,notaShowCoupon:t.showCoupon!==false};
+}
+
+async function confirmSendNota(){
+  var o=_notaCurrentOrder;
+  if(!o){toast('Error: pedido no cargado');return;}
+  var sel=document.getElementById('nota-tienda-sel');
+  var tiendaId=sel?sel.value:'';
+  var err=document.getElementById('nota-confirm-err');
+  if(!tiendaId){
+    if(err){err.textContent='Selecciona una tienda antes de continuar';err.style.display='block';}
+    if(sel)sel.style.borderColor='#dc2626';
+    return;
+  }
+  if(err)err.style.display='none';
+  if(sel)sel.style.borderColor='';
+  var btn=document.getElementById('btn-nota-wa');
+  if(btn){btn.disabled=true;btn.textContent='Generando...';}
+  var tiendaCfg=buildNotaCfgFromTienda(tiendaId);
+  var savedCfg={};
+  ['storeName','storePhone','notaFooter','logoUrl','notaAccent','notaCouponBg','notaHeaderBg','notaFontSize','notaCouponDisc','notaCouponDays','notaShowCoupon'].forEach(function(k){savedCfg[k]=cfg[k];});
+  Object.assign(cfg,tiendaCfg);
+  o._noteNum=null;o._coupon=null;
+  var receipt=buildNotaHTML(o);
+  Object.assign(cfg,savedCfg);
+  window._lastNota=o;
+  var existing=document.getElementById('ov-nota-wa');if(existing)existing.remove();
+  var ov=document.createElement('div');
+  ov.id='ov-nota-wa';ov.className='ov';ov.style.zIndex='320';
+  ov.innerHTML='<div class="sheet" style="max-height:90vh;overflow-y:auto">'
+    +'<div class="sh"></div>'
+    +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">'
+      +'<div style="width:36px;height:36px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📄</div>'
+      +'<div><div style="font-size:16px;font-weight:700;color:var(--tx)">Nota generada</div>'
+        +'<div style="font-size:12px;color:var(--tx2)">'+o._noteNum+'</div></div>'
+    +'</div>'
+    +'<div id="nota-receipt-wrap" style="width:100%;overflow:hidden;margin-bottom:14px;display:flex;justify-content:center">'+receipt+'</div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px">'
+      +'<button onclick="sendNotaWA()" id="wa-nota-btn" style="width:100%;padding:14px;background:#25D366;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">'
+        +'<svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.507 3.934 1.399 5.61L0 24l6.545-1.376A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.368l-.36-.214-3.724.783.838-3.63-.234-.374A9.818 9.818 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182S21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/></svg>'
+        +' Enviar JPG por WhatsApp'
+      +'</button>'
+      +'<button onclick="downloadNotaOnly()" style="width:100%;padding:12px;background:var(--bg2);border:0.5px solid var(--bo2);border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--tx)">📥 Descargar JPG</button>'
+      +'<button onclick="backToNotaConfirm()" style="width:100%;padding:10px;background:none;border:none;font-size:13px;color:var(--tx3);cursor:pointer;font-family:inherit">← Cambiar tienda</button>'
+    +'</div>'
+  +'</div>';
+  document.body.appendChild(ov);
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
+  closeOv('ov-nota-confirm');
+  setTimeout(function(){ov.classList.add('open');},10);
+  if(btn){btn.disabled=false;btn.textContent='Generar y enviar por WhatsApp';}
+}
+
+// ── TIENDAS CONFIG (multi-store) ─────────────────────────────────────────────
+function buildTiendasList(){
+  var tiendas=cfg.tiendas||[];
+  if(!tiendas.length)tiendas=[{id:'default',name:cfg.storeName||'Mi Tienda',color:cfg.notaAccent||'#2d7a4f',phone:cfg.storePhone||'',notaFooter:cfg.notaFooter||'',logoUrl:cfg.logoUrl||'',couponDisc:cfg.notaCouponDisc||10,couponDays:cfg.notaCouponDays||90,couponBg:cfg.notaCouponBg||'#1a1a2e',headerBg:cfg.notaHeaderBg||'dark',fontSize:cfg.notaFontSize||13,showCoupon:cfg.notaShowCoupon!==false}];
+  if(!cfg.tiendas)cfg.tiendas=tiendas;
+  return tiendas.map(function(t,i){
+    var isActive=(cfg.activeTiendaId===t.id)||(i===0&&!cfg.activeTiendaId);
+    var c=t.color||'#2d7a4f';
+    return '<div style="border:1px solid '+(isActive?c:'var(--bo2)')+';border-radius:10px;overflow:hidden;margin-bottom:4px">'
+      +'<div onclick="toggleTiendaPanel(this)" style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;background:'+(isActive?c+'12':'var(--bg2)')+'">'
+        +'<div style="width:32px;height:32px;border-radius:8px;background:'+c+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden">'+(t.logoUrl?'<img src="'+t.logoUrl+'" style="width:100%;height:100%;object-fit:cover">':t.name.slice(0,2).toUpperCase())+'</div>'
+        +'<div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px">'+t.name+'</div><div style="font-size:11px;color:var(--tx2)">'+(t.phone||'Sin teléfono')+'</div></div>'
+        +(isActive?'<span style="padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;background:'+c+';color:#fff">Activa</span>':'')
+        +'<span class="tc-arrow" style="color:var(--tx3);font-size:11px;transition:.2s">▼</span>'
+      +'</div>'
+      +'<div class="tc-body" style="display:none;padding:12px;background:var(--bg2);border-top:1px solid var(--bo);display:flex;gap:6px;flex-wrap:wrap">'
+        +'<button data-tid="'+t.id+'" onclick="selectTiendaAndEdit(this.dataset.tid)" style="flex:1;padding:8px;background:'+c+';color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">Activar y editar</button>'
+        +(i>0?'<button data-tid="'+t.id+'" onclick="deleteTiendaById(this.dataset.tid)" style="padding:8px 12px;background:#fee2e2;color:#991b1b;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit">Eliminar</button>':'')
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
+function toggleTiendaPanel(hdr){
+  var card=hdr.parentElement;
+  var body=card.querySelector('.tc-body');
+  var arrow=card.querySelector('.tc-arrow');
+  var open=body.style.display!=='none';
+  document.querySelectorAll('.tc-body').forEach(function(b){b.style.display='none';});
+  document.querySelectorAll('.tc-arrow').forEach(function(a){a.style.transform='';});
+  if(!open){body.style.display='flex';arrow.style.transform='rotate(180deg)';}
+}
+
+function selectTiendaAndEdit(id){
+  var tiendas=cfg.tiendas||[];
+  var t=tiendas.find(function(x){return x.id===id;})||{};
+  cfg.activeTiendaId=id;
+  cfg.storeName=t.name||'';cfg.storePhone=t.phone||'';cfg.notaFooter=t.notaFooter||'';
+  cfg.logoUrl=t.logoUrl||'';cfg.notaAccent=t.color||'#2d7a4f';cfg.notaCouponBg=t.couponBg||'#1a1a2e';
+  cfg.notaHeaderBg=t.headerBg||'dark';cfg.notaFontSize=t.fontSize||13;
+  cfg.notaCouponDisc=t.couponDisc||10;cfg.notaCouponDays=t.couponDays||90;cfg.notaShowCoupon=t.showCoupon!==false;
+  renderConfig();toast('Tienda activa: '+t.name+' — edita y guarda');
+}
+
+function addTiendaPrompt(){
+  var name=prompt('Nombre de la nueva tienda:','');
+  if(!name||!name.trim())return;
+  var tiendas=cfg.tiendas||[];
+  if(!tiendas.length)tiendas=[{id:'default',name:cfg.storeName||'Mi Tienda',color:cfg.notaAccent||'#2d7a4f',phone:cfg.storePhone||'',notaFooter:cfg.notaFooter||'',logoUrl:cfg.logoUrl||'',couponDisc:10,couponDays:90,couponBg:'#1a1a2e',headerBg:'dark',fontSize:13,showCoupon:true}];
+  tiendas.push({id:'t'+Date.now(),name:name.trim(),color:'#2d7a4f',phone:'',notaFooter:'',logoUrl:'',couponDisc:10,couponDays:90,couponBg:'#1a1a2e',headerBg:'dark',fontSize:13,showCoupon:true});
+  cfg.tiendas=tiendas;renderConfig();toast('Tienda agregada. Actívala para configurarla.');
+}
+
+function deleteTiendaById(id){
+  if(!confirm('¿Eliminar esta tienda?'))return;
+  cfg.tiendas=(cfg.tiendas||[]).filter(function(t){return t.id!==id;});
+  if(cfg.activeTiendaId===id)cfg.activeTiendaId='';
+  renderConfig();toast('Tienda eliminada');
+}
+
+async function saveNotaConfig(){
+  try{
+    var updates={
+      storeName:(document.getElementById('cfg-sn')||{}).value||cfg.storeName||'',
+      storePhone:(document.getElementById('cfg-sp')||{}).value||'',
+      notaFooter:(document.getElementById('cfg-nf')||{}).value||'',
+      logoUrl:cfg.logoUrl||'',
+      notaAccent:(document.getElementById('cfg-na')||{}).value||cfg.notaAccent||'#2d7a4f',
+      notaCouponBg:(document.getElementById('cfg-cb')||{}).value||cfg.notaCouponBg||'#1a1a2e',
+      notaHeaderBg:(document.getElementById('cfg-hb')||{}).value||'dark',
+      notaFontSize:parseInt((document.getElementById('cfg-fs')||{}).value)||13,
+      notaCouponDisc:cfg.notaCouponDisc||10,
+      notaCouponDays:cfg.notaCouponDays||90,
+      notaShowCoupon:(document.getElementById('cfg-sc')||{}).checked!==false
+    };
+    Object.assign(cfg,updates);
+    await syncTiendaToCfg();
+    await db.collection('config').doc('ventas').update(updates);
+    toast('Configuracion guardada');renderConfig();
+  }catch(e){toast('Error: '+e.message);}
+}
+
+async function syncTiendaToCfg(){
+  var tiendas=cfg.tiendas||[];
+  var id=cfg.activeTiendaId||'default';
+  var idx=tiendas.findIndex(function(t){return t.id===id;});
+  var entry={id:id,name:cfg.storeName||'Mi Tienda',phone:cfg.storePhone||'',notaFooter:cfg.notaFooter||'',
+    logoUrl:cfg.logoUrl||'',color:cfg.notaAccent||'#2d7a4f',couponBg:cfg.notaCouponBg||'#1a1a2e',
+    headerBg:cfg.notaHeaderBg||'dark',fontSize:cfg.notaFontSize||13,
+    couponDisc:cfg.notaCouponDisc||10,couponDays:cfg.notaCouponDays||90,showCoupon:cfg.notaShowCoupon!==false};
+  if(idx>=0)tiendas[idx]=entry;else tiendas.push(entry);
+  cfg.tiendas=tiendas;
+  try{await db.collection('config').doc('ventas').update({tiendas:tiendas,activeTiendaId:id});}
+  catch(e){toast('Error guardando tiendas: '+e.message);}
+}
+
+function loadNotaLogoFile(inp){
+  var f=inp.files[0];if(!f)return;
+  if(f.size>3*1024*1024){toast('Logo max 3MB');return;}
+  var r=new FileReader();
+  r.onload=function(ev){cfg.logoUrl=ev.target.result;var el=document.getElementById('cfg-lu');if(el)el.value='[logo cargado]';toast('Logo listo - guarda la configuracion');};
+  r.readAsDataURL(f);
+}
+
 
 </script>
 
