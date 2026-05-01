@@ -183,6 +183,15 @@ body{font-family:var(--fs);background:var(--bg3);color:var(--tx);max-width:430px
 /* CUSTOM DATE */
 .custom-date{display:none;flex-direction:column;gap:8px;padding:10px 0}
 .custom-date.open{display:flex}
+
+/* ── Button interaction feedback (global) ── */
+button{-webkit-tap-highlight-color:transparent;transition:filter 150ms ease,transform 100ms ease;}
+button:hover:not(:disabled){filter:brightness(0.93);}
+button:active:not(:disabled){filter:brightness(0.82);transform:scale(0.97);}
+button:disabled{opacity:0.55;cursor:not-allowed;}
+.btn{transition:filter 150ms ease,transform 100ms ease !important;}
+.btn:active:not(:disabled){filter:brightness(0.80) !important;transform:scale(0.97) !important;}
+@media(hover:none){button:active:not(:disabled){filter:brightness(0.78);transform:scale(0.96);}}
 </style>
 </head>
 <body>
@@ -909,7 +918,7 @@ function openDetalle(id){
     ${finHtml}
     ${editBtn}
     ${delBtn}
-    <button class="btn" style="margin-top:8px;background:var(--bg2);color:var(--tx)" onclick="openNotaModal(o)">Generar nota</button>
+    <button class="btn" style="margin-top:8px;background:var(--bg2);color:var(--tx)" onclick="openNotaModal('${o.id}')">Generar nota</button>
     <button class="btn gray" style="margin-top:8px" onclick="closeOv('ov-detalle')">Cerrar</button>`;
   openOv('ov-detalle');
 }
