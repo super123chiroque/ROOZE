@@ -386,7 +386,6 @@ button:disabled{opacity:0.55;cursor:not-allowed;}
 
   <!-- NAV -->
   <div class="nav" id="main-nav"></div>
-</div>
 
 <!-- ── SHOPIFY MODULE ─────────────────────────────────────────────────── -->
 <div id="tab-shopify" style="display:none;flex-direction:column;flex:1;overflow:hidden">
@@ -418,6 +417,9 @@ button:disabled{opacity:0.55;cursor:not-allowed;}
     <div id="shopify-content"><div class="empty"><p>Cargando datos de Shopify...</p></div></div>
   </div>
 </div>
+
+</div>
+<!-- cierre de sc-app -->
 
 <!-- MODAL: NUEVA VENTA -->
 <div class="ov" id="ov-nueva">
@@ -2761,6 +2763,83 @@ var shopifyData = {
 var curShopifyTab = 'analytics';
 var _shopifyListeners = [];
 
+// Normaliza documentos que llegan desde Cloud Functions.
+// Los webhooks guardan receivedAt / createdAtShopify / totalPrice,
+// mientras que la interfaz usa createdAt / total / customerName.
+function shopifyTime(item){
+  if(!item) return 0;
+  var v = item.receivedAt || item.createdAt || item.createdAtShopify || item.updatedAtShopify || item.completedAt || 0;
+  if(v && typeof v.toMillis === 'function') return v.toMillis();
+  if(v && typeof v.seconds === 'number') return v.seconds * 1000;
+  if(typeof v === 'number') return v;
+  if(typeof v === 'string'){
+    var t = Date.parse(v);
+    return isNaN(t) ? 0 : t;
+  }
+  return 0;
+}
+function shopifyDate(item){
+  var t = shopifyTime(item);
+  return t ? new Date(t).toLocaleDateString('es-PE') : '';
+}
+function shopifyMoney(item){
+  if(!item) return 0;
+  var v = item.total;
+  if(v === undefined || v === null || v === '') v = item.totalPrice;
+  if(v === undefined || v === null || v === '') v = item.total_price;
+  if(v === undefined || v === null || v === '') v = item.subtotal_price;
+  var n = parseFloat(v || 0);
+  return isNaN(n) ? 0 : n;
+}
+function shopifyLineItems(payload){
+  try{
+    var items = (payload && payload.line_items) ? payload.line_items : [];
+    if(!items || !items.length) return '';
+    return items.map(function(li){
+      var qty = li.quantity ? (li.quantity + '× ') : '';
+      return qty + (li.title || li.name || li.product_title || 'Producto');
+    }).join(', ');
+  }catch(e){ return ''; }
+}
+function normalizeShopifyDoc(doc,type){
+  var raw = doc.data ? doc.data() : {};
+  var d = Object.assign({id:doc.id}, raw);
+
+  // Si por algún motivo faltara store, lo inferimos por el ID del documento.
+  if(!d.store && d.id){
+    if(String(d.id).indexOf('rooze_') === 0) d.store = 'rooze';
+    if(String(d.id).indexOf('danna_') === 0) d.store = 'danna';
+  }
+
+  d.total = shopifyMoney(d);
+  d.createdAt = d.receivedAt || d.createdAt || d.createdAtShopify || d.updatedAtShopify || d.completedAt || null;
+
+  var p = d.payload || {};
+  if(!d.customerName){
+    if(p.customer && (p.customer.first_name || p.customer.last_name)){
+      d.customerName = ((p.customer.first_name || '') + ' ' + (p.customer.last_name || '')).trim();
+    }else{
+      d.customerName = d.name || d.email || '';
+    }
+  }
+  if(!d.firstName && p.first_name) d.firstName = p.first_name;
+  if(!d.lastName && p.last_name) d.lastName = p.last_name;
+  if(!d.email) d.email = p.email || p.contact_email || '';
+  if(!d.customerEmail) d.customerEmail = d.email || '';
+  if(!d.phone){
+    d.phone = p.phone ||
+      (p.customer && p.customer.phone) ||
+      (p.shipping_address && p.shipping_address.phone) ||
+      (p.billing_address && p.billing_address.phone) ||
+      '';
+  }
+  if(!d.items) d.items = shopifyLineItems(p);
+  if(!d.orderNumber && p.order_number) d.orderNumber = p.order_number;
+  if(!d.name && p.name) d.name = p.name;
+  if(!d.status && d.cancelledAt) d.status = 'cancelled';
+  return d;
+}
+
 function setShopifyTab(tab){
   curShopifyTab = tab;
   document.querySelectorAll('.sht').forEach(function(b){b.classList.remove('on');});
@@ -2794,36 +2873,36 @@ function loadShopifyData(){
 
   // Listen orders
   var u1 = db.collection('shopify_orders')
-    .orderBy('createdAt','desc').limit(200)
+    .orderBy('receivedAt','desc').limit(200)
     .onSnapshot(function(s){
-      shopifyData.orders = s.docs.map(function(d){return Object.assign({id:d.id},d.data());});
+      shopifyData.orders = s.docs.map(function(d){return normalizeShopifyDoc(d,'order');});
       loaded.orders = true; checkReady();
     }, function(){ loaded.orders=true; checkReady(); });
   _shopifyListeners.push(u1);
 
   // Listen customers
   var u2 = db.collection('shopify_customers')
-    .orderBy('createdAt','desc').limit(300)
+    .orderBy('receivedAt','desc').limit(300)
     .onSnapshot(function(s){
-      shopifyData.customers = s.docs.map(function(d){return Object.assign({id:d.id},d.data());});
+      shopifyData.customers = s.docs.map(function(d){return normalizeShopifyDoc(d,'customer');});
       loaded.customers = true; checkReady();
     }, function(){ loaded.customers=true; checkReady(); });
   _shopifyListeners.push(u2);
 
   // Listen abandoned checkouts
   var u3 = db.collection('shopify_abandoned')
-    .orderBy('createdAt','desc').limit(100)
+    .orderBy('receivedAt','desc').limit(100)
     .onSnapshot(function(s){
-      shopifyData.abandoned = s.docs.map(function(d){return Object.assign({id:d.id},d.data());});
+      shopifyData.abandoned = s.docs.map(function(d){return normalizeShopifyDoc(d,'abandoned');});
       loaded.abandoned = true; checkReady();
     }, function(){ loaded.abandoned=true; checkReady(); });
   _shopifyListeners.push(u3);
 
   // Listen draft orders
   var u4 = db.collection('shopify_drafts')
-    .orderBy('createdAt','desc').limit(100)
+    .orderBy('receivedAt','desc').limit(100)
     .onSnapshot(function(s){
-      shopifyData.drafts = s.docs.map(function(d){return Object.assign({id:d.id},d.data());});
+      shopifyData.drafts = s.docs.map(function(d){return normalizeShopifyDoc(d,'draft');});
       loaded.drafts = true; checkReady();
     }, function(){ loaded.drafts=true; checkReady(); });
   _shopifyListeners.push(u4);
@@ -2850,7 +2929,7 @@ function buildShopifyAnalytics(){
   var pending   = orders.filter(function(o){return o.financialStatus==='pending'||o.status==='pending';}).length;
   var cancelled = orders.filter(function(o){return o.status==='cancelled';}).length;
   var revenue   = orders.filter(function(o){return o.financialStatus==='paid';})
-                        .reduce(function(s,o){return s+(parseFloat(o.total)||0);},0);
+                        .reduce(function(s,o){return s+shopifyMoney(o);},0);
   var avgTicket = confirmed>0?(revenue/confirmed):0;
   var closePct  = total>0?Math.round(confirmed/total*100):0;
   var abandoned = _abandoned.length;
@@ -2860,9 +2939,9 @@ function buildShopifyAnalytics(){
   var now = Date.now();
   var week = 7*86400000;
   var revWeek = orders.filter(function(o){
-    var ts = o.createdAt&&o.createdAt.toMillis?o.createdAt.toMillis():(o.createdAt||0);
+    var ts = shopifyTime(o);
     return ts > now-week && o.financialStatus==='paid';
-  }).reduce(function(s,o){return s+(parseFloat(o.total)||0);},0);
+  }).reduce(function(s,o){return s+shopifyMoney(o);},0);
 
   var noDataMsg = total===0
     ? '<div style="margin-top:16px;padding:14px;background:var(--bg2);border-radius:12px;border:0.5px solid var(--bo2);text-align:center">'
@@ -2893,9 +2972,9 @@ function buildShopifyRevenueBar(orders){
     var dayStart = new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();
     var dayEnd   = dayStart+86400000;
     var rev = orders.filter(function(o){
-      var ts = o.createdAt&&o.createdAt.toMillis?o.createdAt.toMillis():(o.createdAt||0);
+      var ts = shopifyTime(o);
       return ts>=dayStart&&ts<dayEnd&&o.financialStatus==='paid';
-    }).reduce(function(s,o){return s+(parseFloat(o.total)||0);},0);
+    }).reduce(function(s,o){return s+shopifyMoney(o);},0);
     days.push({label:label,rev:rev});
   }
   var max = Math.max.apply(null, days.map(function(d){return d.rev;}))||1;
@@ -2925,7 +3004,7 @@ function buildShopifyOrders(){
     var label  = o.financialStatus==='paid'?'Pagado':o.financialStatus==='pending'?'Pendiente':'Cancelado';
     var tel = (o.phone||o.customer_phone||'').replace(/\D/g,'');
     var cel = tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;
-    var fecha = o.createdAt&&o.createdAt.toMillis?new Date(o.createdAt.toMillis()).toLocaleDateString('es-PE'):(o.createdAt||'');
+    var fecha = shopifyDate(o);
     return '<div class="shopify-card">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">'
         +'<div>'
@@ -2942,7 +3021,7 @@ function buildShopifyOrders(){
           +'<div style="font-size:11px;color:var(--tx3)">'+fecha+'</div>'
         +'</div>'
         +'<div style="display:flex;align-items:center;gap:8px">'
-          +'<div style="font-size:15px;font-weight:700;color:var(--accent)">S/ '+parseFloat(o.total||0).toFixed(2)+'</div>'
+          +'<div style="font-size:15px;font-weight:700;color:var(--accent)">S/ '+shopifyMoney(o).toFixed(2)+'</div>'
           +(cel?'<a href="https://wa.me/'+cel+'" target="_blank" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;background:#25D366;border-radius:50%;text-decoration:none">'
             +'<svg viewBox="0 0 24 24" width="16" height="16" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>'
           +'</a>':'')
@@ -2963,7 +3042,7 @@ function buildShopifyClientes(){
     var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;
     var orders=shopifyData.orders.filter(function(o){return o.customerId===c.shopifyId||o.customerEmail===c.email;});
     var spent=orders.filter(function(o){return o.financialStatus==='paid';})
-                    .reduce(function(s,o){return s+(parseFloat(o.total)||0);},0);
+                    .reduce(function(s,o){return s+shopifyMoney(o);},0);
     return '<div class="shopify-card">'
       +'<div style="display:flex;justify-content:space-between;align-items:center">'
         +'<div style="flex:1;min-width:0">'
@@ -2998,7 +3077,7 @@ function buildShopifyAbandoned(){
   return abandoned.slice(0,50).map(function(a){
     var tel=(a.phone||a.shippingPhone||'').replace(/\D/g,'');
     var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;
-    var fecha=a.createdAt&&a.createdAt.toMillis?new Date(a.createdAt.toMillis()).toLocaleDateString('es-PE'):'';
+    var fecha=shopifyDate(a);
     var msg='Hola '+(a.firstName||a.customerName||'')+' 👋 Notamos que dejaste artículos en tu carrito. ¿Te podemos ayudar a completar tu compra? 🛍️';
     var waUrl=cel?'https://wa.me/'+cel+'?text='+encodeURIComponent(msg):'';
     return '<div class="shopify-card">'
@@ -3012,7 +3091,7 @@ function buildShopifyAbandoned(){
         +'<span class="shopify-badge sh-abandoned">Abandonado</span>'
       +'</div>'
       +'<div style="display:flex;justify-content:space-between;align-items:center">'
-        +'<div style="font-size:15px;font-weight:700;color:#dc2626">S/ '+parseFloat(a.total||0).toFixed(2)+'</div>'
+        +'<div style="font-size:15px;font-weight:700;color:#dc2626">S/ '+shopifyMoney(a).toFixed(2)+'</div>'
         +(waUrl?'<a href="'+waUrl+'" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:#25D366;color:#fff;border-radius:8px;text-decoration:none;font-size:12px;font-weight:600">'
           +'<svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>'
           +'Recuperar venta'
@@ -3029,7 +3108,7 @@ function buildShopifyDrafts(){
   return drafts.slice(0,50).map(function(d){
     var tel=(d.phone||d.shippingPhone||'').replace(/\D/g,'');
     var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;
-    var fecha=d.createdAt&&d.createdAt.toMillis?new Date(d.createdAt.toMillis()).toLocaleDateString('es-PE'):'';
+    var fecha=shopifyDate(d);
     return '<div class="shopify-card">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">'
         +'<div>'
@@ -3041,7 +3120,7 @@ function buildShopifyDrafts(){
       +'</div>'
       +'<div style="display:flex;justify-content:space-between;align-items:center">'
         +'<div>'
-          +'<div style="font-size:15px;font-weight:700;color:#6366f1">S/ '+parseFloat(d.total||0).toFixed(2)+'</div>'
+          +'<div style="font-size:15px;font-weight:700;color:#6366f1">S/ '+shopifyMoney(d).toFixed(2)+'</div>'
           +(d.items?'<div style="font-size:11px;color:var(--tx3)">'+d.items+'</div>':'')
         +'</div>'
         +(cel?'<a href="https://wa.me/'+cel+'" target="_blank" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:#25D366;border-radius:50%;text-decoration:none">'
