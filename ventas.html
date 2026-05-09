@@ -192,6 +192,25 @@ button:disabled{opacity:0.55;cursor:not-allowed;}
 .btn{transition:filter 150ms ease,transform 100ms ease !important;}
 .btn:active:not(:disabled){filter:brightness(0.80) !important;transform:scale(0.97) !important;}
 @media(hover:none){button:active:not(:disabled){filter:brightness(0.78);transform:scale(0.96);}}
+
+/* ── Shopify sub-tabs ── */
+.sst{padding:6px 12px;background:none;border:none;font-size:12px;font-weight:500;cursor:pointer;color:var(--tx2);font-family:inherit;transition:filter 150ms;}
+.sst.on{background:var(--accent);color:#fff;font-weight:700;}
+.sht{padding:7px 14px;border:0.5px solid var(--bo2);background:var(--bg2);color:var(--tx2);border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;font-family:inherit;transition:filter 150ms ease;}
+.sht.on{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700;}
+.shopify-kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
+.shopify-kpi{background:var(--bg2);border-radius:12px;padding:14px;border:0.5px solid var(--bo2);}
+.shopify-kpi .lbl{font-size:11px;color:var(--tx2);font-weight:500;margin-bottom:4px;}
+.shopify-kpi .val{font-size:22px;font-weight:800;color:var(--tx);}
+.shopify-kpi .sub{font-size:11px;color:var(--tx3);margin-top:2px;}
+.shopify-card{background:var(--bg2);border-radius:12px;padding:14px;border:0.5px solid var(--bo2);margin-bottom:8px;}
+.shopify-card .sc-name{font-size:14px;font-weight:700;color:var(--tx);margin-bottom:2px;}
+.shopify-card .sc-sub{font-size:12px;color:var(--tx2);}
+.shopify-badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;}
+.sh-confirmed{background:#d1fae5;color:#065f46;}
+.sh-pending{background:#fef3c7;color:#92400e;}
+.sh-abandoned{background:#fee2e2;color:#991b1b;}
+.sh-draft{background:#e0e7ff;color:#3730a3;}
 </style>
 </head>
 <body>
@@ -367,6 +386,37 @@ button:disabled{opacity:0.55;cursor:not-allowed;}
 
   <!-- NAV -->
   <div class="nav" id="main-nav"></div>
+</div>
+
+<!-- ── SHOPIFY MODULE ─────────────────────────────────────────────────── -->
+<div id="tab-shopify" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+  <div style="padding:14px 16px 0;flex-shrink:0">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div>
+        <h2 style="font-size:18px;font-weight:800;color:var(--tx);margin:0">Shopify</h2>
+        <p style="font-size:12px;color:var(--tx2);margin:2px 0 0">Pedidos y clientes en tiempo real</p>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <div style="display:flex;background:var(--bg2);border-radius:8px;border:0.5px solid var(--bo2);overflow:hidden">
+          <button onclick="setShopifyStore('all')" id="ss-all" class="sst on">Todas</button>
+          <button onclick="setShopifyStore('rooze')" id="ss-rooze" class="sst">ROOZE</button>
+          <button onclick="setShopifyStore('danna')" id="ss-danna" class="sst">DANNA</button>
+        </div>
+        <button onclick="loadShopifyData()" style="padding:7px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">↻ Actualizar</button>
+      </div>
+    </div>
+    <!-- Sub-tabs -->
+    <div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none" id="shopify-subtabs">
+      <button onclick="setShopifyTab('analytics')" id="sht-analytics" class="sht on">📊 Analytics</button>
+      <button onclick="setShopifyTab('orders')" id="sht-orders" class="sht">📦 Pedidos</button>
+      <button onclick="setShopifyTab('clientes')" id="sht-clientes" class="sht">👥 Clientes</button>
+      <button onclick="setShopifyTab('abandoned')" id="sht-abandoned" class="sht">🛒 Abandonados</button>
+      <button onclick="setShopifyTab('drafts')" id="sht-drafts" class="sht">📝 Preliminares</button>
+    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:14px 16px">
+    <div id="shopify-content"><div class="empty"><p>Cargando datos de Shopify...</p></div></div>
+  </div>
 </div>
 
 <!-- MODAL: NUEVA VENTA -->
@@ -602,6 +652,7 @@ const TABS_ADMIN=[
   {id:'ventas',label:'Ventas',svg:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'},
   {id:'resumen',label:'Resumen',svg:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>'},
   {id:'historial',label:'Historial',svg:'<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/>'},
+  {id:'shopify',label:'Shopify',svg:'<path d="M15.7 4.3c0 0-.2 0-.4.1-.4-1.1-1.2-2.1-2.5-2.1h-.1C12.3 1.6 11.8 1 11 1c-3.1 0-4.6 3.9-5.1 5.9l-2.2.7C3 7.9 3 8 2.9 8.3L1 19.8l14.1 2.6 6.4-1.6L15.7 4.3zM13 3.8c-.6.2-1.3.4-2 .6.4-1.5 1.1-2.3 1.7-2.6.3.5.4 1.3.3 2zm-2.5-1.8c.1 0 .3.1.4.1-.8.4-1.6 1.5-2 3.3l-1.5.5C8 3.9 9.3 2 10.5 2zm1.6 10.3c-.1.2-.4.4-.8.4-.3 0-.5-.1-.7-.2L10 14l-.6-1.5c-.2.1-.4.2-.7.2-.4 0-.7-.1-.8-.4-.1-.2 0-.5.3-.7.1-.1.3-.1.5-.1.5 0 .9.3 1 .8h.6c.1-.5.5-.8 1-.8.2 0 .4 0 .5.1.3.2.4.5.3.7z"/>'},
   {id:'config',label:'Config',svg:'<circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>'},
 ];
 
@@ -624,6 +675,7 @@ function showTab(tab){
   if(tab==='resumen')renderResumen();
   if(tab==='historial')renderHistorial();
   if(tab==='config')renderConfig();
+  if(tab==='shopify')renderShopify();
 }
 
 // ═══ ROLE HELPERS ═══
@@ -2678,6 +2730,326 @@ function loadNotaLogoFile(inp){
   var r=new FileReader();
   r.onload=function(ev){cfg.logoUrl=ev.target.result;var el=document.getElementById('cfg-lu');if(el)el.value='[logo cargado]';toast('Logo listo - guarda la configuracion');};
   r.readAsDataURL(f);
+}
+
+
+// ════════════════════════════════════════════════════════════════════════════
+// SHOPIFY MODULE — reads from Firestore (populated by Cloud Functions)
+// ════════════════════════════════════════════════════════════════════════════
+
+var curShopifyStore = 'all'; // 'all' | 'rooze' | 'danna'
+
+function setShopifyStore(store){
+  curShopifyStore = store;
+  document.querySelectorAll('.sst').forEach(function(b){b.classList.remove('on');});
+  var el = document.getElementById('ss-'+store);
+  if(el) el.classList.add('on');
+  renderShopifyContent();
+}
+
+function filterByStore(arr){
+  if(curShopifyStore === 'all') return arr;
+  return arr.filter(function(item){ return (item.store||'rooze') === curShopifyStore; });
+}
+
+var shopifyData = {
+  orders:[],
+  customers:[],
+  abandoned:[],
+  drafts:[]
+};
+var curShopifyTab = 'analytics';
+var _shopifyListeners = [];
+
+function setShopifyTab(tab){
+  curShopifyTab = tab;
+  document.querySelectorAll('.sht').forEach(function(b){b.classList.remove('on');});
+  var el = document.getElementById('sht-'+tab);
+  if(el) el.classList.add('on');
+  renderShopifyContent();
+}
+
+function renderShopify(){
+  if(!isAdmin() && !isSuper()){
+    document.getElementById('shopify-content').innerHTML = '<div class="empty"><p>Solo disponible para Admin y Super Admin</p></div>';
+    return;
+  }
+  loadShopifyData();
+}
+
+function loadShopifyData(){
+  var el = document.getElementById('shopify-content');
+  if(el) el.innerHTML = '<div class="spin" style="margin:40px auto"></div>';
+
+  // Stop previous listeners
+  _shopifyListeners.forEach(function(u){try{u();}catch(e){}});
+  _shopifyListeners = [];
+
+  var loaded = {orders:false, customers:false, abandoned:false, drafts:false};
+  function checkReady(){
+    if(loaded.orders && loaded.customers && loaded.abandoned && loaded.drafts){
+      renderShopifyContent();
+    }
+  }
+
+  // Listen orders
+  var u1 = db.collection('shopify_orders')
+    .orderBy('createdAt','desc').limit(200)
+    .onSnapshot(function(s){
+      shopifyData.orders = s.docs.map(function(d){return Object.assign({id:d.id},d.data());});
+      loaded.orders = true; checkReady();
+    }, function(){ loaded.orders=true; checkReady(); });
+  _shopifyListeners.push(u1);
+
+  // Listen customers
+  var u2 = db.collection('shopify_customers')
+    .orderBy('createdAt','desc').limit(300)
+    .onSnapshot(function(s){
+      shopifyData.customers = s.docs.map(function(d){return Object.assign({id:d.id},d.data());});
+      loaded.customers = true; checkReady();
+    }, function(){ loaded.customers=true; checkReady(); });
+  _shopifyListeners.push(u2);
+
+  // Listen abandoned checkouts
+  var u3 = db.collection('shopify_abandoned')
+    .orderBy('createdAt','desc').limit(100)
+    .onSnapshot(function(s){
+      shopifyData.abandoned = s.docs.map(function(d){return Object.assign({id:d.id},d.data());});
+      loaded.abandoned = true; checkReady();
+    }, function(){ loaded.abandoned=true; checkReady(); });
+  _shopifyListeners.push(u3);
+
+  // Listen draft orders
+  var u4 = db.collection('shopify_drafts')
+    .orderBy('createdAt','desc').limit(100)
+    .onSnapshot(function(s){
+      shopifyData.drafts = s.docs.map(function(d){return Object.assign({id:d.id},d.data());});
+      loaded.drafts = true; checkReady();
+    }, function(){ loaded.drafts=true; checkReady(); });
+  _shopifyListeners.push(u4);
+}
+
+function renderShopifyContent(){
+  var el = document.getElementById('shopify-content');
+  if(!el) return;
+  if(curShopifyTab === 'analytics') el.innerHTML = buildShopifyAnalytics();
+  else if(curShopifyTab === 'orders')   el.innerHTML = buildShopifyOrders();
+  else if(curShopifyTab === 'clientes') el.innerHTML = buildShopifyClientes();
+  else if(curShopifyTab === 'abandoned') el.innerHTML = buildShopifyAbandoned();
+  else if(curShopifyTab === 'drafts')  el.innerHTML = buildShopifyDrafts();
+}
+
+// ── ANALYTICS TAB ─────────────────────────────────────────────────────────
+function buildShopifyAnalytics(){
+  var orders    = filterByStore(shopifyData.orders);
+  var _abandoned = filterByStore(shopifyData.abandoned);
+  var _drafts    = filterByStore(shopifyData.drafts);
+  var storeLabel = curShopifyStore==='rooze'?' — ROOZE':curShopifyStore==='danna'?' — DANNA':'';
+  var total = orders.length;
+  var confirmed = orders.filter(function(o){return o.financialStatus==='paid'||o.status==='confirmed';}).length;
+  var pending   = orders.filter(function(o){return o.financialStatus==='pending'||o.status==='pending';}).length;
+  var cancelled = orders.filter(function(o){return o.status==='cancelled';}).length;
+  var revenue   = orders.filter(function(o){return o.financialStatus==='paid';})
+                        .reduce(function(s,o){return s+(parseFloat(o.total)||0);},0);
+  var avgTicket = confirmed>0?(revenue/confirmed):0;
+  var closePct  = total>0?Math.round(confirmed/total*100):0;
+  var abandoned = _abandoned.length;
+  var drafts    = _drafts.length;
+
+  // Revenue last 7 days
+  var now = Date.now();
+  var week = 7*86400000;
+  var revWeek = orders.filter(function(o){
+    var ts = o.createdAt&&o.createdAt.toMillis?o.createdAt.toMillis():(o.createdAt||0);
+    return ts > now-week && o.financialStatus==='paid';
+  }).reduce(function(s,o){return s+(parseFloat(o.total)||0);},0);
+
+  var noDataMsg = total===0
+    ? '<div style="margin-top:16px;padding:14px;background:var(--bg2);border-radius:12px;border:0.5px solid var(--bo2);text-align:center">'
+      +'<p style="font-size:13px;color:var(--tx2);margin:0">Sin datos de Shopify aún.</p>'
+      +'<p style="font-size:11px;color:var(--tx3);margin:6px 0 0">Conecta las webhooks de Shopify siguiendo la guía de configuración.</p>'
+    +'</div>' : '';
+
+  return '<div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px">'+(curShopifyStore==="all"?"📊 Todas las tiendas":curShopifyStore==="rooze"?"📊 ROOZE":"📊 DANNA")+"</div>"+'<div class="shopify-kpi-grid">'
+    +'<div class="shopify-kpi"><div class="lbl">Total pedidos</div><div class="val">'+total+'</div><div class="sub">Shopify + Manuel</div></div>'
+    +'<div class="shopify-kpi"><div class="lbl">Confirmados</div><div class="val" style="color:#059669">'+confirmed+'</div><div class="sub">Pagados</div></div>'
+    +'<div class="shopify-kpi"><div class="lbl">Por confirmar</div><div class="val" style="color:#d97706">'+pending+'</div><div class="sub">Pendientes</div></div>'
+    +'<div class="shopify-kpi"><div class="lbl">% Cierre</div><div class="val" style="color:var(--accent)">'+closePct+'%</div><div class="sub">Tasa de conversión</div></div>'
+    +'<div class="shopify-kpi"><div class="lbl">Ticket promedio</div><div class="val">S/ '+avgTicket.toFixed(0)+'</div><div class="sub">Por pedido pagado</div></div>'
+    +'<div class="shopify-kpi"><div class="lbl">Ingresos (7 días)</div><div class="val" style="color:var(--accent)">S/ '+revWeek.toFixed(0)+'</div><div class="sub">Esta semana</div></div>'
+    +'<div class="shopify-kpi"><div class="lbl">Abandonados</div><div class="val" style="color:#dc2626">'+abandoned+'</div><div class="sub">Checkouts sin pagar</div></div>'
+    +'<div class="shopify-kpi"><div class="lbl">Preliminares</div><div class="val" style="color:#6366f1">'+drafts+'</div><div class="sub">Draft orders</div></div>'
+  +'</div>'
+  + buildShopifyRevenueBar(orders)
+  + noDataMsg;
+}
+
+function buildShopifyRevenueBar(orders){
+  if(!orders.length) return '';
+  var days = [];
+  for(var i=6;i>=0;i--){
+    var d = new Date(); d.setDate(d.getDate()-i);
+    var label = String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
+    var dayStart = new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();
+    var dayEnd   = dayStart+86400000;
+    var rev = orders.filter(function(o){
+      var ts = o.createdAt&&o.createdAt.toMillis?o.createdAt.toMillis():(o.createdAt||0);
+      return ts>=dayStart&&ts<dayEnd&&o.financialStatus==='paid';
+    }).reduce(function(s,o){return s+(parseFloat(o.total)||0);},0);
+    days.push({label:label,rev:rev});
+  }
+  var max = Math.max.apply(null, days.map(function(d){return d.rev;}))||1;
+  var bars = days.map(function(d){
+    var h = Math.round(d.rev/max*60)||2;
+    return '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">'
+      +'<div style="font-size:9px;color:var(--tx3)">S/'+Math.round(d.rev)+'</div>'
+      +'<div style="height:'+h+'px;background:var(--accent);border-radius:4px 4px 0 0;width:100%;min-height:2px"></div>'
+      +'<div style="font-size:9px;color:var(--tx3)">'+d.label+'</div>'
+    +'</div>';
+  }).join('');
+  return '<div style="background:var(--bg2);border-radius:12px;padding:14px;border:0.5px solid var(--bo2);margin-bottom:16px">'
+    +'<div style="font-size:12px;font-weight:700;color:var(--tx);margin-bottom:12px">Ingresos últimos 7 días</div>'
+    +'<div style="display:flex;align-items:flex-end;gap:4px;height:80px">'+bars+'</div>'
+  +'</div>';
+}
+
+// ── ORDERS TAB ────────────────────────────────────────────────────────────
+function buildShopifyOrders(){
+  var orders    = filterByStore(shopifyData.orders);
+  var _abandoned = filterByStore(shopifyData.abandoned);
+  var _drafts    = filterByStore(shopifyData.drafts);
+  var storeLabel = curShopifyStore==='rooze'?' — ROOZE':curShopifyStore==='danna'?' — DANNA':'';
+  if(!orders.length) return '<div class="empty"><p>Sin pedidos de Shopify</p><p style="font-size:12px">Los pedidos aparecerán aquí cuando se configuren las webhooks</p></div>';
+  return orders.slice(0,50).map(function(o){
+    var status = o.financialStatus==='paid'?'sh-confirmed':o.financialStatus==='pending'?'sh-pending':'sh-abandoned';
+    var label  = o.financialStatus==='paid'?'Pagado':o.financialStatus==='pending'?'Pendiente':'Cancelado';
+    var tel = (o.phone||o.customer_phone||'').replace(/\D/g,'');
+    var cel = tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;
+    var fecha = o.createdAt&&o.createdAt.toMillis?new Date(o.createdAt.toMillis()).toLocaleDateString('es-PE'):(o.createdAt||'');
+    return '<div class="shopify-card">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">'
+        +'<div>'
+          +'<div class="sc-name">'+(o.customerName||o.customer_name||'Sin nombre')+'</div>'
+          +'<div class="sc-sub">'+(o.orderNumber||o.name||o.id||'')+'</div>'
+        +'</div>'
+        +'<span class="shopify-badge '+status+'">'+label+'</span>'
+        +(o.store?'<span style="padding:2px 7px;border-radius:20px;font-size:9px;font-weight:700;background:var(--bg3);color:var(--tx2)">'+(o.store==='rooze'?'ROOZE':'DANNA')+'</span>':'')
+        +'</div>'
+      +'</div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center">'
+        +'<div>'
+          +'<div style="font-size:13px;color:var(--tx2)">'+(o.items||'')+'</div>'
+          +'<div style="font-size:11px;color:var(--tx3)">'+fecha+'</div>'
+        +'</div>'
+        +'<div style="display:flex;align-items:center;gap:8px">'
+          +'<div style="font-size:15px;font-weight:700;color:var(--accent)">S/ '+parseFloat(o.total||0).toFixed(2)+'</div>'
+          +(cel?'<a href="https://wa.me/'+cel+'" target="_blank" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;background:#25D366;border-radius:50%;text-decoration:none">'
+            +'<svg viewBox="0 0 24 24" width="16" height="16" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>'
+          +'</a>':'')
+        +'</div>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
+// ── CLIENTES TAB ──────────────────────────────────────────────────────────
+function buildShopifyClientes(){
+  var clientes = filterByStore(shopifyData.customers);
+  if(!clientes.length) return '<div class="empty"><p>Sin clientes de Shopify</p></div>';
+  return '<div style="margin-bottom:10px"><input oninput="filterShopifyClients(this.value)" placeholder="Buscar cliente..." style="width:100%;padding:10px 12px;background:var(--bg2);border:0.5px solid var(--bo2);border-radius:10px;font-size:13px;color:var(--tx);font-family:inherit;box-sizing:border-box"></div>'
+  +'<div id="shopify-clients-list">'
+  +clientes.slice(0,80).map(function(c){
+    var tel=(c.phone||'').replace(/\D/g,'');
+    var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;
+    var orders=shopifyData.orders.filter(function(o){return o.customerId===c.shopifyId||o.customerEmail===c.email;});
+    var spent=orders.filter(function(o){return o.financialStatus==='paid';})
+                    .reduce(function(s,o){return s+(parseFloat(o.total)||0);},0);
+    return '<div class="shopify-card">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center">'
+        +'<div style="flex:1;min-width:0">'
+          +'<div class="sc-name">'+(c.firstName||'')+(c.lastName?' '+c.lastName:'')+'</div>'
+          +'<div class="sc-sub">'+(c.email||'')+'</div>'
+          +(c.phone?'<div class="sc-sub">📱 '+c.phone+'</div>':'')
+          +(c.city?'<div class="sc-sub">📍 '+c.city+(c.country?', '+c.country:'')+'</div>':'')
+          +'<div style="font-size:11px;color:var(--tx3);margin-top:3px">'+orders.length+' pedido'+(orders.length!==1?'s':'')+' · S/ '+spent.toFixed(0)+' gastado</div>'
+        +'</div>'
+        +(cel?'<a href="https://wa.me/'+cel+'" target="_blank" style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:#25D366;border-radius:50%;text-decoration:none;flex-shrink:0">'
+          +'<svg viewBox="0 0 24 24" width="18" height="18" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>'
+        +'</a>':'')
+      +'</div>'
+    +'</div>';
+  }).join('')+'</div>';
+}
+
+function filterShopifyClients(q){
+  q=q.toLowerCase();
+  var list=document.getElementById('shopify-clients-list');if(!list)return;
+  var cards=list.querySelectorAll('.shopify-card');
+  cards.forEach(function(card){
+    var txt=card.textContent.toLowerCase();
+    card.style.display=txt.includes(q)?'':'none';
+  });
+}
+
+// ── ABANDONED TAB ─────────────────────────────────────────────────────────
+function buildShopifyAbandoned(){
+  var abandoned=filterByStore(shopifyData.abandoned);
+  if(!abandoned.length) return '<div class="empty"><p>Sin checkouts abandonados</p><p style="font-size:12px">Aparecerán checkouts no completados de Shopify</p></div>';
+  return abandoned.slice(0,50).map(function(a){
+    var tel=(a.phone||a.shippingPhone||'').replace(/\D/g,'');
+    var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;
+    var fecha=a.createdAt&&a.createdAt.toMillis?new Date(a.createdAt.toMillis()).toLocaleDateString('es-PE'):'';
+    var msg='Hola '+(a.firstName||a.customerName||'')+' 👋 Notamos que dejaste artículos en tu carrito. ¿Te podemos ayudar a completar tu compra? 🛍️';
+    var waUrl=cel?'https://wa.me/'+cel+'?text='+encodeURIComponent(msg):'';
+    return '<div class="shopify-card">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">'
+        +'<div>'
+          +'<div class="sc-name">'+(a.firstName||a.customerName||a.email||'Visitante')+(a.lastName?' '+a.lastName:'')+'</div>'
+          +(a.email?'<div class="sc-sub">'+a.email+'</div>':'')
+          +(a.phone?'<div class="sc-sub">📱 '+a.phone+'</div>':'')
+          +'<div style="font-size:11px;color:var(--tx3)">'+fecha+'</div>'
+        +'</div>'
+        +'<span class="shopify-badge sh-abandoned">Abandonado</span>'
+      +'</div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center">'
+        +'<div style="font-size:15px;font-weight:700;color:#dc2626">S/ '+parseFloat(a.total||0).toFixed(2)+'</div>'
+        +(waUrl?'<a href="'+waUrl+'" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:#25D366;color:#fff;border-radius:8px;text-decoration:none;font-size:12px;font-weight:600">'
+          +'<svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>'
+          +'Recuperar venta'
+        +'</a>':'')
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
+// ── DRAFT ORDERS TAB ──────────────────────────────────────────────────────
+function buildShopifyDrafts(){
+  var drafts=filterByStore(shopifyData.drafts);
+  if(!drafts.length) return '<div class="empty"><p>Sin pedidos preliminares</p><p style="font-size:12px">Los draft orders de Shopify aparecerán aquí</p></div>';
+  return drafts.slice(0,50).map(function(d){
+    var tel=(d.phone||d.shippingPhone||'').replace(/\D/g,'');
+    var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;
+    var fecha=d.createdAt&&d.createdAt.toMillis?new Date(d.createdAt.toMillis()).toLocaleDateString('es-PE'):'';
+    return '<div class="shopify-card">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">'
+        +'<div>'
+          +'<div class="sc-name">'+(d.customerName||d.name||'Sin nombre')+'</div>'
+          +'<div class="sc-sub">'+(d.orderNumber||d.id||'')+'</div>'
+          +'<div style="font-size:11px;color:var(--tx3)">'+fecha+'</div>'
+        +'</div>'
+        +'<span class="shopify-badge sh-draft">Preliminar</span>'
+      +'</div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center">'
+        +'<div>'
+          +'<div style="font-size:15px;font-weight:700;color:#6366f1">S/ '+parseFloat(d.total||0).toFixed(2)+'</div>'
+          +(d.items?'<div style="font-size:11px;color:var(--tx3)">'+d.items+'</div>':'')
+        +'</div>'
+        +(cel?'<a href="https://wa.me/'+cel+'" target="_blank" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:#25D366;border-radius:50%;text-decoration:none">'
+          +'<svg viewBox="0 0 24 24" width="16" height="16" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>'
+        +'</a>':'')
+      +'</div>'
+    +'</div>';
+  }).join('');
 }
 
 
