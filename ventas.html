@@ -2863,6 +2863,7 @@ function loadShopifyData(){
   // Stop previous listeners
   _shopifyListeners.forEach(function(u){try{u();}catch(e){}});
   _shopifyListeners = [];
+  shopifyData._errors = [];
 
   var loaded = {orders:false, customers:false, abandoned:false, drafts:false};
   function checkReady(){
@@ -2871,41 +2872,32 @@ function loadShopifyData(){
     }
   }
 
-  // Listen orders
-  var u1 = db.collection('shopify_orders')
-    .orderBy('receivedAt','desc').limit(200)
-    .onSnapshot(function(s){
-      shopifyData.orders = s.docs.map(function(d){return normalizeShopifyDoc(d,'order');});
-      loaded.orders = true; checkReady();
-    }, function(){ loaded.orders=true; checkReady(); });
-  _shopifyListeners.push(u1);
+  function sortShopifyList(list){
+    return list.sort(function(a,b){ return shopifyTime(b) - shopifyTime(a); });
+  }
 
-  // Listen customers
-  var u2 = db.collection('shopify_customers')
-    .orderBy('receivedAt','desc').limit(300)
-    .onSnapshot(function(s){
-      shopifyData.customers = s.docs.map(function(d){return normalizeShopifyDoc(d,'customer');});
-      loaded.customers = true; checkReady();
-    }, function(){ loaded.customers=true; checkReady(); });
-  _shopifyListeners.push(u2);
+  function listenShopifyCollection(collectionName, targetKey, type, limitNum){
+    // Lectura robusta: sin orderBy para evitar que Firestore devuelva 0 si falta receivedAt
+    // o si alguna regla/índice bloquea la consulta ordenada. Ordenamos en JavaScript.
+    return db.collection(collectionName).limit(limitNum).onSnapshot(function(s){
+      shopifyData[targetKey] = sortShopifyList(s.docs.map(function(d){
+        return normalizeShopifyDoc(d,type);
+      }));
+      loaded[targetKey] = true;
+      checkReady();
+    }, function(err){
+      console.error('Error leyendo '+collectionName, err);
+      shopifyData[targetKey] = [];
+      shopifyData._errors.push(collectionName+': '+(err && err.message ? err.message : 'Error desconocido'));
+      loaded[targetKey] = true;
+      checkReady();
+    });
+  }
 
-  // Listen abandoned checkouts
-  var u3 = db.collection('shopify_abandoned')
-    .orderBy('receivedAt','desc').limit(100)
-    .onSnapshot(function(s){
-      shopifyData.abandoned = s.docs.map(function(d){return normalizeShopifyDoc(d,'abandoned');});
-      loaded.abandoned = true; checkReady();
-    }, function(){ loaded.abandoned=true; checkReady(); });
-  _shopifyListeners.push(u3);
-
-  // Listen draft orders
-  var u4 = db.collection('shopify_drafts')
-    .orderBy('receivedAt','desc').limit(100)
-    .onSnapshot(function(s){
-      shopifyData.drafts = s.docs.map(function(d){return normalizeShopifyDoc(d,'draft');});
-      loaded.drafts = true; checkReady();
-    }, function(){ loaded.drafts=true; checkReady(); });
-  _shopifyListeners.push(u4);
+  _shopifyListeners.push(listenShopifyCollection('shopify_orders', 'orders', 'order', 200));
+  _shopifyListeners.push(listenShopifyCollection('shopify_customers', 'customers', 'customer', 300));
+  _shopifyListeners.push(listenShopifyCollection('shopify_abandoned', 'abandoned', 'abandoned', 100));
+  _shopifyListeners.push(listenShopifyCollection('shopify_drafts', 'drafts', 'draft', 100));
 }
 
 function renderShopifyContent(){
@@ -2943,14 +2935,20 @@ function buildShopifyAnalytics(){
     return ts > now-week && o.financialStatus==='paid';
   }).reduce(function(s,o){return s+shopifyMoney(o);},0);
 
-  var noDataMsg = total===0
+  var errorMsg = shopifyData._errors && shopifyData._errors.length
+    ? '<div style="margin-top:16px;padding:14px;background:#fee2e2;border-radius:12px;border:0.5px solid #fca5a5;text-align:left">'
+      +'<p style="font-size:13px;color:#991b1b;margin:0;font-weight:700">Error leyendo Shopify en Firestore</p>'
+      +'<p style="font-size:11px;color:#991b1b;margin:6px 0 0">'+shopifyData._errors.join('<br>')+'</p>'
+    +'</div>' : '';
+
+  var noDataMsg = total===0 && !errorMsg
     ? '<div style="margin-top:16px;padding:14px;background:var(--bg2);border-radius:12px;border:0.5px solid var(--bo2);text-align:center">'
       +'<p style="font-size:13px;color:var(--tx2);margin:0">Sin datos de Shopify aún.</p>'
-      +'<p style="font-size:11px;color:var(--tx3);margin:6px 0 0">Conecta las webhooks de Shopify siguiendo la guía de configuración.</p>'
+      +'<p style="font-size:11px;color:var(--tx3);margin:6px 0 0">Los documentos existen, pero esta vista no encontró pedidos para el filtro seleccionado.</p>'
     +'</div>' : '';
 
   return '<div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px">'+(curShopifyStore==="all"?"📊 Todas las tiendas":curShopifyStore==="rooze"?"📊 ROOZE":"📊 DANNA")+"</div>"+'<div class="shopify-kpi-grid">'
-    +'<div class="shopify-kpi"><div class="lbl">Total pedidos</div><div class="val">'+total+'</div><div class="sub">Shopify + Manuel</div></div>'
+    +'<div class="shopify-kpi"><div class="lbl">Total pedidos</div><div class="val">'+total+'</div><div class="sub">Shopify + Manual</div></div>'
     +'<div class="shopify-kpi"><div class="lbl">Confirmados</div><div class="val" style="color:#059669">'+confirmed+'</div><div class="sub">Pagados</div></div>'
     +'<div class="shopify-kpi"><div class="lbl">Por confirmar</div><div class="val" style="color:#d97706">'+pending+'</div><div class="sub">Pendientes</div></div>'
     +'<div class="shopify-kpi"><div class="lbl">% Cierre</div><div class="val" style="color:var(--accent)">'+closePct+'%</div><div class="sub">Tasa de conversión</div></div>'
@@ -2960,6 +2958,7 @@ function buildShopifyAnalytics(){
     +'<div class="shopify-kpi"><div class="lbl">Preliminares</div><div class="val" style="color:#6366f1">'+drafts+'</div><div class="sub">Draft orders</div></div>'
   +'</div>'
   + buildShopifyRevenueBar(orders)
+  + errorMsg
   + noDataMsg;
 }
 
