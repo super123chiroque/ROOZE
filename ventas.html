@@ -444,6 +444,20 @@ button:disabled{opacity:0.55;cursor:not-allowed;}
   .shopify-tabs .sht{padding:7px 11px !important;font-size:11.5px !important;}
 }
 
+
+/* ── Shopify Date Filter v15 ─────────────────────────────── */
+.shopify-date-filter{position:relative;display:flex;align-items:center;gap:8px;padding-top:8px;flex-wrap:wrap;}
+.shopify-date-btn{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:0.5px solid var(--bo);border-radius:999px;padding:8px 12px;font-size:11.5px;font-weight:750;color:var(--tx);font-family:var(--fs);box-shadow:0 2px 7px rgba(0,0,0,0.03);}
+.shopify-date-btn span{color:var(--accent);font-weight:850;}
+.shopify-date-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;width:210px;background:var(--bg);border:0.5px solid var(--bo2);border-radius:14px;box-shadow:0 14px 35px rgba(0,0,0,0.13);overflow:hidden;z-index:70;}
+.shopify-date-menu.open{display:block;}
+.shopify-date-menu .di{padding:11px 14px;border-bottom:0.5px solid var(--bo);font-size:12px;font-weight:650;color:var(--tx);cursor:pointer;}
+.shopify-date-menu .di:last-child{border-bottom:none;}
+.shopify-date-menu .di.on{background:var(--accent2);color:var(--accent);font-weight:850;}
+.shopify-date-custom{display:none;align-items:center;gap:6px;width:100%;}
+.shopify-date-custom input{min-width:0;flex:1;background:var(--bg);border:0.5px solid var(--bo);border-radius:9px;padding:8px 9px;font-size:11px;color:var(--tx);font-family:var(--fs);}
+.shopify-date-custom button{background:var(--accent);color:#fff;border:none;border-radius:9px;padding:8px 10px;font-size:11px;font-weight:800;font-family:var(--fs);}
+
 </style>
 </head>
 <body>
@@ -648,6 +662,23 @@ button:disabled{opacity:0.55;cursor:not-allowed;}
       <button onclick="setShopifyTab('clientes')" id="sht-clientes" class="sht">👥 Clientes</button>
       <button onclick="setShopifyTab('abandoned')" id="sht-abandoned" class="sht">🛒 Abandonados</button>
       <button onclick="setShopifyTab('drafts')" id="sht-drafts" class="sht">📝 Preliminares</button>
+    </div>
+    <div class="shopify-date-filter">
+      <button class="shopify-date-btn" onclick="toggleShopifyDateDrop()">Filtrar: <span id="shopify-date-label">Todo</span> ▼</button>
+      <div class="shopify-date-menu" id="shopify-date-drop">
+        <div class="di on" onclick="setShopifyDatePeriod('all','Todo',this)">Todo</div>
+        <div class="di" onclick="setShopifyDatePeriod('today','Hoy',this)">Hoy</div>
+        <div class="di" onclick="setShopifyDatePeriod('yesterday','Ayer',this)">Ayer</div>
+        <div class="di" onclick="setShopifyDatePeriod('week','Semana',this)">Esta semana</div>
+        <div class="di" onclick="setShopifyDatePeriod('15days','15 días',this)">Últimos 15 días</div>
+        <div class="di" onclick="setShopifyDatePeriod('month','Mes',this)">Este mes</div>
+        <div class="di" onclick="setShopifyDatePeriod('custom','Personalizado',this)">Personalizado</div>
+      </div>
+      <div class="shopify-date-custom" id="shopify-date-custom">
+        <input type="date" id="shopify-date-from">
+        <input type="date" id="shopify-date-to">
+        <button onclick="applyShopifyCustomDate()">Ver</button>
+      </div>
     </div>
   </div>
   <div class="shopify-scroll">
@@ -3272,14 +3303,17 @@ function setShopifyStore(store){
 }
 
 function filterByStore(arr){
-  arr=arr||[];
-  if(isSuper() && curShopifyStore === 'all') return arr;
+  arr = arr || [];
+  var list = arr;
   if(!isSuper()){
-    var allowed=getAllowedShopifyStores();
-    if(allowed.indexOf(curShopifyStore)===-1)curShopifyStore=allowed[0]||'';
+    var allowed = getAllowedShopifyStores();
+    if(allowed.indexOf(curShopifyStore) === -1) curShopifyStore = allowed[0] || '';
   }
-  if(!curShopifyStore)return[];
-  return arr.filter(function(item){ return (item.store||'rooze') === curShopifyStore; });
+  if(!(isSuper() && curShopifyStore === 'all')){
+    if(!curShopifyStore) return [];
+    list = list.filter(function(item){ return normalizeShopifyStoreName(item.store || 'rooze') === curShopifyStore; });
+  }
+  return list.filter(shopifyPassesDate);
 }
 
 var shopifyData = {
@@ -3289,6 +3323,9 @@ var shopifyData = {
   drafts:[]
 };
 var curShopifyTab = 'analytics';
+var curShopifyDatePeriod = 'all';
+var shopifyCustomFrom = 0;
+var shopifyCustomTo = Date.now();
 var _shopifyListeners = [];
 
 // Normaliza documentos que llegan desde Cloud Functions.
@@ -3329,6 +3366,67 @@ function shopifyDateTime(item){
   var hh = d.toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
   return dd+'-'+mm+'-'+yy+' · '+hh;
 }
+
+function shopifyDayStartFromDate(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); }
+function shopifyDayEndFromDate(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999).getTime(); }
+function getShopifyDateRange(){
+  var n = new Date();
+  if(curShopifyDatePeriod === 'all') return {start:0, end:Infinity};
+  if(curShopifyDatePeriod === 'today') return {start:shopifyDayStartFromDate(n), end:shopifyDayEndFromDate(n)};
+  if(curShopifyDatePeriod === 'yesterday'){
+    var y = new Date(n); y.setDate(n.getDate()-1);
+    return {start:shopifyDayStartFromDate(y), end:shopifyDayEndFromDate(y)};
+  }
+  if(curShopifyDatePeriod === 'week'){
+    var w = new Date(n); w.setDate(n.getDate()-((n.getDay()+6)%7));
+    return {start:shopifyDayStartFromDate(w), end:shopifyDayEndFromDate(n)};
+  }
+  if(curShopifyDatePeriod === '15days'){
+    var f = new Date(n); f.setDate(n.getDate()-15);
+    return {start:shopifyDayStartFromDate(f), end:shopifyDayEndFromDate(n)};
+  }
+  if(curShopifyDatePeriod === 'month'){
+    return {start:new Date(n.getFullYear(), n.getMonth(), 1).getTime(), end:shopifyDayEndFromDate(n)};
+  }
+  if(curShopifyDatePeriod === 'custom') return {start:shopifyCustomFrom || 0, end:shopifyCustomTo || Infinity};
+  return {start:0, end:Infinity};
+}
+function shopifyPassesDate(item){
+  if(curShopifyDatePeriod === 'all') return true;
+  var t = shopifyTime(item);
+  if(!t) return false;
+  var r = getShopifyDateRange();
+  return t >= r.start && t <= r.end;
+}
+function toggleShopifyDateDrop(){
+  var d = document.getElementById('shopify-date-drop');
+  if(d) d.classList.toggle('open');
+}
+function setShopifyDatePeriod(p,label,el){
+  curShopifyDatePeriod = p;
+  var drop = document.getElementById('shopify-date-drop');
+  if(drop){
+    drop.classList.remove('open');
+    drop.querySelectorAll('.di').forEach(function(x){x.classList.remove('on');});
+  }
+  if(el) el.classList.add('on');
+  var lbl = document.getElementById('shopify-date-label');
+  if(lbl) lbl.textContent = label || 'Todo';
+  var custom = document.getElementById('shopify-date-custom');
+  if(custom) custom.style.display = p === 'custom' ? 'flex' : 'none';
+  if(p !== 'custom') renderShopifyContent();
+}
+function applyShopifyCustomDate(){
+  var f = (document.getElementById('shopify-date-from') || {}).value;
+  var t = (document.getElementById('shopify-date-to') || {}).value;
+  if(!f || !t){ toast('Selecciona fechas'); return; }
+  shopifyCustomFrom = new Date(f + 'T00:00:00').getTime();
+  shopifyCustomTo = new Date(t + 'T23:59:59').getTime();
+  var lbl = document.getElementById('shopify-date-label');
+  if(lbl) lbl.textContent = 'Personalizado';
+  renderShopifyContent();
+}
+
 function shopifyProvince(item){
   if(!item) return '';
   var p = item.payload || {};
@@ -3683,7 +3781,7 @@ function buildShopifyOrders(){
     var meta = shopifyStatusMeta(o);
     var tel = (o.phone||o.customer_phone||'').replace(/\D/g,'');
     var cel = tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;
-    var fecha = shopifyShortDate(o);
+    var fecha = shopifyDateTime(o);
     var province = shopifyProvince(o);
     var product = o.items || 'Producto sin detalle';
     var name = o.customerName || o.customer_name || 'Sin nombre';

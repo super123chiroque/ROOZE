@@ -347,6 +347,21 @@ tbody tr:hover{background:var(--bg2)}
 .meta-mini-val{font-size:18px;font-weight:850;color:var(--tx);margin-top:3px}
 @media(max-width:1000px){.meta-pc-grid{grid-template-columns:repeat(2,1fr)}.meta-mini-list{grid-template-columns:1fr}}
 
+
+/* ── Shopify Date Filter PC v7 ─────────────────────────────── */
+.shopify-date-wrap{position:relative;display:inline-block;}
+.shopify-date-btn{display:inline-flex;align-items:center;gap:7px;background:var(--bg);border:1px solid var(--bo2);border-radius:999px;padding:8px 14px;font-size:12px;font-weight:750;color:var(--tx);font-family:inherit;cursor:pointer;white-space:nowrap;}
+.shopify-date-btn span{color:var(--accent);font-weight:850;}
+.shopify-date-menu{display:none;position:absolute;right:0;top:calc(100% + 7px);min-width:210px;background:var(--bg);border:1px solid var(--bo2);border-radius:12px;box-shadow:0 12px 35px rgba(0,0,0,.13);overflow:hidden;z-index:120;}
+.shopify-date-menu.open{display:block;}
+.shopify-date-menu .di{padding:11px 15px;font-size:12px;font-weight:650;color:var(--tx);border-bottom:1px solid var(--bo);cursor:pointer;}
+.shopify-date-menu .di:last-child{border-bottom:none;}
+.shopify-date-menu .di.on{background:var(--accent2);color:var(--accent);font-weight:850;}
+.shopify-date-custom-pc{display:none;align-items:center;gap:7px;margin-left:0;}
+.shopify-date-custom-pc input{background:var(--bg);border:1px solid var(--bo2);border-radius:999px;padding:8px 11px;font-size:12px;color:var(--tx);font-family:inherit;}
+.shopify-date-custom-pc button{background:var(--accent);color:#fff;border:none;border-radius:999px;padding:8px 13px;font-size:12px;font-weight:800;font-family:inherit;cursor:pointer;}
+@media(max-width:980px){.shopify-date-custom-pc{width:100%;margin-top:8px}.shopify-date-custom-pc input{flex:1;min-width:0}}
+
 </style>
 </head>
 <body>
@@ -569,6 +584,23 @@ tbody tr:hover{background:var(--bg2)}
               <button onclick="setShopifyStore('danna')" id="ss-danna" class="sst">DANNA</button>
             </div>
             <button onclick="loadShopifyData()" class="shopify-refresh">↻ Actualizar</button>
+            <div class="shopify-date-wrap">
+              <button class="shopify-date-btn" onclick="toggleShopifyDateDrop()">Filtrar: <span id="shopify-date-label">Todo</span> ▼</button>
+              <div class="shopify-date-menu" id="shopify-date-drop">
+                <div class="di on" onclick="setShopifyDatePeriod('all','Todo',this)">Todo</div>
+                <div class="di" onclick="setShopifyDatePeriod('today','Hoy',this)">Hoy</div>
+                <div class="di" onclick="setShopifyDatePeriod('yesterday','Ayer',this)">Ayer</div>
+                <div class="di" onclick="setShopifyDatePeriod('week','Semana',this)">Esta semana</div>
+                <div class="di" onclick="setShopifyDatePeriod('15days','15 días',this)">Últimos 15 días</div>
+                <div class="di" onclick="setShopifyDatePeriod('month','Mes',this)">Este mes</div>
+                <div class="di" onclick="setShopifyDatePeriod('custom','Personalizado',this)">Personalizado</div>
+              </div>
+            </div>
+            <div class="shopify-date-custom-pc" id="shopify-date-custom">
+              <input type="date" id="shopify-date-from">
+              <input type="date" id="shopify-date-to">
+              <button onclick="applyShopifyCustomDate()">Ver</button>
+            </div>
           </div>
         </div>
         <div class="shopify-tabs" id="shopify-subtabs">
@@ -2297,6 +2329,7 @@ function renderHistorialPC(){
 
 // ═══ SHOPIFY PC MODULE ══════════════════════════════════════
 let curShopifyStore='all', curShopifyTab='analytics';
+let curShopifyDatePeriod='all', shopifyCustomFrom=0, shopifyCustomTo=Date.now();
 let shopifyData={orders:[],customers:[],abandoned:[],drafts:[],_errors:[]};
 let _shopifyListeners=[];
 
@@ -2335,6 +2368,55 @@ function shopifyLineItems(payload){
     return items.map(function(li){var qty=li.quantity?(li.quantity+'× '):'';return qty+(li.title||li.name||li.product_title||'Producto');}).join(', ');
   }catch(e){return '';}
 }
+
+function shopifyDayStartFromDate(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();}
+function shopifyDayEndFromDate(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate(),23,59,59,999).getTime();}
+function getShopifyDateRange(){
+  var n=new Date();
+  if(curShopifyDatePeriod==='all')return{start:0,end:Infinity};
+  if(curShopifyDatePeriod==='today')return{start:shopifyDayStartFromDate(n),end:shopifyDayEndFromDate(n)};
+  if(curShopifyDatePeriod==='yesterday'){var y=new Date(n);y.setDate(n.getDate()-1);return{start:shopifyDayStartFromDate(y),end:shopifyDayEndFromDate(y)};}
+  if(curShopifyDatePeriod==='week'){var w=new Date(n);w.setDate(n.getDate()-((n.getDay()+6)%7));return{start:shopifyDayStartFromDate(w),end:shopifyDayEndFromDate(n)};}
+  if(curShopifyDatePeriod==='15days'){var f=new Date(n);f.setDate(n.getDate()-15);return{start:shopifyDayStartFromDate(f),end:shopifyDayEndFromDate(n)};}
+  if(curShopifyDatePeriod==='month')return{start:new Date(n.getFullYear(),n.getMonth(),1).getTime(),end:shopifyDayEndFromDate(n)};
+  if(curShopifyDatePeriod==='custom')return{start:shopifyCustomFrom||0,end:shopifyCustomTo||Infinity};
+  return{start:0,end:Infinity};
+}
+function shopifyPassesDate(item){
+  if(curShopifyDatePeriod==='all')return true;
+  var t=shopifyTime(item);if(!t)return false;
+  var r=getShopifyDateRange();
+  return t>=r.start&&t<=r.end;
+}
+function toggleShopifyDateDrop(){
+  var d=document.getElementById('shopify-date-drop');
+  if(d)d.classList.toggle('open');
+}
+function setShopifyDatePeriod(p,label,el){
+  curShopifyDatePeriod=p;
+  var drop=document.getElementById('shopify-date-drop');
+  if(drop){
+    drop.classList.remove('open');
+    drop.querySelectorAll('.di').forEach(function(x){x.classList.remove('on');});
+  }
+  if(el)el.classList.add('on');
+  var lbl=document.getElementById('shopify-date-label');
+  if(lbl)lbl.textContent=label||'Todo';
+  var custom=document.getElementById('shopify-date-custom');
+  if(custom)custom.style.display=p==='custom'?'flex':'none';
+  if(p!=='custom')renderShopifyContent();
+}
+function applyShopifyCustomDate(){
+  var f=(document.getElementById('shopify-date-from')||{}).value;
+  var t=(document.getElementById('shopify-date-to')||{}).value;
+  if(!f||!t){toast('Selecciona fechas');return;}
+  shopifyCustomFrom=new Date(f+'T00:00:00').getTime();
+  shopifyCustomTo=new Date(t+'T23:59:59').getTime();
+  var lbl=document.getElementById('shopify-date-label');
+  if(lbl)lbl.textContent='Personalizado';
+  renderShopifyContent();
+}
+
 function shopifyProvince(item){
   if(!item)return '';var p=item.payload||{};
   var picks=[item.province,item.city,item.region,item.shippingProvince,item.shippingCity,item.billingProvince,item.billingCity,p.province,p.city,p.region,p.shipping_province,p.shipping_city,p.billing_province,p.billing_city,p.shipping_address&&p.shipping_address.province,p.shipping_address&&p.shipping_address.city,p.billing_address&&p.billing_address.province,p.billing_address&&p.billing_address.city,p.customer&&p.customer.default_address&&p.customer.default_address.province,p.customer&&p.customer.default_address&&p.customer.default_address.city];
@@ -2378,14 +2460,17 @@ function applyShopifyStorePermissionsUI(){
   ['all','rooze','danna'].forEach(function(s){var b=document.getElementById('ss-'+s);if(b)b.classList.toggle('on',s===curShopifyStore);});
 }
 function filterByStore(list){
-  list=list||[];
-  if(isSuper()&&curShopifyStore==='all')return list;
+  list = list || [];
+  var out = list;
   if(!isSuper()){
     var allowed=getAllowedShopifyStores();
     if(allowed.indexOf(curShopifyStore)===-1)curShopifyStore=allowed[0]||'';
   }
-  if(!curShopifyStore)return[];
-  return list.filter(function(x){return normalizeShopifyStoreName(x.store||'rooze')===curShopifyStore;});
+  if(!(isSuper()&&curShopifyStore==='all')){
+    if(!curShopifyStore)return[];
+    out = out.filter(function(x){return normalizeShopifyStoreName(x.store||'rooze')===curShopifyStore;});
+  }
+  return out.filter(shopifyPassesDate);
 }
 function setShopifyStore(store){
   if(!isSuper()&&getAllowedShopifyStores().indexOf(store)===-1){toast('No tienes permiso para esa tienda');return;}
@@ -2513,7 +2598,7 @@ function buildShopifyRevenueBars(orders){
 function buildShopifyOrders(){
   var orders=filterByStore(shopifyData.orders);if(!orders.length)return '<div class="empty">Sin pedidos de Shopify</div>';
   return '<div class="tbl-wrap shopify-table-wrap"><table class="shopify-pc-table"><thead><tr><th>Cliente</th><th>Producto</th><th>Estado</th><th>Acciones</th><th>Total</th><th>Contacto</th></tr></thead><tbody>'+orders.slice(0,80).map(function(o){
-    var meta=shopifyStatusMeta(o);var tel=(o.phone||o.customer_phone||'').replace(/\D/g,'');var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;var fecha=shopifyShortDate(o);var province=shopifyProvince(o);var product=o.items||'Producto sin detalle';var name=o.customerName||o.customer_name||'Sin nombre';var orderRef=o.orderNumber||o.name||o.id||'';var firstName=String(name).split(' ')[0]||'';var msg='Hola '+firstName+' 👋 Te escribimos de '+(o.store==='danna'?'Danna':'Rooze')+' para confirmar tu pedido '+(orderRef?('#'+orderRef):'')+'. ¿Nos confirmas tus datos por favor?';var waUrl=cel?('https://wa.me/'+cel+'?text='+encodeURIComponent(msg)):'';
+    var meta=shopifyStatusMeta(o);var tel=(o.phone||o.customer_phone||'').replace(/\D/g,'');var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;var fecha=shopifyDateTime(o);var province=shopifyProvince(o);var product=o.items||'Producto sin detalle';var name=o.customerName||o.customer_name||'Sin nombre';var orderRef=o.orderNumber||o.name||o.id||'';var firstName=String(name).split(' ')[0]||'';var msg='Hola '+firstName+' 👋 Te escribimos de '+(o.store==='danna'?'Danna':'Rooze')+' para confirmar tu pedido '+(orderRef?('#'+orderRef):'')+'. ¿Nos confirmas tus datos por favor?';var waUrl=cel?('https://wa.me/'+cel+'?text='+encodeURIComponent(msg)):'';
     var states=[{key:'pending',label:'Pendiente',cls:'pending'},{key:'confirmed',label:'Confirmado',cls:'confirmed'},{key:'cancelled',label:'Cancelado',cls:'cancelled'}];
     var actions='<div class="shopify-status-actions">'+states.map(function(s){var active=meta.key===s.key?' active':'';return '<button class="shopify-status-btn '+s.cls+active+'" onclick="setShopifyOrderStatus(\''+shopifyJs(o.id)+'\',\''+s.key+'\')">'+s.label+'</button>';}).join('')+'</div>';
     var note=o.manualStatusUpdatedAt?'<div class="shopify-manual-note">↻ Estado actualizado</div>':'';
