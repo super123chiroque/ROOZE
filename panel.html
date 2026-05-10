@@ -2452,10 +2452,15 @@ function applyShopifyStorePermissionsUI(){
     [btnAll,btnR,btnD].forEach(function(b){if(b)b.style.display='';});
     if(!curShopifyStore)curShopifyStore='all';
   }else{
-    if(btnAll)btnAll.style.display='none';
+    // Administrador: "Todas" también visible, pero solo suma sus tiendas asignadas.
+    if(btnAll)btnAll.style.display=allowed.length?'':'none';
     if(btnR)btnR.style.display=allowed.indexOf('rooze')!==-1?'':'none';
     if(btnD)btnD.style.display=allowed.indexOf('danna')!==-1?'':'none';
-    if(allowed.indexOf(curShopifyStore)===-1)curShopifyStore=allowed[0]||'';
+    if(curShopifyStore==='all'&&allowed.length){
+      curShopifyStore='all';
+    }else if(allowed.indexOf(curShopifyStore)===-1){
+      curShopifyStore=allowed.length?'all':'';
+    }
   }
   ['all','rooze','danna'].forEach(function(s){var b=document.getElementById('ss-'+s);if(b)b.classList.toggle('on',s===curShopifyStore);});
 }
@@ -2464,16 +2469,22 @@ function filterByStore(list){
   var out = list;
   if(!isSuper()){
     var allowed=getAllowedShopifyStores();
-    if(allowed.indexOf(curShopifyStore)===-1)curShopifyStore=allowed[0]||'';
+    if(curShopifyStore==='all'){
+      out=out.filter(function(x){return allowed.indexOf(normalizeShopifyStoreName(x.store||'rooze'))!==-1;});
+      return out.filter(shopifyPassesDate);
+    }
+    if(allowed.indexOf(curShopifyStore)===-1)curShopifyStore=allowed.length?'all':'';
   }
-  if(!(isSuper()&&curShopifyStore==='all')){
+  if(curShopifyStore!=='all'){
     if(!curShopifyStore)return[];
     out = out.filter(function(x){return normalizeShopifyStoreName(x.store||'rooze')===curShopifyStore;});
   }
   return out.filter(shopifyPassesDate);
 }
 function setShopifyStore(store){
-  if(!isSuper()&&getAllowedShopifyStores().indexOf(store)===-1){toast('No tienes permiso para esa tienda');return;}
+  var allowed=getAllowedShopifyStores();
+  if(!isSuper()&&store!=='all'&&allowed.indexOf(store)===-1){toast('No tienes permiso para esa tienda');return;}
+  if(!isSuper()&&store==='all'&&!allowed.length){toast('No tienes tiendas asignadas');return;}
   curShopifyStore=store;
   applyShopifyStorePermissionsUI();
   renderShopifyContent();
