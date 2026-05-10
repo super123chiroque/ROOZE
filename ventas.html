@@ -2068,6 +2068,26 @@ async function renderConfig(){
       <div id="shopify-admin-perms"><div class="spin" style="margin:16px auto"></div></div>
     </div>
     <div class="card">
+      <div class="section-label">Usuarios y roles</div>
+      <p style="font-size:12px;color:var(--tx2);margin-bottom:10px">Crea Super Admin, Administrador o Vendedor. Al eliminar, se retira el acceso a la app.</p>
+      <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:10px">
+        <input id="um-name" placeholder="Nombre completo" style="padding:9px 10px;border:0.5px solid var(--bo2);border-radius:9px;background:var(--bg2);font-size:13px;font-family:inherit">
+        <input id="um-email" placeholder="Correo de acceso" type="email" style="padding:9px 10px;border:0.5px solid var(--bo2);border-radius:9px;background:var(--bg2);font-size:13px;font-family:inherit">
+        <input id="um-pass" placeholder="Contraseña inicial mínimo 6 caracteres" type="password" style="padding:9px 10px;border:0.5px solid var(--bo2);border-radius:9px;background:var(--bg2);font-size:13px;font-family:inherit">
+        <select id="um-role" onchange="toggleUserManagerStores()" style="padding:9px 10px;border:0.5px solid var(--bo2);border-radius:9px;background:var(--bg2);font-size:13px;font-family:inherit">
+          <option value="vendedor">Vendedor</option>
+          <option value="admin">Administrador</option>
+          <option value="superuser">Super Admin</option>
+        </select>
+        <div id="um-stores" style="display:none;gap:8px;flex-wrap:wrap">
+          <label style="display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border-radius:999px;padding:7px 10px;font-size:12px;font-weight:700"><input type="checkbox" id="um-rooze" style="accent-color:var(--accent)"> ROOZE</label>
+          <label style="display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border-radius:999px;padding:7px 10px;font-size:12px;font-weight:700"><input type="checkbox" id="um-danna" style="accent-color:var(--accent)"> DANNA</label>
+        </div>
+        <button class="btn" onclick="createManagedUser()">+ Crear usuario</button>
+      </div>
+      <div id="users-manager"><div class="spin" style="margin:16px auto"></div></div>
+    </div>
+    <div class="card">
       <div class="section-label">Nota de venta — Personalización</div>
       <div style="display:flex;flex-direction:column;gap:10px">
         <div class="fld"><label>Nombre de tienda</label>
@@ -2135,6 +2155,8 @@ async function renderConfig(){
     </div>`;
   renderScaleList();
   renderShopifyAdminPerms();
+  renderUsersManager();
+  toggleUserManagerStores();
 }
 
 function renderShopifyAdminPerms(){
@@ -2173,6 +2195,100 @@ async function saveAdminShopifyStores(uid){
     toast('✓ Permisos Shopify guardados');
   }catch(e){toast('Error: '+e.message);}
 }
+
+
+function toggleUserManagerStores(){
+  var role=(document.getElementById('um-role')||{}).value||'vendedor';
+  var el=document.getElementById('um-stores');
+  if(el)el.style.display=role==='admin'?'flex':'none';
+}
+
+function roleLabel(r){
+  if(r==='superuser')return 'Super Admin';
+  if(r==='admin')return 'Administrador';
+  return 'Vendedor';
+}
+
+function getSecondaryAuthApp(){
+  var name='userCreate';
+  try{return firebase.app(name);}catch(e){return firebase.initializeApp(FBCFG,name);}
+}
+
+async function createManagedUser(){
+  if(!isSuper())return toast('Solo Super Admin');
+  var name=(document.getElementById('um-name')||{}).value||'';
+  var email=(document.getElementById('um-email')||{}).value||'';
+  var pass=(document.getElementById('um-pass')||{}).value||'';
+  var role=(document.getElementById('um-role')||{}).value||'vendedor';
+  name=name.trim(); email=email.trim().toLowerCase();
+  if(!name||!email||!pass){toast('Completa nombre, correo y contraseña');return;}
+  if(pass.length<6){toast('La contraseña debe tener mínimo 6 caracteres');return;}
+  var stores=[];
+  if(role==='admin'){
+    if((document.getElementById('um-rooze')||{}).checked)stores.push('rooze');
+    if((document.getElementById('um-danna')||{}).checked)stores.push('danna');
+  }
+  try{
+    var sec=getSecondaryAuthApp();
+    var cred=await sec.auth().createUserWithEmailAndPassword(email,pass);
+    var uid=cred.user.uid;
+    await db.collection('users').doc(uid).set({
+      name:name,
+      email:email,
+      role:role,
+      shopifyStores:stores,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy:(cu&&cu.id)||''
+    },{merge:true});
+    await sec.auth().signOut();
+    ['um-name','um-email','um-pass'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+    ['um-rooze','um-danna'].forEach(function(id){var el=document.getElementById(id);if(el)el.checked=false;});
+    toast('✓ Usuario creado');
+    renderUsersManager();
+    renderShopifyAdminPerms();
+  }catch(e){
+    console.error(e);
+    toast('Error creando usuario: '+(e.message||e));
+  }
+}
+
+async function deleteManagedUser(uid,name){
+  if(!isSuper())return toast('Solo Super Admin');
+  if(uid===(cu&&cu.id)){toast('No puedes eliminar tu propio usuario');return;}
+  if(!confirm('¿Eliminar acceso de '+(name||'este usuario')+'?'))return;
+  try{
+    await db.collection('users').doc(uid).delete();
+    toast('✓ Acceso eliminado');
+    renderUsersManager();
+    renderShopifyAdminPerms();
+  }catch(e){toast('Error: '+e.message);}
+}
+
+function renderUsersManager(){
+  var el=document.getElementById('users-manager');
+  if(!el||!isSuper())return;
+  db.collection('users').get().then(function(snap){
+    var rows=snap.docs.map(function(doc){
+      var u=Object.assign({id:doc.id},doc.data());
+      var stores=getAllowedShopifyStores(u);
+      var name=u.name||u.email||doc.id;
+      var email=u.email?'<div style="font-size:10px;color:var(--tx3);margin-top:1px">'+shopifyHtml(u.email)+'</div>':'';
+      return '<div style="background:var(--bg2);border:0.5px solid var(--bo2);border-radius:12px;padding:11px 12px;margin-bottom:8px">'
+        +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">'
+          +'<div><div style="font-size:13px;font-weight:800;color:var(--tx)">'+shopifyHtml(name)+'</div>'+email
+            +'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">'
+              +'<span style="font-size:10px;font-weight:800;background:var(--accent2);color:var(--accent);border-radius:999px;padding:4px 8px">'+roleLabel(u.role)+'</span>'
+              +(stores.length?'<span style="font-size:10px;font-weight:800;background:#f3f4f6;color:#374151;border-radius:999px;padding:4px 8px">'+stores.map(function(s){return s.toUpperCase();}).join(' · ')+'</span>':'')
+            +'</div></div>'
+          +'<button onclick="deleteManagedUser(\''+doc.id+'\',\''+shopifyJs(name)+'\')" style="border:none;background:#fee2e2;color:#991b1b;border-radius:8px;padding:7px 9px;font-size:11px;font-weight:800">Eliminar</button>'
+        +'</div></div>';
+    }).join('');
+    el.innerHTML=rows||'<div style="font-size:12px;color:var(--tx3);padding:8px 0">No hay usuarios.</div>';
+  }).catch(function(e){
+    el.innerHTML='<div class="err" style="display:block">Error cargando usuarios: '+shopifyHtml(e.message)+'</div>';
+  });
+}
+
 
 function openAddProd(){
   $('prod-nombre').value='';$('prod-costo').value='';
@@ -3189,6 +3305,12 @@ function shopifyShortDate(item){
   var yy = String(d.getFullYear()).slice(-2);
   return dd+'-'+mm+'-'+yy;
 }
+function shopifyShortTime(item){
+  var t = shopifyTime(item);
+  if(!t) return '';
+  var d = new Date(t);
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
 function shopifyProvince(item){
   if(!item) return '';
   var p = item.payload || {};
@@ -3544,6 +3666,7 @@ function buildShopifyOrders(){
     var tel = (o.phone||o.customer_phone||'').replace(/\D/g,'');
     var cel = tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;
     var fecha = shopifyShortDate(o);
+    var hora = shopifyShortTime(o);
     var province = shopifyProvince(o);
     var product = o.items || 'Producto sin detalle';
     var name = o.customerName || o.customer_name || 'Sin nombre';
@@ -3565,7 +3688,7 @@ function buildShopifyOrders(){
       +'<div class="shopify-order-head">'
         +'<div class="shopify-order-left">'
           +'<div class="sc-name">'+shopifyHtml(name)+'</div>'
-          +'<div class="sc-sub">Pedido '+shopifyHtml(orderRef)+(province?' | '+shopifyHtml(province):'')+(fecha?' | '+shopifyHtml(fecha):'')+'</div>'
+          +'<div class="sc-sub">Pedido '+shopifyHtml(orderRef)+(province?' | '+shopifyHtml(province):'')+(fecha?' | '+shopifyHtml(fecha):'')+(hora?' | '+shopifyHtml(hora):'')+'</div>'
           +note
         +'</div>'
         +'<div class="shopify-order-tags">'
