@@ -491,33 +491,9 @@ tbody tr:hover{background:var(--bg2)}
         <div class="meta-pc-head">
           <div class="meta-pc-title">
             <h3>Mi meta</h3>
-            <p>Seguimiento de tus ventas, avance y sueldo estimado según el período seleccionado.</p>
+            <p>Seguimiento semanal de tus ventas, avance y sueldo estimado.</p>
           </div>
         </div>
-
-        <div class="hist-pc-filters" id="meta-pc-filters">
-          <div class="hist-dd-wrap">
-            <button class="hist-dd-btn" id="meta-pc-date-btn" onclick="toggleHistPCDrop('meta-pc-date-drop')">
-              Filtrar: <span id="meta-pc-date-label">Esta semana</span> <span style="font-size:10px">▼</span>
-            </button>
-            <div class="hist-dd-menu" id="meta-pc-date-drop">
-              <div class="hist-dd-item" onclick="setMetaPCPeriod('today','Hoy',this)">Hoy</div>
-              <div class="hist-dd-item" onclick="setMetaPCPeriod('yesterday','Ayer',this)">Ayer</div>
-              <div class="hist-dd-item on" onclick="setMetaPCPeriod('week','Esta semana',this)">Esta semana</div>
-              <div class="hist-dd-item" onclick="setMetaPCPeriod('15days','Últimos 15 días',this)">Últimos 15 días</div>
-              <div class="hist-dd-item" onclick="setMetaPCPeriod('month','Este mes',this)">Este mes</div>
-              <div class="hist-dd-item" onclick="setMetaPCPeriod('custom','Personalizado',this)">Personalizado</div>
-            </div>
-          </div>
-
-          <div class="hist-custom-range" id="meta-pc-custom">
-            <input type="date" id="meta-pc-from">
-            <span style="color:var(--tx3)">→</span>
-            <input type="date" id="meta-pc-to">
-            <button class="btn-apply" onclick="applyMetaPCCustom()">Ver</button>
-          </div>
-        </div>
-
         <div id="meta-pc-content"><div class="spin"></div></div>
       </div>
 
@@ -1817,9 +1793,17 @@ function renderConfig(){
     <div class="grid-2">
       <div>
         <div class="card" style="margin-bottom:14px">
-          <div class="card-title">Productos y precios</div>
-          <div id="cfg-prods"></div>
-          <button onclick="openAddProd()" style="margin-top:10px;padding:8px 16px;background:var(--accent2);color:var(--accent);border:1px dashed var(--accent);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;width:100%">+ Agregar producto</button>
+          <div onclick="toggleCfgProductsPC()" style="display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer">
+            <div>
+              <div class="card-title" style="margin-bottom:2px">Productos y precios</div>
+              <div style="font-size:12px;color:var(--tx2);font-weight:600">${(cfg.productos||[]).length} productos configurados</div>
+            </div>
+            <span id="cfg-products-arrow-pc" style="font-size:14px;color:var(--tx3);transition:transform .2s">▼</span>
+          </div>
+          <div id="cfg-products-body-pc" style="display:none;padding-top:10px">
+            <div id="cfg-prods"></div>
+            <button onclick="openAddProd()" style="margin-top:10px;padding:8px 16px;background:var(--accent2);color:var(--accent);border:1px dashed var(--accent);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;width:100%">+ Agregar producto</button>
+          </div>
         </div>
         <div class="card">
           <div class="card-title">Costos de delivery</div>
@@ -1846,28 +1830,82 @@ function renderConfig(){
         </div>
         <div class="card shopify-admin-perm-card">
           <div class="card-title">Usuarios y roles</div>
-          <p style="font-size:12px;color:var(--tx2);margin-bottom:10px">Crea Super Admin, Administrador o Vendedor. Al eliminar, se retira el acceso a la app.</p>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-            <input id="um-name" placeholder="Nombre completo" style="padding:9px 10px;border:1px solid var(--bo2);border-radius:9px;background:var(--bg2);font-size:13px;font-family:inherit">
-            <input id="um-email" placeholder="Correo de acceso" type="email" style="padding:9px 10px;border:1px solid var(--bo2);border-radius:9px;background:var(--bg2);font-size:13px;font-family:inherit">
-            <input id="um-pass" placeholder="Contraseña inicial mínimo 6 caracteres" type="password" style="padding:9px 10px;border:1px solid var(--bo2);border-radius:9px;background:var(--bg2);font-size:13px;font-family:inherit">
-            <select id="um-role" onchange="toggleUserManagerStores()" style="padding:9px 10px;border:1px solid var(--bo2);border-radius:9px;background:var(--bg2);font-size:13px;font-family:inherit">
-              <option value="vendedor">Vendedor</option>
-              <option value="admin">Administrador</option>
-              <option value="superuser">Super Admin</option>
-            </select>
-          </div>
-          <div id="um-stores" style="display:none;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-            <label style="display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border-radius:999px;padding:7px 10px;font-size:12px;font-weight:700"><input type="checkbox" id="um-rooze" style="accent-color:var(--accent)"> ROOZE</label>
-            <label style="display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border-radius:999px;padding:7px 10px;font-size:12px;font-weight:700"><input type="checkbox" id="um-danna" style="accent-color:var(--accent)"> DANNA</label>
-            <button onclick="createManagedUser()" class="btn-primary" style="padding:8px 16px;margin-left:auto">+ Crear usuario</button>
-          </div>
-          <button id="um-create-standalone" onclick="createManagedUser()" class="btn-primary" style="padding:8px 16px;margin-bottom:10px">+ Crear usuario</button>
-          <div id="users-manager"><div class="spin" style="margin:16px auto"></div></div>
+          <p style="font-size:12px;color:var(--tx2);margin-bottom:10px">Cambia el rol de cada usuario sin afectar ventas registradas.</p>
+          <div id="users-role-list-pc"><div class="spin" style="margin:16px auto"></div></div>
         </div>
       </div>
     </div>`;
-  renderCfgProds();renderCfgScale();renderShopifyAdminPerms();renderUsersManager();toggleUserManagerStores();
+  renderCfgProds();renderCfgScale();renderShopifyAdminPerms();renderUsersRoleListPC();
+}
+
+
+
+function toggleCfgProductsPC(){
+  var body=document.getElementById('cfg-products-body-pc');
+  var arrow=document.getElementById('cfg-products-arrow-pc');
+  if(!body)return;
+  var open=body.style.display!=='none';
+  body.style.display=open?'none':'block';
+  if(arrow)arrow.style.transform=open?'':'rotate(180deg)';
+}
+
+function roleLabel(role){
+  if(role==='superuser')return 'Super Admin';
+  if(role==='admin')return 'Administrador';
+  return 'Vendedor';
+}
+
+function renderUsersRoleListPC(){
+  var el=document.getElementById('users-role-list-pc');
+  if(!el||!isSuper())return;
+  db.collection('users').get().then(function(snap){
+    var docs=[];
+    snap.forEach(function(doc){docs.push({id:doc.id,data:doc.data()||{}});});
+    docs.sort(function(a,b){
+      var an=(a.data.name||a.data.email||'').toLowerCase();
+      var bn=(b.data.name||b.data.email||'').toLowerCase();
+      return an.localeCompare(bn);
+    });
+    if(!docs.length){el.innerHTML='<div style="font-size:12px;color:var(--tx3);padding:8px 0">No hay usuarios registrados.</div>';return;}
+    el.innerHTML=docs.map(function(row){
+      var u=row.data, uid=row.id, role=u.role||'vendedor';
+      return '<div class="shopify-admin-perm-row">'
+        +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">'
+          +'<div style="min-width:0">'
+            +'<div style="font-size:13px;font-weight:750;color:var(--tx)">'+shopifyHtml(u.name||u.displayName||u.email||uid)+'</div>'
+            +(u.email?'<div style="font-size:10px;color:var(--tx3);margin-top:1px">'+shopifyHtml(u.email)+'</div>':'')
+          +'</div>'
+          +'<span style="font-size:10px;font-weight:800;color:var(--accent);background:var(--accent2);border-radius:999px;padding:5px 8px;white-space:nowrap">'+roleLabel(role)+'</span>'
+        +'</div>'
+        +'<div class="shopify-admin-perm-actions">'
+          +'<select id="role-pc-'+uid+'" style="flex:1;min-width:160px;background:var(--bg);border:1px solid var(--bo);border-radius:999px;padding:7px 12px;font-size:12px;color:var(--tx);font-family:inherit">'
+            +'<option value="superuser" '+(role==='superuser'?'selected':'')+'>Super Admin</option>'
+            +'<option value="admin" '+(role==='admin'?'selected':'')+'>Administrador</option>'
+            +'<option value="vendedor" '+(role==='vendedor'?'selected':'')+'>Vendedor</option>'
+          +'</select>'
+          +'<button onclick="saveUserRolePC(\''+uid+'\')">Guardar</button>'
+        +'</div>'
+      +'</div>';
+    }).join('');
+  }).catch(function(e){
+    el.innerHTML='<div class="err" style="display:block">Error cargando usuarios: '+shopifyHtml(e.message)+'</div>';
+  });
+}
+
+async function saveUserRolePC(uid){
+  if(!isSuper())return toast('Solo Super Admin');
+  var sel=document.getElementById('role-pc-'+uid);
+  if(!sel)return;
+  var newRole=sel.value;
+  if(uid===cu.id && newRole!=='superuser'){
+    if(!confirm('Estás cambiando tu propio rol de Super Admin. Podrías perder acceso a configuración. ¿Continuar?'))return;
+  }
+  try{
+    await db.collection('users').doc(uid).set({role:newRole},{merge:true});
+    toast('✓ Rol actualizado a '+roleLabel(newRole));
+    renderUsersRoleListPC();
+    renderShopifyAdminPerms();
+  }catch(e){toast('Error: '+e.message);}
 }
 
 
@@ -1908,91 +1946,6 @@ async function saveAdminShopifyStores(uid){
     toast('✓ Permisos Shopify guardados');
   }catch(e){toast('Error: '+e.message);}
 }
-
-
-function toggleUserManagerStores(){
-  var role=(document.getElementById('um-role')||{}).value||'vendedor';
-  var el=document.getElementById('um-stores');
-  var btn=document.getElementById('um-create-standalone');
-  if(el)el.style.display=role==='admin'?'flex':'none';
-  if(btn)btn.style.display=role==='admin'?'none':'inline-block';
-}
-function roleLabel(r){
-  if(r==='superuser')return 'Super Admin';
-  if(r==='admin')return 'Administrador';
-  return 'Vendedor';
-}
-function getSecondaryAuthApp(){
-  var name='userCreate';
-  try{return firebase.app(name);}catch(e){return firebase.initializeApp(FBCFG,name);}
-}
-async function createManagedUser(){
-  if(!isSuper())return toast('Solo Super Admin');
-  var name=(document.getElementById('um-name')||{}).value||'';
-  var email=(document.getElementById('um-email')||{}).value||'';
-  var pass=(document.getElementById('um-pass')||{}).value||'';
-  var role=(document.getElementById('um-role')||{}).value||'vendedor';
-  name=name.trim(); email=email.trim().toLowerCase();
-  if(!name||!email||!pass){toast('Completa nombre, correo y contraseña');return;}
-  if(pass.length<6){toast('La contraseña debe tener mínimo 6 caracteres');return;}
-  var stores=[];
-  if(role==='admin'){
-    if((document.getElementById('um-rooze')||{}).checked)stores.push('rooze');
-    if((document.getElementById('um-danna')||{}).checked)stores.push('danna');
-  }
-  try{
-    var sec=getSecondaryAuthApp();
-    var cred=await sec.auth().createUserWithEmailAndPassword(email,pass);
-    var uid=cred.user.uid;
-    await db.collection('users').doc(uid).set({
-      name:name,email:email,role:role,shopifyStores:stores,
-      createdAt:firebase.firestore.FieldValue.serverTimestamp(),
-      createdBy:(cu&&cu.id)||''
-    },{merge:true});
-    await sec.auth().signOut();
-    ['um-name','um-email','um-pass'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
-    ['um-rooze','um-danna'].forEach(function(id){var el=document.getElementById(id);if(el)el.checked=false;});
-    toast('✓ Usuario creado');
-    renderUsersManager();
-    renderShopifyAdminPerms();
-  }catch(e){console.error(e);toast('Error creando usuario: '+(e.message||e));}
-}
-async function deleteManagedUser(uid,name){
-  if(!isSuper())return toast('Solo Super Admin');
-  if(uid===(cu&&cu.id)){toast('No puedes eliminar tu propio usuario');return;}
-  if(!confirm('¿Eliminar acceso de '+(name||'este usuario')+'?'))return;
-  try{
-    await db.collection('users').doc(uid).delete();
-    toast('✓ Acceso eliminado');
-    renderUsersManager();
-    renderShopifyAdminPerms();
-  }catch(e){toast('Error: '+e.message);}
-}
-function renderUsersManager(){
-  var el=document.getElementById('users-manager');
-  if(!el||!isSuper())return;
-  db.collection('users').get().then(function(snap){
-    var rows=snap.docs.map(function(doc){
-      var u=Object.assign({id:doc.id},doc.data());
-      var stores=getAllowedShopifyStores(u);
-      var name=u.name||u.email||doc.id;
-      var email=u.email?'<div style="font-size:11px;color:var(--tx3);margin-top:1px">'+shopifyHtml(u.email)+'</div>':'';
-      return '<div class="shopify-admin-perm-row">'
-        +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">'
-          +'<div><div style="font-size:13px;font-weight:800;color:var(--tx)">'+shopifyHtml(name)+'</div>'+email
-            +'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">'
-              +'<span style="font-size:10px;font-weight:800;background:var(--accent2);color:var(--accent);border-radius:999px;padding:4px 8px">'+roleLabel(u.role)+'</span>'
-              +(stores.length?'<span style="font-size:10px;font-weight:800;background:#f3f4f6;color:#374151;border-radius:999px;padding:4px 8px">'+stores.map(function(s){return s.toUpperCase();}).join(' · ')+'</span>':'')
-            +'</div></div>'
-          +'<button onclick="deleteManagedUser(\''+doc.id+'\',\''+shopifyJs(name)+'\')" style="border:none;background:#fee2e2;color:#991b1b;border-radius:8px;padding:7px 10px;font-size:11px;font-weight:800;cursor:pointer">Eliminar</button>'
-        +'</div></div>';
-    }).join('');
-    el.innerHTML=rows||'<div style="font-size:12px;color:var(--tx3);padding:8px 0">No hay usuarios.</div>';
-  }).catch(function(e){
-    el.innerHTML='<div class="err" style="display:block">Error cargando usuarios: '+shopifyHtml(e.message)+'</div>';
-  });
-}
-
 
 function renderCfgProds(){
   const el=document.getElementById('cfg-prods'); if(!el)return;
@@ -2058,42 +2011,8 @@ async function saveDelivery(){
 
 
 // ═══ MI META PC · espejo de app móvil ═══════════════════════
-let metaPCPeriod='week', metaPCCustomFrom=0, metaPCCustomTo=Date.now();
-
 function getWeekRangePC(){
   return {start:weekStart(), end:dayEnd(new Date().getFullYear(),new Date().getMonth(),new Date().getDate())};
-}
-function getMetaPCRange(){
-  var n=new Date(),Y=n.getFullYear(),M=n.getMonth(),D=n.getDate();
-  if(metaPCPeriod==='today')return{start:dayStart(Y,M,D),end:dayEnd(Y,M,D),label:'Hoy'};
-  if(metaPCPeriod==='yesterday')return{start:dayStart(Y,M,D-1),end:dayEnd(Y,M,D-1),label:'Ayer'};
-  if(metaPCPeriod==='week')return{start:weekStart(),end:dayEnd(Y,M,D),label:'Esta semana'};
-  if(metaPCPeriod==='15days')return{start:dayStart(Y,M,D-15),end:dayEnd(Y,M,D),label:'Últimos 15 días'};
-  if(metaPCPeriod==='month')return{start:dayStart(Y,M,1),end:dayEnd(Y,M,D),label:'Este mes'};
-  if(metaPCPeriod==='custom')return{start:metaPCCustomFrom,end:metaPCCustomTo,label:'Personalizado'};
-  return{start:weekStart(),end:dayEnd(Y,M,D),label:'Esta semana'};
-}
-function setMetaPCPeriod(p,label,el){
-  metaPCPeriod=p;
-  var d=document.getElementById('meta-pc-date-drop');
-  if(d){
-    d.classList.remove('open');
-    d.querySelectorAll('.hist-dd-item').forEach(function(x){x.classList.remove('on');});
-  }
-  if(el)el.classList.add('on');
-  var lbl=document.getElementById('meta-pc-date-label');
-  if(lbl)lbl.textContent=label||'Esta semana';
-  var custom=document.getElementById('meta-pc-custom');
-  if(custom)custom.style.display=p==='custom'?'flex':'none';
-  if(p!=='custom')renderMetaPC();
-}
-function applyMetaPCCustom(){
-  var f=(document.getElementById('meta-pc-from')||{}).value;
-  var t=(document.getElementById('meta-pc-to')||{}).value;
-  if(!f||!t){toast('Selecciona fechas');return;}
-  metaPCCustomFrom=new Date(f+'T00:00:00').getTime();
-  metaPCCustomTo=new Date(t+'T23:59:59').getTime();
-  renderMetaPC();
 }
 function getNextSalaryLevelPC(numVentas){
   var scale=[...(salaryScale||[])].sort(function(a,b){return a.ventas-b.ventas;});
@@ -2107,7 +2026,7 @@ function renderMetaPC(){
   if(!el)return;
   var uid=cu&&cu.id;
   var name=(cu&&cu.name)||'Usuario';
-  var r=getMetaPCRange();
+  var r=getWeekRangePC();
   var mine=orders.filter(function(o){
     var t=o.fv||o.fechaMs||o.ts;
     return o.vendedorId===uid && t>=r.start && t<=r.end;
@@ -2124,7 +2043,7 @@ function renderMetaPC(){
   var nextTarget=next?next.ventas:ventasCount;
   var faltan=next?Math.max(0,next.ventas-ventasCount):0;
   var pct=nextTarget>0?Math.min(100,Math.round((ventasCount/nextTarget)*100)):100;
-  var periodText=(r.label||'Periodo')+' · '+new Date(r.start).toLocaleDateString('es-PE')+' al '+new Date(r.end).toLocaleDateString('es-PE');
+  var periodText='Semana actual · '+new Date(r.start).toLocaleDateString('es-PE')+' al '+new Date(r.end).toLocaleDateString('es-PE');
 
   var recent=[...mine].sort(function(a,b){return (b.fv||b.ts)-(a.fv||a.ts);}).slice(0,10);
 
@@ -2132,7 +2051,7 @@ function renderMetaPC(){
     '<div class="meta-pc-grid">'+
       '<div class="kpi"><div class="kpi-lbl">Mis ventas</div><div class="kpi-val">'+ventasCount+'</div><div class="kpi-delta">'+periodText+'</div></div>'+
       '<div class="kpi"><div class="kpi-lbl">Ingresos</div><div class="kpi-val g">'+fmtC0(ingresos)+'</div><div class="kpi-delta">Sin anulados</div></div>'+
-      '<div class="kpi"><div class="kpi-lbl">Sueldo estimado</div><div class="kpi-val g">'+fmtC0(sueldo)+'</div><div class="kpi-delta">Según período filtrado</div></div>'+
+      '<div class="kpi"><div class="kpi-lbl">Sueldo estimado</div><div class="kpi-val g">'+fmtC0(sueldo)+'</div><div class="kpi-delta">Según escala semanal</div></div>'+
       '<div class="kpi"><div class="kpi-lbl">Próximo nivel</div><div class="kpi-val">'+(next?next.ventas:'✓')+'</div><div class="kpi-delta">'+(next?('Faltan '+faltan+' ventas'):'Meta máxima alcanzada')+'</div></div>'+
     '</div>'+
     '<div class="meta-progress-card">'+
@@ -2149,7 +2068,7 @@ function renderMetaPC(){
       '</div>'+
     '</div>'+
     '<div class="card">'+
-      '<div class="card-title">Últimas ventas del período</div>'+
+      '<div class="card-title">Últimas ventas de la semana</div>'+
       (recent.length?'<div class="tbl-wrap" style="box-shadow:none;border-radius:10px;margin-top:10px"><table><thead><tr><th>Fecha</th><th>Cliente</th><th>Producto</th><th>Cobrar</th><th>Estado</th></tr></thead><tbody>'+
         recent.map(function(o){return '<tr>'+
           '<td style="font-size:12px;color:var(--tx2)">'+(o.fechaVenta||'—')+'</td>'+
@@ -2157,7 +2076,7 @@ function renderMetaPC(){
           '<td style="font-size:12px">'+((o.producto)||'—')+'</td>'+
           '<td style="font-weight:800;color:var(--accent)">'+fmtC(o.cobrar||0)+'</td>'+
           '<td><span class="badge '+(o.estado||'pendiente')+'">'+statusLabel(o.estado||'pendiente')+'</span></td>'+
-        '</tr>';}).join('')+'</tbody></table></div>':'<div class="empty">Aún no tienes ventas en este período</div>')+
+        '</tr>';}).join('')+'</tbody></table></div>':'<div class="empty">Aún no tienes ventas esta semana</div>')+
     '</div>';
 }
 
@@ -2353,10 +2272,11 @@ function shopifyShortDate(item){
   var d=new Date(t),dd=String(d.getDate()).padStart(2,'0'),mm=String(d.getMonth()+1).padStart(2,'0'),yy=String(d.getFullYear()).slice(-2);
   return dd+'-'+mm+'-'+yy;
 }
-function shopifyShortTime(item){
+function shopifyDateTime(item){
   var t=shopifyTime(item);if(!t)return '';
-  var d=new Date(t);
-  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  var d=new Date(t),dd=String(d.getDate()).padStart(2,'0'),mm=String(d.getMonth()+1).padStart(2,'0'),yy=String(d.getFullYear()).slice(-2);
+  var hh=d.toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
+  return dd+'-'+mm+'-'+yy+' · '+hh;
 }
 function shopifyMoney(item){
   if(!item)return 0;var v=item.total;
@@ -2548,11 +2468,11 @@ function buildShopifyRevenueBars(orders){
 function buildShopifyOrders(){
   var orders=filterByStore(shopifyData.orders);if(!orders.length)return '<div class="empty">Sin pedidos de Shopify</div>';
   return '<div class="tbl-wrap shopify-table-wrap"><table class="shopify-pc-table"><thead><tr><th>Cliente</th><th>Producto</th><th>Estado</th><th>Acciones</th><th>Total</th><th>Contacto</th></tr></thead><tbody>'+orders.slice(0,80).map(function(o){
-    var meta=shopifyStatusMeta(o);var tel=(o.phone||o.customer_phone||'').replace(/\D/g,'');var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;var fecha=shopifyShortDate(o);var hora=shopifyShortTime(o);var province=shopifyProvince(o);var product=o.items||'Producto sin detalle';var name=o.customerName||o.customer_name||'Sin nombre';var orderRef=o.orderNumber||o.name||o.id||'';var firstName=String(name).split(' ')[0]||'';var msg='Hola '+firstName+' 👋 Te escribimos de '+(o.store==='danna'?'Danna':'Rooze')+' para confirmar tu pedido '+(orderRef?('#'+orderRef):'')+'. ¿Nos confirmas tus datos por favor?';var waUrl=cel?('https://wa.me/'+cel+'?text='+encodeURIComponent(msg)):'';
+    var meta=shopifyStatusMeta(o);var tel=(o.phone||o.customer_phone||'').replace(/\D/g,'');var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;var fecha=shopifyShortDate(o);var province=shopifyProvince(o);var product=o.items||'Producto sin detalle';var name=o.customerName||o.customer_name||'Sin nombre';var orderRef=o.orderNumber||o.name||o.id||'';var firstName=String(name).split(' ')[0]||'';var msg='Hola '+firstName+' 👋 Te escribimos de '+(o.store==='danna'?'Danna':'Rooze')+' para confirmar tu pedido '+(orderRef?('#'+orderRef):'')+'. ¿Nos confirmas tus datos por favor?';var waUrl=cel?('https://wa.me/'+cel+'?text='+encodeURIComponent(msg)):'';
     var states=[{key:'pending',label:'Pendiente',cls:'pending'},{key:'confirmed',label:'Confirmado',cls:'confirmed'},{key:'cancelled',label:'Cancelado',cls:'cancelled'}];
     var actions='<div class="shopify-status-actions">'+states.map(function(s){var active=meta.key===s.key?' active':'';return '<button class="shopify-status-btn '+s.cls+active+'" onclick="setShopifyOrderStatus(\''+shopifyJs(o.id)+'\',\''+s.key+'\')">'+s.label+'</button>';}).join('')+'</div>';
     var note=o.manualStatusUpdatedAt?'<div class="shopify-manual-note">↻ Estado actualizado</div>':'';
-    return '<tr><td><div class="shopify-main-name">'+shopifyHtml(name)+'</div><div class="shopify-sub-line">Pedido '+shopifyHtml(orderRef)+(province?' | '+shopifyHtml(province):'')+(fecha?' | '+shopifyHtml(fecha):'')+(hora?' | '+shopifyHtml(hora):'')+'</div>'+note+'</td><td><div class="shopify-product-line">'+shopifyHtml(product)+'</div></td><td><span class="shopify-badge '+meta.cls+'"><span>'+meta.icon+'</span>'+meta.label+'</span>'+(o.store?'<span class="shopify-store-pill">'+(o.store==='rooze'?'ROOZE':'DANNA')+'</span>':'')+'</td><td>'+actions+'</td><td style="font-weight:850;color:var(--accent)">S/ '+shopifyMoney(o).toFixed(2)+'</td><td>'+shopifyWaLink(waUrl,'Escribir por WhatsApp')+'</td></tr>';
+    return '<tr><td><div class="shopify-main-name">'+shopifyHtml(name)+'</div><div class="shopify-sub-line">Pedido '+shopifyHtml(orderRef)+(province?' | '+shopifyHtml(province):'')+(fecha?' | '+shopifyHtml(fecha):'')+'</div>'+note+'</td><td><div class="shopify-product-line">'+shopifyHtml(product)+'</div></td><td><span class="shopify-badge '+meta.cls+'"><span>'+meta.icon+'</span>'+meta.label+'</span>'+(o.store?'<span class="shopify-store-pill">'+(o.store==='rooze'?'ROOZE':'DANNA')+'</span>':'')+'</td><td>'+actions+'</td><td style="font-weight:850;color:var(--accent)">S/ '+shopifyMoney(o).toFixed(2)+'</td><td>'+shopifyWaLink(waUrl,'Escribir por WhatsApp')+'</td></tr>';
   }).join('')+'</tbody></table></div>';
 }
 function buildShopifyClientes(){
@@ -2565,11 +2485,11 @@ function buildShopifyClientes(){
 function filterShopifyClients(q){q=String(q||'').toLowerCase();var list=document.getElementById('shopify-clients-list');if(!list)return;list.querySelectorAll('.shopify-card').forEach(function(card){card.style.display=card.textContent.toLowerCase().includes(q)?'':'none';});}
 function buildShopifyAbandoned(){
   var abandoned=filterByStore(shopifyData.abandoned);if(!abandoned.length)return '<div class="empty">Sin checkouts abandonados</div>';
-  return '<div class="grid-3">'+abandoned.slice(0,80).map(function(a){var tel=(a.phone||a.shippingPhone||'').replace(/\D/g,'');var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;var fecha=shopifyDate(a);var msg='Hola '+(a.firstName||a.customerName||'')+' 👋 Notamos que dejaste artículos en tu carrito. ¿Te podemos ayudar a completar tu compra? 🛍️';var waUrl=cel?'https://wa.me/'+cel+'?text='+encodeURIComponent(msg):'';return '<div class="shopify-card"><div style="display:flex;justify-content:space-between;gap:10px"><div><div class="shopify-main-name">'+shopifyHtml(a.firstName||a.customerName||a.email||'Visitante')+(a.lastName?' '+shopifyHtml(a.lastName):'')+'</div>'+(a.email?'<div class="shopify-sub-line">'+shopifyHtml(a.email)+'</div>':'')+(a.phone?'<div class="shopify-sub-line">📱 '+shopifyHtml(a.phone)+'</div>':'')+'<div class="shopify-sub-line">'+shopifyHtml(fecha)+'</div></div><span class="shopify-badge sh-abandoned">Abandonado</span></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px"><div style="font-size:17px;font-weight:850;color:#dc2626">S/ '+shopifyMoney(a).toFixed(2)+'</div>'+shopifyWaLink(waUrl,'Recuperar venta')+'</div></div>';}).join('')+'</div>';
+  return '<div class="grid-3">'+abandoned.slice(0,80).map(function(a){var tel=(a.phone||a.shippingPhone||'').replace(/\D/g,'');var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;var fecha=shopifyDateTime(a);var msg='Hola '+(a.firstName||a.customerName||'')+' 👋 Notamos que dejaste artículos en tu carrito. ¿Te podemos ayudar a completar tu compra? 🛍️';var waUrl=cel?'https://wa.me/'+cel+'?text='+encodeURIComponent(msg):'';return '<div class="shopify-card"><div style="display:flex;justify-content:space-between;gap:10px"><div><div class="shopify-main-name">'+shopifyHtml(a.firstName||a.customerName||a.email||'Visitante')+(a.lastName?' '+shopifyHtml(a.lastName):'')+'</div>'+(a.email?'<div class="shopify-sub-line">'+shopifyHtml(a.email)+'</div>':'')+(a.phone?'<div class="shopify-sub-line">📱 '+shopifyHtml(a.phone)+'</div>':'')+'<div class="shopify-sub-line">'+shopifyHtml(fecha)+'</div></div><span class="shopify-badge sh-abandoned">Abandonado</span></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px"><div style="font-size:17px;font-weight:850;color:#dc2626">S/ '+shopifyMoney(a).toFixed(2)+'</div>'+shopifyWaLink(waUrl,'Recuperar venta')+'</div></div>';}).join('')+'</div>';
 }
 function buildShopifyDrafts(){
   var drafts=filterByStore(shopifyData.drafts);if(!drafts.length)return '<div class="empty">Sin pedidos preliminares</div>';
-  return '<div class="grid-3">'+drafts.slice(0,80).map(function(d){var tel=(d.phone||d.shippingPhone||'').replace(/\D/g,'');var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;var fecha=shopifyDate(d);return '<div class="shopify-card"><div style="display:flex;justify-content:space-between;gap:10px"><div><div class="shopify-main-name">'+shopifyHtml(d.customerName||d.name||'Sin nombre')+'</div><div class="shopify-sub-line">'+shopifyHtml(d.orderNumber||d.id||'')+'</div><div class="shopify-sub-line">'+shopifyHtml(fecha)+'</div></div><span class="shopify-badge sh-draft">Preliminar</span></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px"><div><div style="font-size:17px;font-weight:850;color:#6366f1">S/ '+shopifyMoney(d).toFixed(2)+'</div>'+(d.items?'<div class="shopify-product-line">'+shopifyHtml(d.items)+'</div>':'')+'</div>'+(cel?shopifyWaLink('https://wa.me/'+cel,'Escribir por WhatsApp'):'')+'</div></div>';}).join('')+'</div>';
+  return '<div class="grid-3">'+drafts.slice(0,80).map(function(d){var tel=(d.phone||d.shippingPhone||'').replace(/\D/g,'');var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;var fecha=shopifyDateTime(d);return '<div class="shopify-card"><div style="display:flex;justify-content:space-between;gap:10px"><div><div class="shopify-main-name">'+shopifyHtml(d.customerName||d.name||'Sin nombre')+'</div><div class="shopify-sub-line">'+shopifyHtml(d.orderNumber||d.id||'')+'</div><div class="shopify-sub-line">'+shopifyHtml(fecha)+'</div></div><span class="shopify-badge sh-draft">Preliminar</span></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px"><div><div style="font-size:17px;font-weight:850;color:#6366f1">S/ '+shopifyMoney(d).toFixed(2)+'</div>'+(d.items?'<div class="shopify-product-line">'+shopifyHtml(d.items)+'</div>':'')+'</div>'+(cel?shopifyWaLink('https://wa.me/'+cel,'Escribir por WhatsApp'):'')+'</div></div>';}).join('')+'</div>';
 }
 
 // ═══ MODALS ══════════════════════════════════════════════════

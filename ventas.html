@@ -2000,7 +2000,14 @@ async function renderConfig(){
   const el=$('config-body');
   el.innerHTML=`
     <div class="card">
-      <div class="section-label">Productos y costos</div>
+      <div onclick="toggleConfigProducts()" style="display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer">
+        <div>
+          <div class="section-label" style="margin-bottom:2px">Productos y costos</div>
+          <div style="font-size:12px;color:var(--tx2);font-weight:600">${(cfg.productos||[]).length} productos configurados</div>
+        </div>
+        <span id="cfg-products-arrow" style="font-size:14px;color:var(--tx3);transition:transform .2s">▼</span>
+      </div>
+      <div id="cfg-products-body" style="display:none;padding-top:10px">
       ${(cfg.productos||[]).map(function(p,i){
         var ppc=p.preciosPorCantidad||{};
         var inpS='width:54px;padding:5px 6px;border:0.5px solid rgba(0,0,0,0.12);border-radius:6px;background:var(--bg2);color:var(--accent);font-size:12px;font-weight:600;text-align:center;font-family:inherit';
@@ -2035,6 +2042,8 @@ async function renderConfig(){
         '</div>';
       }).join('')||'<div style="font-size:13px;color:var(--tx3);padding:8px 0">Sin productos configurados</div>'}
       <button class="btn" style="margin-top:10px" onclick="openAddProd()">+ Agregar producto</button>
+
+      </div>
     </div>
     <div class="card">
       <div class="section-label">Costos de delivery</div>
@@ -2069,23 +2078,8 @@ async function renderConfig(){
     </div>
     <div class="card">
       <div class="section-label">Usuarios y roles</div>
-      <p style="font-size:12px;color:var(--tx2);margin-bottom:10px">Crea Super Admin, Administrador o Vendedor. Al eliminar, se retira el acceso a la app.</p>
-      <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:10px">
-        <input id="um-name" placeholder="Nombre completo" style="padding:9px 10px;border:0.5px solid var(--bo2);border-radius:9px;background:var(--bg2);font-size:13px;font-family:inherit">
-        <input id="um-email" placeholder="Correo de acceso" type="email" style="padding:9px 10px;border:0.5px solid var(--bo2);border-radius:9px;background:var(--bg2);font-size:13px;font-family:inherit">
-        <input id="um-pass" placeholder="Contraseña inicial mínimo 6 caracteres" type="password" style="padding:9px 10px;border:0.5px solid var(--bo2);border-radius:9px;background:var(--bg2);font-size:13px;font-family:inherit">
-        <select id="um-role" onchange="toggleUserManagerStores()" style="padding:9px 10px;border:0.5px solid var(--bo2);border-radius:9px;background:var(--bg2);font-size:13px;font-family:inherit">
-          <option value="vendedor">Vendedor</option>
-          <option value="admin">Administrador</option>
-          <option value="superuser">Super Admin</option>
-        </select>
-        <div id="um-stores" style="display:none;gap:8px;flex-wrap:wrap">
-          <label style="display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border-radius:999px;padding:7px 10px;font-size:12px;font-weight:700"><input type="checkbox" id="um-rooze" style="accent-color:var(--accent)"> ROOZE</label>
-          <label style="display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border-radius:999px;padding:7px 10px;font-size:12px;font-weight:700"><input type="checkbox" id="um-danna" style="accent-color:var(--accent)"> DANNA</label>
-        </div>
-        <button class="btn" onclick="createManagedUser()">+ Crear usuario</button>
-      </div>
-      <div id="users-manager"><div class="spin" style="margin:16px auto"></div></div>
+      <p style="font-size:12px;color:var(--tx2);margin-bottom:10px">Cambia el rol de cada usuario. Solo Super Admin puede modificar estos permisos.</p>
+      <div id="users-role-list"><div class="spin" style="margin:16px auto"></div></div>
     </div>
     <div class="card">
       <div class="section-label">Nota de venta — Personalización</div>
@@ -2155,9 +2149,78 @@ async function renderConfig(){
     </div>`;
   renderScaleList();
   renderShopifyAdminPerms();
-  renderUsersManager();
-  toggleUserManagerStores();
+  renderUsersRoleList();
 }
+
+
+function toggleConfigProducts(){
+  var body=document.getElementById('cfg-products-body');
+  var arrow=document.getElementById('cfg-products-arrow');
+  if(!body)return;
+  var open=body.style.display!=='none';
+  body.style.display=open?'none':'block';
+  if(arrow)arrow.style.transform=open?'':'rotate(180deg)';
+}
+
+function roleLabel(role){
+  if(role==='superuser')return 'Super Admin';
+  if(role==='admin')return 'Administrador';
+  return 'Vendedor';
+}
+
+function renderUsersRoleList(){
+  var el=document.getElementById('users-role-list');
+  if(!el||!isSuper())return;
+  db.collection('users').get().then(function(snap){
+    var docs=[];
+    snap.forEach(function(doc){docs.push({id:doc.id,data:doc.data()||{}});});
+    docs.sort(function(a,b){
+      var an=(a.data.name||a.data.email||'').toLowerCase();
+      var bn=(b.data.name||b.data.email||'').toLowerCase();
+      return an.localeCompare(bn);
+    });
+    if(!docs.length){el.innerHTML='<div style="font-size:12px;color:var(--tx3);padding:8px 0">No hay usuarios registrados.</div>';return;}
+    el.innerHTML=docs.map(function(row){
+      var u=row.data, uid=row.id, role=u.role||'vendedor';
+      return '<div style="background:var(--bg2);border:0.5px solid var(--bo2);border-radius:12px;padding:11px 12px;margin-bottom:8px">'
+        +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">'
+          +'<div style="min-width:0">'
+            +'<div style="font-size:13px;font-weight:800;color:var(--tx)">'+shopifyHtml(u.name||u.displayName||u.email||uid)+'</div>'
+            +(u.email?'<div style="font-size:11px;color:var(--tx3);margin-top:2px">'+shopifyHtml(u.email)+'</div>':'')
+          +'</div>'
+          +'<span style="font-size:10px;font-weight:800;color:var(--accent);background:var(--accent2);border-radius:999px;padding:5px 8px;white-space:nowrap">'+roleLabel(role)+'</span>'
+        +'</div>'
+        +'<div style="display:flex;align-items:center;gap:8px;margin-top:10px">'
+          +'<select id="role-'+uid+'" style="flex:1;background:var(--bg);border:0.5px solid var(--bo);border-radius:10px;padding:9px 10px;font-size:12px;color:var(--tx);font-family:inherit">'
+            +'<option value="superuser" '+(role==='superuser'?'selected':'')+'>Super Admin</option>'
+            +'<option value="admin" '+(role==='admin'?'selected':'')+'>Administrador</option>'
+            +'<option value="vendedor" '+(role==='vendedor'?'selected':'')+'>Vendedor</option>'
+          +'</select>'
+          +'<button onclick="saveUserRole(\''+uid+'\')" style="background:var(--accent);color:#fff;border:none;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:750;font-family:inherit">Guardar</button>'
+        +'</div>'
+      +'</div>';
+    }).join('');
+  }).catch(function(e){
+    el.innerHTML='<div class="err" style="display:block">Error cargando usuarios: '+shopifyHtml(e.message)+'</div>';
+  });
+}
+
+async function saveUserRole(uid){
+  if(!isSuper())return toast('Solo Super Admin');
+  var sel=document.getElementById('role-'+uid);
+  if(!sel)return;
+  var newRole=sel.value;
+  if(uid===cu.id && newRole!=='superuser'){
+    if(!confirm('Estás cambiando tu propio rol de Super Admin. Podrías perder acceso a configuración. ¿Continuar?'))return;
+  }
+  try{
+    await db.collection('users').doc(uid).set({role:newRole},{merge:true});
+    toast('✓ Rol actualizado a '+roleLabel(newRole));
+    renderUsersRoleList();
+    renderShopifyAdminPerms();
+  }catch(e){toast('Error: '+e.message);}
+}
+
 
 function renderShopifyAdminPerms(){
   var el=document.getElementById('shopify-admin-perms');
@@ -2195,100 +2258,6 @@ async function saveAdminShopifyStores(uid){
     toast('✓ Permisos Shopify guardados');
   }catch(e){toast('Error: '+e.message);}
 }
-
-
-function toggleUserManagerStores(){
-  var role=(document.getElementById('um-role')||{}).value||'vendedor';
-  var el=document.getElementById('um-stores');
-  if(el)el.style.display=role==='admin'?'flex':'none';
-}
-
-function roleLabel(r){
-  if(r==='superuser')return 'Super Admin';
-  if(r==='admin')return 'Administrador';
-  return 'Vendedor';
-}
-
-function getSecondaryAuthApp(){
-  var name='userCreate';
-  try{return firebase.app(name);}catch(e){return firebase.initializeApp(FBCFG,name);}
-}
-
-async function createManagedUser(){
-  if(!isSuper())return toast('Solo Super Admin');
-  var name=(document.getElementById('um-name')||{}).value||'';
-  var email=(document.getElementById('um-email')||{}).value||'';
-  var pass=(document.getElementById('um-pass')||{}).value||'';
-  var role=(document.getElementById('um-role')||{}).value||'vendedor';
-  name=name.trim(); email=email.trim().toLowerCase();
-  if(!name||!email||!pass){toast('Completa nombre, correo y contraseña');return;}
-  if(pass.length<6){toast('La contraseña debe tener mínimo 6 caracteres');return;}
-  var stores=[];
-  if(role==='admin'){
-    if((document.getElementById('um-rooze')||{}).checked)stores.push('rooze');
-    if((document.getElementById('um-danna')||{}).checked)stores.push('danna');
-  }
-  try{
-    var sec=getSecondaryAuthApp();
-    var cred=await sec.auth().createUserWithEmailAndPassword(email,pass);
-    var uid=cred.user.uid;
-    await db.collection('users').doc(uid).set({
-      name:name,
-      email:email,
-      role:role,
-      shopifyStores:stores,
-      createdAt:firebase.firestore.FieldValue.serverTimestamp(),
-      createdBy:(cu&&cu.id)||''
-    },{merge:true});
-    await sec.auth().signOut();
-    ['um-name','um-email','um-pass'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
-    ['um-rooze','um-danna'].forEach(function(id){var el=document.getElementById(id);if(el)el.checked=false;});
-    toast('✓ Usuario creado');
-    renderUsersManager();
-    renderShopifyAdminPerms();
-  }catch(e){
-    console.error(e);
-    toast('Error creando usuario: '+(e.message||e));
-  }
-}
-
-async function deleteManagedUser(uid,name){
-  if(!isSuper())return toast('Solo Super Admin');
-  if(uid===(cu&&cu.id)){toast('No puedes eliminar tu propio usuario');return;}
-  if(!confirm('¿Eliminar acceso de '+(name||'este usuario')+'?'))return;
-  try{
-    await db.collection('users').doc(uid).delete();
-    toast('✓ Acceso eliminado');
-    renderUsersManager();
-    renderShopifyAdminPerms();
-  }catch(e){toast('Error: '+e.message);}
-}
-
-function renderUsersManager(){
-  var el=document.getElementById('users-manager');
-  if(!el||!isSuper())return;
-  db.collection('users').get().then(function(snap){
-    var rows=snap.docs.map(function(doc){
-      var u=Object.assign({id:doc.id},doc.data());
-      var stores=getAllowedShopifyStores(u);
-      var name=u.name||u.email||doc.id;
-      var email=u.email?'<div style="font-size:10px;color:var(--tx3);margin-top:1px">'+shopifyHtml(u.email)+'</div>':'';
-      return '<div style="background:var(--bg2);border:0.5px solid var(--bo2);border-radius:12px;padding:11px 12px;margin-bottom:8px">'
-        +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">'
-          +'<div><div style="font-size:13px;font-weight:800;color:var(--tx)">'+shopifyHtml(name)+'</div>'+email
-            +'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">'
-              +'<span style="font-size:10px;font-weight:800;background:var(--accent2);color:var(--accent);border-radius:999px;padding:4px 8px">'+roleLabel(u.role)+'</span>'
-              +(stores.length?'<span style="font-size:10px;font-weight:800;background:#f3f4f6;color:#374151;border-radius:999px;padding:4px 8px">'+stores.map(function(s){return s.toUpperCase();}).join(' · ')+'</span>':'')
-            +'</div></div>'
-          +'<button onclick="deleteManagedUser(\''+doc.id+'\',\''+shopifyJs(name)+'\')" style="border:none;background:#fee2e2;color:#991b1b;border-radius:8px;padding:7px 9px;font-size:11px;font-weight:800">Eliminar</button>'
-        +'</div></div>';
-    }).join('');
-    el.innerHTML=rows||'<div style="font-size:12px;color:var(--tx3);padding:8px 0">No hay usuarios.</div>';
-  }).catch(function(e){
-    el.innerHTML='<div class="err" style="display:block">Error cargando usuarios: '+shopifyHtml(e.message)+'</div>';
-  });
-}
-
 
 function openAddProd(){
   $('prod-nombre').value='';$('prod-costo').value='';
@@ -3305,11 +3274,15 @@ function shopifyShortDate(item){
   var yy = String(d.getFullYear()).slice(-2);
   return dd+'-'+mm+'-'+yy;
 }
-function shopifyShortTime(item){
+function shopifyDateTime(item){
   var t = shopifyTime(item);
   if(!t) return '';
   var d = new Date(t);
-  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  var dd = String(d.getDate()).padStart(2,'0');
+  var mm = String(d.getMonth()+1).padStart(2,'0');
+  var yy = String(d.getFullYear()).slice(-2);
+  var hh = d.toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
+  return dd+'-'+mm+'-'+yy+' · '+hh;
 }
 function shopifyProvince(item){
   if(!item) return '';
@@ -3666,7 +3639,6 @@ function buildShopifyOrders(){
     var tel = (o.phone||o.customer_phone||'').replace(/\D/g,'');
     var cel = tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;
     var fecha = shopifyShortDate(o);
-    var hora = shopifyShortTime(o);
     var province = shopifyProvince(o);
     var product = o.items || 'Producto sin detalle';
     var name = o.customerName || o.customer_name || 'Sin nombre';
@@ -3688,7 +3660,7 @@ function buildShopifyOrders(){
       +'<div class="shopify-order-head">'
         +'<div class="shopify-order-left">'
           +'<div class="sc-name">'+shopifyHtml(name)+'</div>'
-          +'<div class="sc-sub">Pedido '+shopifyHtml(orderRef)+(province?' | '+shopifyHtml(province):'')+(fecha?' | '+shopifyHtml(fecha):'')+(hora?' | '+shopifyHtml(hora):'')+'</div>'
+          +'<div class="sc-sub">Pedido '+shopifyHtml(orderRef)+(province?' | '+shopifyHtml(province):'')+(fecha?' | '+shopifyHtml(fecha):'')+'</div>'
           +note
         +'</div>'
         +'<div class="shopify-order-tags">'
@@ -3772,7 +3744,7 @@ function buildShopifyAbandoned(){
   return abandoned.slice(0,50).map(function(a){
     var tel=(a.phone||a.shippingPhone||'').replace(/\D/g,'');
     var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;
-    var fecha=shopifyDate(a);
+    var fecha=shopifyDateTime(a);
     var msg='Hola '+(a.firstName||a.customerName||'')+' 👋 Notamos que dejaste artículos en tu carrito. ¿Te podemos ayudar a completar tu compra? 🛍️';
     var waUrl=cel?'https://wa.me/'+cel+'?text='+encodeURIComponent(msg):'';
     return '<div class="shopify-card">'
@@ -3803,7 +3775,7 @@ function buildShopifyDrafts(){
   return drafts.slice(0,50).map(function(d){
     var tel=(d.phone||d.shippingPhone||'').replace(/\D/g,'');
     var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;
-    var fecha=shopifyDate(d);
+    var fecha=shopifyDateTime(d);
     return '<div class="shopify-card">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">'
         +'<div>'
