@@ -2058,11 +2058,19 @@ async function renderConfig(){
       <button class="btn" style="margin-top:10px" onclick="saveDelivery()">Guardar costos</button>
     </div>
     <div class="card">
-      <div class="section-label">Escala de sueldos · Semanal</div>
-      <div id="scale-list" style="width:100%;overflow:hidden"></div>
-      <div style="display:flex;gap:8px;margin-top:10px">
-        <button class="btn out" style="flex:1;padding:10px;font-size:13px" onclick="addScaleRow()">+ Agregar nivel</button>
-        <button class="btn" style="flex:1;padding:10px;font-size:13px" onclick="saveScale()">Guardar</button>
+      <div onclick="toggleConfigSection('cfg-scale-body','cfg-scale-arrow')" style="display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer">
+        <div>
+          <div class="section-label" style="margin-bottom:2px">Escala de sueldos · Semanal</div>
+          <div style="font-size:12px;color:var(--tx2);font-weight:600">${(salaryScale||[]).length} niveles configurados</div>
+        </div>
+        <span id="cfg-scale-arrow" style="font-size:14px;color:var(--tx3);transition:transform .2s">▼</span>
+      </div>
+      <div id="cfg-scale-body" style="display:none;padding-top:10px">
+        <div id="scale-list" style="width:100%;overflow:hidden"></div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn out" style="flex:1;padding:10px;font-size:13px" onclick="addScaleRow()">+ Agregar nivel</button>
+          <button class="btn" style="flex:1;padding:10px;font-size:13px" onclick="saveScale()">Guardar</button>
+        </div>
       </div>
     </div>
     <div class="card">
@@ -2072,14 +2080,30 @@ async function renderConfig(){
       <button class="btn out" style="margin-top:10px;padding:10px;font-size:13px;width:100%" onclick="addTiendaPrompt()">+ Agregar tienda</button>
     </div>
     <div class="card">
-      <div class="section-label">Permisos Shopify · Administradores</div>
-      <p style="font-size:12px;color:var(--tx2);margin-bottom:10px">Asigna qué tienda puede ver cada administrador. El admin no verá “Todas”, solo sus tiendas asignadas.</p>
-      <div id="shopify-admin-perms"><div class="spin" style="margin:16px auto"></div></div>
+      <div onclick="toggleConfigSection('shopify-admin-perms-body','shopify-admin-perms-arrow')" style="display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer">
+        <div>
+          <div class="section-label" style="margin-bottom:2px">Permisos Shopify · Administradores</div>
+          <div style="font-size:12px;color:var(--tx2);font-weight:600">Asignar ROOZE / DANNA</div>
+        </div>
+        <span id="shopify-admin-perms-arrow" style="font-size:14px;color:var(--tx3);transition:transform .2s">▼</span>
+      </div>
+      <div id="shopify-admin-perms-body" style="display:none;padding-top:10px">
+        <p style="font-size:12px;color:var(--tx2);margin-bottom:10px">Asigna qué tienda puede ver cada administrador. El admin no verá “Todas”, solo sus tiendas asignadas.</p>
+        <div id="shopify-admin-perms"><div class="spin" style="margin:16px auto"></div></div>
+      </div>
     </div>
     <div class="card">
-      <div class="section-label">Usuarios y roles</div>
-      <p style="font-size:12px;color:var(--tx2);margin-bottom:10px">Cambia el rol de cada usuario. Solo Super Admin puede modificar estos permisos.</p>
-      <div id="users-role-list"><div class="spin" style="margin:16px auto"></div></div>
+      <div onclick="toggleConfigSection('users-role-body','users-role-arrow')" style="display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer">
+        <div>
+          <div class="section-label" style="margin-bottom:2px">Usuarios y roles</div>
+          <div style="font-size:12px;color:var(--tx2);font-weight:600">Editar nombre, correo y rol</div>
+        </div>
+        <span id="users-role-arrow" style="font-size:14px;color:var(--tx3);transition:transform .2s">▼</span>
+      </div>
+      <div id="users-role-body" style="display:none;padding-top:10px">
+        <p style="font-size:12px;color:var(--tx2);margin-bottom:10px">Cambia nombre, correo visible y rol de cada usuario. Solo Super Admin puede modificar estos permisos.</p>
+        <div id="users-role-list"><div class="spin" style="margin:16px auto"></div></div>
+      </div>
     </div>
     <div class="card">
       <div class="section-label">Nota de venta — Personalización</div>
@@ -2162,11 +2186,21 @@ function toggleConfigProducts(){
   if(arrow)arrow.style.transform=open?'':'rotate(180deg)';
 }
 
+function toggleConfigSection(bodyId, arrowId){
+  var body=document.getElementById(bodyId);
+  var arrow=document.getElementById(arrowId);
+  if(!body)return;
+  var open=body.style.display!=='none';
+  body.style.display=open?'none':'block';
+  if(arrow)arrow.style.transform=open?'':'rotate(180deg)';
+}
+
 function roleLabel(role){
   if(role==='superuser')return 'Super Admin';
   if(role==='admin')return 'Administrador';
   return 'Vendedor';
 }
+
 
 function renderUsersRoleList(){
   var el=document.getElementById('users-role-list');
@@ -2183,20 +2217,24 @@ function renderUsersRoleList(){
     el.innerHTML=docs.map(function(row){
       var u=row.data, uid=row.id, role=u.role||'vendedor';
       return '<div style="background:var(--bg2);border:0.5px solid var(--bo2);border-radius:12px;padding:11px 12px;margin-bottom:8px">'
-        +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">'
+        +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px">'
           +'<div style="min-width:0">'
             +'<div style="font-size:13px;font-weight:800;color:var(--tx)">'+shopifyHtml(u.name||u.displayName||u.email||uid)+'</div>'
             +(u.email?'<div style="font-size:11px;color:var(--tx3);margin-top:2px">'+shopifyHtml(u.email)+'</div>':'')
           +'</div>'
           +'<span style="font-size:10px;font-weight:800;color:var(--accent);background:var(--accent2);border-radius:999px;padding:5px 8px;white-space:nowrap">'+roleLabel(role)+'</span>'
         +'</div>'
-        +'<div style="display:flex;align-items:center;gap:8px;margin-top:10px">'
-          +'<select id="role-'+uid+'" style="flex:1;background:var(--bg);border:0.5px solid var(--bo);border-radius:10px;padding:9px 10px;font-size:12px;color:var(--tx);font-family:inherit">'
-            +'<option value="superuser" '+(role==='superuser'?'selected':'')+'>Super Admin</option>'
-            +'<option value="admin" '+(role==='admin'?'selected':'')+'>Administrador</option>'
-            +'<option value="vendedor" '+(role==='vendedor'?'selected':'')+'>Vendedor</option>'
-          +'</select>'
-          +'<button onclick="saveUserRole(\''+uid+'\')" style="background:var(--accent);color:#fff;border:none;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:750;font-family:inherit">Guardar</button>'
+        +'<div style="display:flex;flex-direction:column;gap:8px">'
+          +'<input id="uname-'+uid+'" value="'+shopifyHtml(u.name||u.displayName||'')+'" placeholder="Nombre de usuario" style="background:var(--bg);border:0.5px solid var(--bo);border-radius:10px;padding:9px 10px;font-size:12px;color:var(--tx);font-family:inherit">'
+          +'<input id="uemail-'+uid+'" value="'+shopifyHtml(u.email||'')+'" placeholder="Correo visible" style="background:var(--bg);border:0.5px solid var(--bo);border-radius:10px;padding:9px 10px;font-size:12px;color:var(--tx);font-family:inherit">'
+          +'<div style="display:flex;align-items:center;gap:8px">'
+            +'<select id="role-'+uid+'" style="flex:1;background:var(--bg);border:0.5px solid var(--bo);border-radius:10px;padding:9px 10px;font-size:12px;color:var(--tx);font-family:inherit">'
+              +'<option value="superuser" '+(role==='superuser'?'selected':'')+'>Super Admin</option>'
+              +'<option value="admin" '+(role==='admin'?'selected':'')+'>Administrador</option>'
+              +'<option value="vendedor" '+(role==='vendedor'?'selected':'')+'>Vendedor</option>'
+            +'</select>'
+            +'<button onclick="saveUserRole(\''+uid+'\')" style="background:var(--accent);color:#fff;border:none;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:750;font-family:inherit">Guardar</button>'
+          +'</div>'
         +'</div>'
       +'</div>';
     }).join('');
@@ -2208,16 +2246,23 @@ function renderUsersRoleList(){
 async function saveUserRole(uid){
   if(!isSuper())return toast('Solo Super Admin');
   var sel=document.getElementById('role-'+uid);
+  var nameEl=document.getElementById('uname-'+uid);
+  var emailEl=document.getElementById('uemail-'+uid);
   if(!sel)return;
   var newRole=sel.value;
+  var newName=(nameEl&&nameEl.value||'').trim();
+  var newEmail=(emailEl&&emailEl.value||'').trim();
   if(uid===cu.id && newRole!=='superuser'){
     if(!confirm('Estás cambiando tu propio rol de Super Admin. Podrías perder acceso a configuración. ¿Continuar?'))return;
   }
   try{
-    await db.collection('users').doc(uid).set({role:newRole},{merge:true});
-    toast('✓ Rol actualizado a '+roleLabel(newRole));
+    var payload={role:newRole,name:newName,email:newEmail};
+    await db.collection('users').doc(uid).set(payload,{merge:true});
+    if(uid===cu.id){cu.name=newName;cu.email=newEmail;cu.role=newRole;}
+    toast('✓ Usuario actualizado');
     renderUsersRoleList();
     renderShopifyAdminPerms();
+    buildNav();
   }catch(e){toast('Error: '+e.message);}
 }
 
