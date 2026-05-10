@@ -268,6 +268,85 @@ tbody tr:hover{background:var(--bg2)}
   .fld-row{grid-template-columns:1fr}
   .grid-2,.grid-3{grid-template-columns:1fr}
 }
+
+/* ── Actualización roles/Shopify/ventas search v2 ───────────────── */
+.ventas-search-pc{
+  min-width:220px;
+  max-width:360px;
+  flex:1;
+  padding:8px 12px;
+  border:1px solid var(--bo2);
+  border-radius:999px;
+  background:var(--bg);
+  color:var(--tx);
+  font-size:12px;
+  font-family:inherit;
+  outline:none;
+}
+.ventas-search-pc:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(45,122,79,.10)}
+.shopify-pc-head{padding:16px 18px !important;margin-bottom:14px !important}
+.shopify-pc-title h3{font-size:18px !important;line-height:1.1 !important;font-weight:800 !important}
+.shopify-pc-title p{font-size:12px !important;margin-top:3px !important;color:var(--tx2) !important}
+.shopify-store-switch .sst{padding:8px 14px !important;font-size:12px !important;font-weight:700 !important}
+.shopify-refresh{padding:8px 14px !important;font-size:12px !important;font-weight:700 !important}
+.shopify-tabs{gap:7px !important;margin-bottom:14px !important}
+.shopify-tabs .sht{padding:8px 14px !important;font-size:12px !important;font-weight:650 !important}
+.shopify-card{padding:13px 14px !important;margin-bottom:8px !important;box-shadow:none !important}
+.shopify-pc-table{font-size:12px !important}
+.shopify-pc-table th{font-size:10px !important;padding:9px 12px !important}
+.shopify-pc-table td{padding:10px 12px !important}
+.shopify-main-name{font-size:13px !important;font-weight:750 !important}
+.shopify-sub-line{font-size:11px !important;font-weight:500 !important}
+.shopify-product-line{font-size:12px !important;max-width:340px !important}
+.shopify-badge,.shopify-store-pill{font-size:10px !important;padding:3px 8px !important}
+.shopify-status-actions{gap:5px !important}
+.shopify-status-btn{font-size:10px !important;padding:6px 9px !important;font-weight:700 !important}
+.shopify-wa{width:26px !important;height:26px !important}
+.shopify-wa svg{width:15px !important;height:15px !important}
+.shopify-manual-note{font-size:10px !important;padding:2px 7px !important;margin-top:4px !important}
+.shopify-admin-perm-card{margin-top:14px}
+.shopify-admin-perm-row{background:var(--bg2);border:1px solid var(--bo);border-radius:10px;padding:12px;margin-bottom:8px}
+.shopify-admin-perm-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:9px}
+.shopify-admin-perm-actions label{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--bo);border-radius:999px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--tx2)}
+.shopify-admin-perm-actions input{accent-color:var(--accent)}
+.shopify-admin-perm-actions button{margin-left:auto;background:var(--accent);color:#fff;border:none;border-radius:999px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+
+
+/* ── Historial PC v3 ───────────────────────────────────────── */
+.hist-pc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}
+.hist-pc-title h3{font-size:18px;font-weight:800;color:var(--tx);margin:0}
+.hist-pc-title p{font-size:12px;color:var(--tx2);margin:3px 0 0}
+.hist-pc-filters{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.hist-dd-wrap{position:relative;display:inline-block}
+.hist-dd-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:20px;background:var(--accent);color:#fff;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+.hist-dd-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;min-width:210px;background:var(--bg);border:1px solid var(--bo2);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.12);z-index:120;overflow:hidden}
+.hist-dd-menu.open{display:block}
+.hist-dd-item{padding:11px 16px;font-size:13px;color:var(--tx);cursor:pointer;border-bottom:1px solid var(--bo);background:var(--bg)}
+.hist-dd-item:last-child{border-bottom:none}
+.hist-dd-item:hover{background:var(--bg2)}
+.hist-dd-item.on{background:#b2d1c1;color:#1a4a30;font-weight:700}
+.hist-status-row{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.hist-pc-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px}
+.hist-pc-chart{background:var(--bg);border:1px solid var(--bo);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.hist-custom-range{display:none;align-items:center;gap:8px}
+.hist-custom-range input{padding:7px 10px;border:1px solid var(--bo2);border-radius:8px;background:var(--bg);font-size:12px;color:var(--tx);font-family:inherit}
+@media(max-width:900px){.hist-pc-stats{grid-template-columns:repeat(2,1fr)}.hist-status-row{margin-left:0}}
+
+
+/* ── Mi Meta PC v4 ───────────────────────────────────────── */
+.meta-pc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}
+.meta-pc-title h3{font-size:18px;font-weight:800;color:var(--tx);margin:0}
+.meta-pc-title p{font-size:12px;color:var(--tx2);margin:3px 0 0}
+.meta-pc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px}
+.meta-progress-card{background:var(--bg);border:1px solid var(--bo);border-radius:var(--r);padding:18px;margin-bottom:14px}
+.meta-progress-bar{height:14px;background:var(--bg2);border-radius:999px;overflow:hidden;border:1px solid var(--bo)}
+.meta-progress-fill{height:100%;background:var(--accent);border-radius:999px;transition:width .25s}
+.meta-mini-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.meta-mini-item{background:var(--bg2);border-radius:10px;padding:11px 12px;border:1px solid var(--bo)}
+.meta-mini-label{font-size:11px;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.meta-mini-val{font-size:18px;font-weight:850;color:var(--tx);margin-top:3px}
+@media(max-width:1000px){.meta-pc-grid{grid-template-columns:repeat(2,1fr)}.meta-mini-list{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -303,6 +382,16 @@ tbody tr:hover{background:var(--bg2)}
       <button class="nav-item" id="nb-ventas" onclick="showModule('ventas')">
         <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
         Ventas
+      </button>
+
+      <button class="nav-item" id="nb-meta" onclick="showModule('meta')">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/><circle cx="18" cy="12" r="1.5"/></svg>
+        Mi meta
+      </button>
+
+      <button class="nav-item" id="nb-historial" onclick="showModule('historial')">
+        <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 5-6"/><circle cx="7" cy="14" r="1"/><circle cx="10" cy="11" r="1"/><circle cx="13" cy="13" r="1"/><circle cx="18" cy="7" r="1"/></svg>
+        Historial
       </button>
 
 
@@ -388,11 +477,83 @@ tbody tr:hover{background:var(--bg2)}
           <button class="fbtn" onclick="setVentasFilt('enviado',this)" style="background:var(--env-bg);color:var(--env-tx)">Enviado</button>
           <button class="fbtn" onclick="setVentasFilt('entregado',this)" style="background:var(--ent-bg);color:var(--ent-tx)">Entregado</button>
           <button class="fbtn" onclick="setVentasFilt('anulado',this)" style="background:var(--anul-bg);color:var(--anul-tx)">Anulado</button>
+          <input class="ventas-search-pc" id="ventas-search-pc" type="search" placeholder="Buscar cliente, celular, DNI o producto..." oninput="setVentasSearch(this.value)">
           <button class="btn-primary" style="width:auto;padding:7px 16px;font-size:13px;margin-left:auto" onclick="openNuevaVenta()">+ Nueva venta</button>
         </div>
         <div class="tbl-wrap" id="ventas-tbl-wrap"><div class="spin"></div></div>
       </div>
 
+
+
+
+      <!-- ── MI META ─────────────────────────────────── -->
+      <div id="mod-meta" style="display:none">
+        <div class="meta-pc-head">
+          <div class="meta-pc-title">
+            <h3>Mi meta</h3>
+            <p>Seguimiento semanal de tus ventas, avance y sueldo estimado.</p>
+          </div>
+        </div>
+        <div id="meta-pc-content"><div class="spin"></div></div>
+      </div>
+
+      <!-- ── HISTORIAL ──────────────────────────────── -->
+      <div id="mod-historial" style="display:none">
+        <div class="hist-pc-head">
+          <div class="hist-pc-title">
+            <h3>Historial</h3>
+            <p>Consulta ventas por fecha, estado y vendedor según tu rol.</p>
+          </div>
+        </div>
+
+        <div class="hist-pc-filters">
+          <div class="hist-dd-wrap" id="hist-pc-vend-wrap" style="display:none">
+            <button class="hist-dd-btn" id="hist-pc-vend-btn" onclick="toggleHistPCDrop('hist-pc-vend-drop')">
+              Vendedor: <span id="hist-pc-vend-label">Todos</span> <span style="font-size:10px">▼</span>
+            </button>
+            <div class="hist-dd-menu" id="hist-pc-vend-drop"></div>
+          </div>
+
+          <div class="hist-dd-wrap">
+            <button class="hist-dd-btn" id="hist-pc-date-btn" onclick="toggleHistPCDrop('hist-pc-date-drop')">
+              Filtrar: <span id="hist-pc-date-label">Todo</span> <span style="font-size:10px">▼</span>
+            </button>
+            <div class="hist-dd-menu" id="hist-pc-date-drop">
+              <div class="hist-dd-item on" onclick="setHistPCPeriod('all','Todo',this)">Todo</div>
+              <div class="hist-dd-item" onclick="setHistPCPeriod('today','Hoy',this)">Hoy</div>
+              <div class="hist-dd-item" onclick="setHistPCPeriod('yesterday','Ayer',this)">Ayer</div>
+              <div class="hist-dd-item" onclick="setHistPCPeriod('week','Esta semana',this)">Esta semana</div>
+              <div class="hist-dd-item" onclick="setHistPCPeriod('15days','Últimos 15 días',this)">Últimos 15 días</div>
+              <div class="hist-dd-item" onclick="setHistPCPeriod('month','Este mes',this)">Este mes</div>
+              <div class="hist-dd-item" onclick="setHistPCPeriod('custom','Personalizado',this)">Personalizado</div>
+            </div>
+          </div>
+
+          <div class="hist-custom-range" id="hist-pc-custom">
+            <input type="date" id="hist-pc-from">
+            <span style="color:var(--tx3)">→</span>
+            <input type="date" id="hist-pc-to">
+            <button class="btn-apply" onclick="applyHistPCCustom()">Ver</button>
+          </div>
+
+          <div class="hist-status-row" id="hist-pc-status">
+            <button class="fbtn on" onclick="setHistPCStatus('all',this)">Todos</button>
+            <button class="fbtn" onclick="setHistPCStatus('pendiente',this)" style="background:var(--pend-bg);color:var(--pend-tx)">Pendiente</button>
+            <button class="fbtn" onclick="setHistPCStatus('enviado',this)" style="background:var(--env-bg);color:var(--env-tx)">Enviado</button>
+            <button class="fbtn" onclick="setHistPCStatus('entregado',this)" style="background:var(--ent-bg);color:var(--ent-tx)">Entregado</button>
+            <button class="fbtn" onclick="setHistPCStatus('anulado',this)" style="background:var(--anul-bg);color:var(--anul-tx)">Anulado</button>
+          </div>
+        </div>
+
+        <div class="hist-pc-stats" id="hist-pc-stats"><div class="spin"></div></div>
+        <div class="hist-pc-chart">
+          <div class="chart-hdr">
+            <div class="chart-title">Evolución de ventas</div>
+          </div>
+          <div id="hist-pc-chart"><div class="spin"></div></div>
+        </div>
+        <div class="tbl-wrap" id="hist-pc-tbl-wrap"><div class="spin"></div></div>
+      </div>
 
       <!-- ── SHOPIFY ─────────────────────────────────── -->
       <div id="mod-shopify" style="display:none">
@@ -519,12 +680,52 @@ function fmtC0(n){
   return 'S/ '+fmtN(n);
 }
 
+function normalizeSearchText(v){
+  return String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+}
+function orderMatchesVentasSearch(o,qRaw){
+  var qText=normalizeSearchText(qRaw);
+  var qDigits=String(qRaw||'').replace(/\D/g,'');
+  if(!qText&&!qDigits)return true;
+  var fields=[o.cliente,o.celular,o.dni,o.producto,o.ciudad,o.zona,o.vendedor,(o.productos||[]).map(function(p){return p.nombre;}).join(' ')];
+  var textBlob=normalizeSearchText(fields.join(' '));
+  var phoneBlob=String(o.celular||'').replace(/\D/g,'');
+  return (qText&&textBlob.indexOf(qText)!==-1)||(qDigits&&phoneBlob.indexOf(qDigits)!==-1);
+}
+function setVentasSearch(v){
+  ventasSearch=String(v||'');
+  ventasPage=1;
+  renderVentas();
+}
+
+function normalizeShopifyStoreName(v){
+  v=String(v||'').toLowerCase().trim();
+  if(v==='rooze'||v==='rooza')return'rooze';
+  if(v==='danna'||v==='dana')return'danna';
+  return'';
+}
+function getAllowedShopifyStores(user){
+  user=user||cu||{};
+  if(user.role==='superuser')return['rooze','danna'];
+  var raw=user.shopifyStores||user.shopifyStore||user.tiendaShopify||user.shopify_store||user.storePermission||user.storePermissions||[];
+  if(typeof raw==='string')raw=[raw];
+  if(!Array.isArray(raw))raw=[];
+  var out=[];
+  raw.forEach(function(s){s=normalizeShopifyStoreName(s);if(s&&out.indexOf(s)===-1)out.push(s);});
+  return out;
+}
+function hasShopifyStoreAccess(store,user){
+  if((user||cu||{}).role==='superuser')return true;
+  store=normalizeShopifyStoreName(store);
+  return getAllowedShopifyStores(user).indexOf(store)!==-1;
+}
+
 // ═══ STATE ══════════════════════════════════════════════════
 let cu=null, orders=[], cfg={productos:[],deliveryCostos:{},salaryScale:[]};
 let salaryScale=[], listeners=[];
 let gPeriod='today', gCustomFrom=0, gCustomTo=Date.now();
 let metaPeriod='today', metaCustomFrom=0, metaCustomTo=Date.now();
-let curModule='dashboard', ventasFilt='all', vfStatus='pendiente', editOrderId=null;
+let curModule='dashboard', ventasFilt='all', ventasSearch='', vfStatus='pendiente', editOrderId=null;
 let ventasPage=1; const PAGE_SIZE=20;
 
 // ═══ SHARED FUNCTIONS (from ventas.html) ═══════════════════
@@ -700,8 +901,12 @@ function renderLineChart(data, data2){
 
 // ═══ ROLE HELPERS ═══════════════════════════════════════════
 const isSuper=()=>cu?.role==='superuser';
-const isAdmin=()=>['admin','superuser'].includes(cu?.role);
+const isAdminRole=()=>cu?.role==='admin';
+// En esta versión, isAdmin() conserva el significado de privilegio total.
+// Solo Super Admin ve dashboard general, vendedores/resumen y configuración.
+const isAdmin=()=>cu?.role==='superuser';
 const isVendedor=()=>cu?.role==='vendedor';
+const canUseShopify=()=>isSuper()||isAdminRole();
 
 // ═══ AUTH ════════════════════════════════════════════════════
 auth.onAuthStateChanged(async user=>{
@@ -734,16 +939,11 @@ async function loadApp(fbUser){
     $('user-av').textContent=ini;
     $('user-name').textContent=cu.name||cu.email||'Usuario';
     $('user-role').textContent=cu.role==='superuser'?'Super Admin':cu.role==='admin'?'Admin':'Vendedor';
-    // Show/hide admin-only nav items
     await loadConfig();
     startListeners();
-    if(!isAdmin()){
-      $('nb-resumen').style.display='none';
-      if($('nb-shopify'))$('nb-shopify').style.display='none';
-      showModule('ventas');
-    } else {
-      showModule('dashboard');
-    }
+    applyRoleNav();
+    if(isSuper()) showModule('dashboard');
+    else showModule('ventas');
   }catch(e){console.error(e);}
 }
 
@@ -758,7 +958,7 @@ async function loadConfig(){
 function startListeners(){
   listeners.forEach(u=>u());listeners=[];
   let q=db.collection('orders');
-  if(!isAdmin())q=q.where('vendedorId','==',cu.id);
+  if(!isSuper())q=q.where('vendedorId','==',cu.id);
   const u=q.onSnapshot(snap=>{
     orders=snap.docs.map(d=>{
       const dat=d.data();
@@ -780,22 +980,57 @@ function renderCurrentModule(){
   if(curModule==='dashboard')renderDashboard();
   else if(curModule==='ventas')renderVentas();
   else if(curModule==='resumen')renderResumen();
+  else if(curModule==='meta')renderMetaPC();
+  else if(curModule==='historial')renderHistorialPC();
   else if(curModule==='shopify')renderShopify();
+}
+
+
+function applyRoleNav(){
+  var ids=['dashboard','ventas','meta','historial','shopify','resumen','config'];
+  ids.forEach(function(id){var el=document.getElementById('nb-'+id);if(el)el.style.display='none';});
+  function show(id){var el=document.getElementById('nb-'+id);if(el)el.style.display='flex';}
+  if(isSuper()){
+    ids.forEach(show);
+  }else if(isAdminRole()){
+    show('ventas');
+    show('meta');
+    show('historial');
+    show('shopify');
+  }else{
+    show('ventas');
+    show('meta');
+    show('historial');
+  }
 }
 
 // ═══ NAVIGATION ═════════════════════════════════════════════
 function showModule(mod){
+  if((mod==='dashboard'||mod==='resumen'||mod==='config')&&!isSuper()){
+    toast('Esta sección es solo para Super Admin');
+    mod='ventas';
+  }
+  if(mod==='shopify'&&!canUseShopify()){
+    toast('Shopify solo disponible para Admin y Super Admin');
+    mod='ventas';
+  }
   curModule=mod;
-  ['dashboard','ventas','shopify','resumen','config'].forEach(m=>{
+  ['dashboard','ventas','meta','historial','shopify','resumen','config'].forEach(m=>{
     const el=$('mod-'+m); if(el)el.style.display=m===mod?'block':'none';
     const nb=$('nb-'+m); if(nb){nb.classList.toggle('on',m===mod);}
   });
-  const titles={dashboard:'Dashboard',ventas:'Ventas',shopify:'Shopify',resumen:'Vendedores',config:'Configuración'};
+  const titles={dashboard:'Dashboard',ventas:'Ventas',meta:'Mi meta',historial:'Historial',shopify:'Shopify',resumen:'Vendedores',config:'Configuración'};
   $('page-title').textContent=titles[mod]||mod;
-  // Show/hide global filter
+  var gf=document.getElementById('global-filter');
+  if(gf)gf.style.display=(mod==='dashboard'||mod==='ventas'||mod==='resumen')?'flex':'none';
+  var cr=document.getElementById('custom-range');
+  if(cr && !(mod==='dashboard'||mod==='ventas'||mod==='resumen'))cr.style.display='none';
+  // Render current module
   if(mod==='dashboard')renderDashboard();
   else if(mod==='ventas')renderVentas();
+  else if(mod==='meta')renderMetaPC();
   else if(mod==='resumen')renderResumen();
+  else if(mod==='historial')renderHistorialPC();
   else if(mod==='shopify')renderShopify();
   else if(mod==='config')renderConfig();
 }
@@ -869,8 +1104,12 @@ function renderDashboard(){
 // ═══ VENTAS TABLE ═══════════════════════════════════════════
 function renderVentas(){
   const {start,end}=getGlobalRange();
-  let data=orders.filter(o=>o.fv>=start&&o.fv<=end);
-  if(ventasFilt!=='all')data=data.filter(o=>o.estado===ventasFilt);
+  const searchEl=document.getElementById('ventas-search-pc');
+  if(searchEl && searchEl.value!==ventasSearch)searchEl.value=ventasSearch;
+  const hasSearch=String(ventasSearch||'').trim().length>0;
+  let data=orders.filter(o=>hasSearch?true:(o.fv>=start&&o.fv<=end));
+  if(!hasSearch&&ventasFilt!=='all')data=data.filter(o=>o.estado===ventasFilt);
+  data=data.filter(o=>orderMatchesVentasSearch(o,ventasSearch));
   data.sort((a,b)=>b.fv-a.fv);
   const total=data.length, pages=Math.ceil(total/PAGE_SIZE)||1;
   ventasPage=Math.min(ventasPage,pages);
@@ -1392,7 +1631,7 @@ function setHistStatus(s,el){
 function renderHistorial(){
   const {start,end}=getGlobalRange();
   // Source: vendedor sees own, admin sees all filtered by vendedor
-  let source=isVendedor()?orders.filter(function(o){return o.vendedorId===cu.id;}):orders;
+  let source=!isSuper()?orders.filter(function(o){return o.vendedorId===cu.id;}):orders;
   if(isAdmin()&&histVendedor!=='all')source=source.filter(function(o){return o.vendedor===histVendedor;});
   const inRange=source.filter(function(o){const t=o.fv||o.ts;return t>=start&&t<=end;});
   let filtered=histStatus==='all'?inRange:inRange.filter(function(o){return o.estado===histStatus;});
@@ -1567,16 +1806,62 @@ function renderConfig(){
           <button onclick="saveDelivery()" class="btn-primary" style="padding:9px">Guardar costos</button>
         </div>
       </div>
-      <div class="card">
-        <div class="card-title">Escala de sueldos · Semanal</div>
-        <div id="cfg-scale"></div>
-        <div style="display:flex;gap:8px;margin-top:10px">
-          <button onclick="addScaleRowCfg()" style="flex:1;padding:9px;background:var(--accent2);color:var(--accent);border:1px dashed var(--accent);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">+ Nivel</button>
-          <button onclick="saveScaleCfg()" class="btn-primary" style="flex:1;padding:9px">Guardar</button>
+      <div>
+        <div class="card">
+          <div class="card-title">Escala de sueldos · Semanal</div>
+          <div id="cfg-scale"></div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button onclick="addScaleRowCfg()" style="flex:1;padding:9px;background:var(--accent2);color:var(--accent);border:1px dashed var(--accent);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">+ Nivel</button>
+            <button onclick="saveScaleCfg()" class="btn-primary" style="flex:1;padding:9px">Guardar</button>
+          </div>
+        </div>
+        <div class="card shopify-admin-perm-card">
+          <div class="card-title">Permisos Shopify · Administradores</div>
+          <p style="font-size:12px;color:var(--tx2);margin-bottom:10px">Asigna qué tienda puede ver cada administrador. El admin no verá “Todas”, solo sus tiendas asignadas.</p>
+          <div id="shopify-admin-perms"><div class="spin" style="margin:16px auto"></div></div>
         </div>
       </div>
     </div>`;
-  renderCfgProds();renderCfgScale();
+  renderCfgProds();renderCfgScale();renderShopifyAdminPerms();
+}
+
+
+function renderShopifyAdminPerms(){
+  var el=document.getElementById('shopify-admin-perms');
+  if(!el||!isSuper())return;
+  db.collection('users').where('role','==','admin').get().then(function(snap){
+    if(snap.empty){el.innerHTML='<div style="font-size:12px;color:var(--tx3);padding:8px 0">No hay administradores registrados.</div>';return;}
+    el.innerHTML=snap.docs.map(function(doc){
+      var u=Object.assign({id:doc.id},doc.data());
+      var stores=getAllowedShopifyStores(u);
+      var name=u.name||u.email||doc.id;
+      var email=u.email?'<div style="font-size:10px;color:var(--tx3);margin-top:1px">'+shopifyHtml(u.email)+'</div>':'';
+      var checkedR=stores.indexOf('rooze')!==-1?'checked':'';
+      var checkedD=stores.indexOf('danna')!==-1?'checked':'';
+      return '<div class="shopify-admin-perm-row">'
+        +'<div style="font-size:13px;font-weight:750;color:var(--tx)">'+shopifyHtml(name)+'</div>'+email
+        +'<div class="shopify-admin-perm-actions">'
+          +'<label><input type="checkbox" id="perm-'+doc.id+'-rooze" '+checkedR+'> ROOZE</label>'
+          +'<label><input type="checkbox" id="perm-'+doc.id+'-danna" '+checkedD+'> DANNA</label>'
+          +'<button onclick="saveAdminShopifyStores(\''+doc.id+'\')">Guardar</button>'
+        +'</div>'
+      +'</div>';
+    }).join('');
+  }).catch(function(e){
+    el.innerHTML='<div class="err" style="display:block">Error cargando administradores: '+shopifyHtml(e.message)+'</div>';
+  });
+}
+async function saveAdminShopifyStores(uid){
+  if(!isSuper())return toast('Solo Super Admin');
+  var stores=[];
+  var r=document.getElementById('perm-'+uid+'-rooze');
+  var d=document.getElementById('perm-'+uid+'-danna');
+  if(r&&r.checked)stores.push('rooze');
+  if(d&&d.checked)stores.push('danna');
+  try{
+    await db.collection('users').doc(uid).set({shopifyStores:stores},{merge:true});
+    toast('✓ Permisos Shopify guardados');
+  }catch(e){toast('Error: '+e.message);}
 }
 
 function renderCfgProds(){
@@ -1640,6 +1925,248 @@ async function saveDelivery(){
 
 
 
+
+
+// ═══ MI META PC · espejo de app móvil ═══════════════════════
+function getWeekRangePC(){
+  return {start:weekStart(), end:dayEnd(new Date().getFullYear(),new Date().getMonth(),new Date().getDate())};
+}
+function getNextSalaryLevelPC(numVentas){
+  var scale=[...(salaryScale||[])].sort(function(a,b){return a.ventas-b.ventas;});
+  for(var i=0;i<scale.length;i++){
+    if(numVentas<scale[i].ventas)return scale[i];
+  }
+  return null;
+}
+function renderMetaPC(){
+  var el=document.getElementById('meta-pc-content');
+  if(!el)return;
+  var uid=cu&&cu.id;
+  var name=(cu&&cu.name)||'Usuario';
+  var r=getWeekRangePC();
+  var mine=orders.filter(function(o){
+    var t=o.fv||o.fechaMs||o.ts;
+    return o.vendedorId===uid && t>=r.start && t<=r.end;
+  });
+  var valid=mine.filter(function(o){return o.estado!=='anulado';});
+  var entregados=mine.filter(function(o){return o.estado==='entregado';}).length;
+  var enviados=mine.filter(function(o){return o.estado==='enviado';}).length;
+  var pendientes=mine.filter(function(o){return o.estado==='pendiente';}).length;
+  var anulados=mine.filter(function(o){return o.estado==='anulado';}).length;
+  var ventasCount=valid.length;
+  var ingresos=valid.reduce(function(s,o){return s+(o.cobrar||0);},0);
+  var sueldo=calcSueldo(ventasCount);
+  var next=getNextSalaryLevelPC(ventasCount);
+  var nextTarget=next?next.ventas:ventasCount;
+  var faltan=next?Math.max(0,next.ventas-ventasCount):0;
+  var pct=nextTarget>0?Math.min(100,Math.round((ventasCount/nextTarget)*100)):100;
+  var periodText='Semana actual · '+new Date(r.start).toLocaleDateString('es-PE')+' al '+new Date(r.end).toLocaleDateString('es-PE');
+
+  var recent=[...mine].sort(function(a,b){return (b.fv||b.ts)-(a.fv||a.ts);}).slice(0,10);
+
+  el.innerHTML=
+    '<div class="meta-pc-grid">'+
+      '<div class="kpi"><div class="kpi-lbl">Mis ventas</div><div class="kpi-val">'+ventasCount+'</div><div class="kpi-delta">'+periodText+'</div></div>'+
+      '<div class="kpi"><div class="kpi-lbl">Ingresos</div><div class="kpi-val g">'+fmtC0(ingresos)+'</div><div class="kpi-delta">Sin anulados</div></div>'+
+      '<div class="kpi"><div class="kpi-lbl">Sueldo estimado</div><div class="kpi-val g">'+fmtC0(sueldo)+'</div><div class="kpi-delta">Según escala semanal</div></div>'+
+      '<div class="kpi"><div class="kpi-lbl">Próximo nivel</div><div class="kpi-val">'+(next?next.ventas:'✓')+'</div><div class="kpi-delta">'+(next?('Faltan '+faltan+' ventas'):'Meta máxima alcanzada')+'</div></div>'+
+    '</div>'+
+    '<div class="meta-progress-card">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
+        '<div><div style="font-size:16px;font-weight:800;color:var(--tx)">Avance semanal de '+name+'</div><div style="font-size:12px;color:var(--tx2);margin-top:2px">'+(next?('Objetivo: '+next.ventas+' ventas para S/ '+next.sueldo):'Sin siguiente nivel configurado')+'</div></div>'+
+        '<div style="font-size:22px;font-weight:850;color:var(--accent)">'+pct+'%</div>'+
+      '</div>'+
+      '<div class="meta-progress-bar"><div class="meta-progress-fill" style="width:'+pct+'%"></div></div>'+
+      '<div class="meta-mini-list" style="margin-top:14px">'+
+        '<div class="meta-mini-item"><div class="meta-mini-label">Pendientes</div><div class="meta-mini-val" style="color:#92400e">'+pendientes+'</div></div>'+
+        '<div class="meta-mini-item"><div class="meta-mini-label">Enviados</div><div class="meta-mini-val" style="color:#1e40af">'+enviados+'</div></div>'+
+        '<div class="meta-mini-item"><div class="meta-mini-label">Entregados</div><div class="meta-mini-val" style="color:#166534">'+entregados+'</div></div>'+
+        '<div class="meta-mini-item"><div class="meta-mini-label">Anulados</div><div class="meta-mini-val" style="color:#991b1b">'+anulados+'</div></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="card">'+
+      '<div class="card-title">Últimas ventas de la semana</div>'+
+      (recent.length?'<div class="tbl-wrap" style="box-shadow:none;border-radius:10px;margin-top:10px"><table><thead><tr><th>Fecha</th><th>Cliente</th><th>Producto</th><th>Cobrar</th><th>Estado</th></tr></thead><tbody>'+
+        recent.map(function(o){return '<tr>'+
+          '<td style="font-size:12px;color:var(--tx2)">'+(o.fechaVenta||'—')+'</td>'+
+          '<td><strong>'+((o.cliente)||'—')+'</strong></td>'+
+          '<td style="font-size:12px">'+((o.producto)||'—')+'</td>'+
+          '<td style="font-weight:800;color:var(--accent)">'+fmtC(o.cobrar||0)+'</td>'+
+          '<td><span class="badge '+(o.estado||'pendiente')+'">'+statusLabel(o.estado||'pendiente')+'</span></td>'+
+        '</tr>';}).join('')+'</tbody></table></div>':'<div class="empty">Aún no tienes ventas esta semana</div>')+
+    '</div>';
+}
+
+// ═══ HISTORIAL PC · ROLES Y FILTROS ═════════════════════════
+let histPCPeriod='all', histPCVendedor='all', histPCStatus='all', histPCPage=1;
+let histPCCustomFrom=0, histPCCustomTo=Date.now();
+
+function toggleHistPCDrop(id){
+  document.querySelectorAll('.hist-dd-menu').forEach(function(d){
+    if(d.id!==id)d.classList.remove('open');
+  });
+  var d=document.getElementById(id);
+  if(d)d.classList.toggle('open');
+}
+
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.hist-dd-wrap')){
+    document.querySelectorAll('.hist-dd-menu').forEach(function(d){d.classList.remove('open');});
+  }
+});
+
+function setHistPCPeriod(p,label,el){
+  histPCPeriod=p;
+  var d=document.getElementById('hist-pc-date-drop');
+  if(d){
+    d.classList.remove('open');
+    d.querySelectorAll('.hist-dd-item').forEach(function(x){x.classList.remove('on');});
+  }
+  if(el)el.classList.add('on');
+  var lbl=document.getElementById('hist-pc-date-label');
+  if(lbl)lbl.textContent=label||'Todo';
+  var custom=document.getElementById('hist-pc-custom');
+  if(custom)custom.style.display=p==='custom'?'flex':'none';
+  histPCPage=1;
+  if(p!=='custom')renderHistorialPC();
+}
+
+function applyHistPCCustom(){
+  var f=(document.getElementById('hist-pc-from')||{}).value;
+  var t=(document.getElementById('hist-pc-to')||{}).value;
+  if(!f||!t){toast('Selecciona fechas');return;}
+  histPCCustomFrom=new Date(f+'T00:00:00').getTime();
+  histPCCustomTo=new Date(t+'T23:59:59').getTime();
+  histPCPage=1;
+  renderHistorialPC();
+}
+
+function setHistPCVend(v,name,el){
+  histPCVendedor=v;
+  var d=document.getElementById('hist-pc-vend-drop');
+  if(d){
+    d.classList.remove('open');
+    d.querySelectorAll('.hist-dd-item').forEach(function(x){x.classList.remove('on');});
+  }
+  if(el)el.classList.add('on');
+  var lbl=document.getElementById('hist-pc-vend-label');
+  if(lbl)lbl.textContent=name||'Todos';
+  histPCPage=1;
+  renderHistorialPC();
+}
+
+function setHistPCStatus(s,el){
+  histPCStatus=s;
+  document.querySelectorAll('#hist-pc-status .fbtn').forEach(function(b){b.classList.remove('on');});
+  if(el)el.classList.add('on');
+  histPCPage=1;
+  renderHistorialPC();
+}
+
+function getHistPCRange(){
+  var n=new Date(),Y=n.getFullYear(),M=n.getMonth(),D=n.getDate();
+  if(histPCPeriod==='all')return{start:0,end:dayEnd(Y,M,D)};
+  if(histPCPeriod==='today')return{start:dayStart(Y,M,D),end:dayEnd(Y,M,D)};
+  if(histPCPeriod==='yesterday')return{start:dayStart(Y,M,D-1),end:dayEnd(Y,M,D-1)};
+  if(histPCPeriod==='week')return{start:weekStart(),end:dayEnd(Y,M,D)};
+  if(histPCPeriod==='15days')return{start:dayStart(Y,M,D-15),end:dayEnd(Y,M,D)};
+  if(histPCPeriod==='month')return{start:dayStart(Y,M,1),end:dayEnd(Y,M,D)};
+  if(histPCPeriod==='custom')return{start:histPCCustomFrom,end:histPCCustomTo};
+  return{start:0,end:dayEnd(Y,M,D)};
+}
+
+function histPCEscape(s){return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+
+function renderHistPCVendDrop(source){
+  var wrap=document.getElementById('hist-pc-vend-wrap');
+  var drop=document.getElementById('hist-pc-vend-drop');
+  if(!wrap||!drop)return;
+  if(!isSuper()){
+    wrap.style.display='none';
+    histPCVendedor='all';
+    return;
+  }
+  wrap.style.display='inline-block';
+  var names={};
+  (source||orders).forEach(function(o){if(o.vendedor)names[o.vendedor]=1;});
+  var arr=Object.keys(names).sort();
+  drop.innerHTML='<div class="hist-dd-item '+(histPCVendedor==='all'?'on':'')+'" onclick="setHistPCVend(\'all\',\'Todos\',this)">Todos</div>'+
+    arr.map(function(n){
+      var safe=histPCEscape(n);
+      return '<div class="hist-dd-item '+(histPCVendedor===n?'on':'')+'" onclick="setHistPCVend(\''+safe+'\',\''+safe+'\',this)">'+n+'</div>';
+    }).join('');
+}
+
+function renderHistorialPC(){
+  var statsEl=document.getElementById('hist-pc-stats');
+  var chartEl=document.getElementById('hist-pc-chart');
+  var tblEl=document.getElementById('hist-pc-tbl-wrap');
+  if(!statsEl||!chartEl||!tblEl)return;
+
+  var source=isVendedor()?orders.filter(function(o){return o.vendedorId===cu.id;}):[...orders];
+  renderHistPCVendDrop(source);
+  if(isSuper()&&histPCVendedor!=='all'){
+    source=source.filter(function(o){return o.vendedor===histPCVendedor;});
+  }
+
+  var range=getHistPCRange();
+  var inRange=histPCPeriod==='all'?[...source]:source.filter(function(o){
+    var t=o.fv||o.fechaMs||o.ts;
+    return t>=range.start&&t<=range.end;
+  });
+  var filtered=histPCStatus==='all'?[...inRange]:inRange.filter(function(o){return o.estado===histPCStatus;});
+  filtered.sort(function(a,b){return (b.fv||b.ts)-(a.fv||a.ts);});
+
+  var valid=inRange.filter(function(o){return o.estado!=='anulado';});
+  var totalS=valid.reduce(function(s,o){return s+(o.cobrar||0);},0);
+  var byS={pendiente:0,enviado:0,entregado:0,anulado:0};
+  inRange.forEach(function(o){if(byS[o.estado]!==undefined)byS[o.estado]++;});
+
+  statsEl.innerHTML=
+    '<div class="kpi"><div class="kpi-lbl">Pedidos</div><div class="kpi-val">'+inRange.length+'</div><div class="kpi-delta">Periodo seleccionado</div></div>'+
+    '<div class="kpi"><div class="kpi-lbl">Ingresos</div><div class="kpi-val g">'+fmtC0(totalS)+'</div><div class="kpi-delta">Sin anulados</div></div>'+
+    '<div class="kpi"><div class="kpi-lbl">Entregados</div><div class="kpi-val" style="color:#166534">'+byS.entregado+'</div><div class="kpi-delta">Ventas cerradas</div></div>'+
+    '<div class="kpi"><div class="kpi-lbl">Mostrando</div><div class="kpi-val">'+filtered.length+'</div><div class="kpi-delta">'+(histPCStatus==='all'?'Todos':statusLabel(histPCStatus))+'</div></div>';
+
+  var chartStart=range.start || dayStart(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()-30);
+  chartEl.innerHTML=renderLineChart(buildChartData(inRange,chartStart,range.end),null);
+
+  var total=filtered.length, pages=Math.ceil(total/PAGE_SIZE)||1;
+  histPCPage=Math.min(Math.max(1,histPCPage),pages);
+  var page=filtered.slice((histPCPage-1)*PAGE_SIZE,histPCPage*PAGE_SIZE);
+
+  tblEl.innerHTML=
+    '<table><thead><tr>'+
+      '<th>Fecha</th><th>Cliente</th><th>Celular</th><th>Producto</th>'+
+      '<th>Zona</th><th>Cobrar</th>'+(isSuper()?'<th>Vendedor</th>':'')+
+      '<th>Estado</th><th>Acciones</th>'+
+    '</tr></thead><tbody>'+
+    (page.length?page.map(function(o){
+      var waLink=o.celular?'<a href="https://wa.me/51'+(o.celular||'').replace(/\D/g,'')+'" target="_blank" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:#25D366;border-radius:50%;text-decoration:none"><svg viewBox="0 0 24 24" width="11" height="11" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg></a>':'';
+      var vendCol=isSuper()?'<td style="font-size:12px;color:var(--accent);font-weight:600">'+(o.vendedor||'—')+'</td>':'';
+      return '<tr>'+
+        '<td style="font-size:12px;color:var(--tx2);white-space:nowrap">'+(o.fechaVenta||'—')+'</td>'+
+        '<td><div style="font-weight:600">'+(o.cliente||'—')+'</div></td>'+
+        '<td><div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px">'+(o.celular||'—')+'</span>'+waLink+'</div></td>'+
+        '<td style="font-size:12px">'+(o.producto||'—')+(o.totalCantidad>1?' ×'+o.totalCantidad:'')+'</td>'+
+        '<td style="font-size:12px">'+(o.zona||'—')+'</td>'+
+        '<td style="font-weight:700;color:var(--accent)">'+fmtC(o.cobrar||0)+'</td>'+
+        vendCol+
+        '<td><span class="badge '+(o.estado||'pendiente')+'">'+statusLabel(o.estado||'pendiente')+'</span></td>'+
+        '<td><div class="tbl-actions">'+
+          '<button class="act-btn view" onclick="openDetalle(\''+o.id+'\')">Ver</button>'+
+          '<button class="act-btn edit" onclick="openEditVenta(\''+o.id+'\')">Editar</button>'+
+        '</div></td>'+
+      '</tr>';
+    }).join(''):'<tr><td colspan="9"><div class="empty">Sin ventas en este filtro</div></td></tr>')+
+    '</tbody></table>'+
+    '<div class="pagination">'+
+      '<button class="pg-btn" onclick="histPCPage--;renderHistorialPC()" '+(histPCPage<=1?'disabled':'')+'>← Anterior</button>'+
+      '<span class="pg-info">Página '+histPCPage+' de '+pages+' · '+total+' ventas</span>'+
+      '<button class="pg-btn" onclick="histPCPage++;renderHistorialPC()" '+(histPCPage>=pages?'disabled':'')+'>Siguiente →</button>'+
+    '</div>';
+}
+
 // ═══ SHOPIFY PC MODULE ══════════════════════════════════════
 let curShopifyStore='all', curShopifyTab='analytics';
 let shopifyData={orders:[],customers:[],abandoned:[],drafts:[],_errors:[]};
@@ -1702,10 +2229,34 @@ function normalizeShopifyDoc(doc,type){
   return d;
 }
 function sortShopifyList(list){return list.sort(function(a,b){return shopifyTime(b)-shopifyTime(a);});}
-function filterByStore(list){if(curShopifyStore==='all')return list||[];return (list||[]).filter(function(x){return String(x.store||'').toLowerCase()===curShopifyStore;});}
+function applyShopifyStorePermissionsUI(){
+  var allowed=getAllowedShopifyStores();
+  var btnAll=document.getElementById('ss-all'),btnR=document.getElementById('ss-rooze'),btnD=document.getElementById('ss-danna');
+  if(isSuper()){
+    [btnAll,btnR,btnD].forEach(function(b){if(b)b.style.display='';});
+    if(!curShopifyStore)curShopifyStore='all';
+  }else{
+    if(btnAll)btnAll.style.display='none';
+    if(btnR)btnR.style.display=allowed.indexOf('rooze')!==-1?'':'none';
+    if(btnD)btnD.style.display=allowed.indexOf('danna')!==-1?'':'none';
+    if(allowed.indexOf(curShopifyStore)===-1)curShopifyStore=allowed[0]||'';
+  }
+  ['all','rooze','danna'].forEach(function(s){var b=document.getElementById('ss-'+s);if(b)b.classList.toggle('on',s===curShopifyStore);});
+}
+function filterByStore(list){
+  list=list||[];
+  if(isSuper()&&curShopifyStore==='all')return list;
+  if(!isSuper()){
+    var allowed=getAllowedShopifyStores();
+    if(allowed.indexOf(curShopifyStore)===-1)curShopifyStore=allowed[0]||'';
+  }
+  if(!curShopifyStore)return[];
+  return list.filter(function(x){return normalizeShopifyStoreName(x.store||'rooze')===curShopifyStore;});
+}
 function setShopifyStore(store){
+  if(!isSuper()&&getAllowedShopifyStores().indexOf(store)===-1){toast('No tienes permiso para esa tienda');return;}
   curShopifyStore=store;
-  ['all','rooze','danna'].forEach(function(s){var b=document.getElementById('ss-'+s);if(b)b.classList.toggle('on',s===store);});
+  applyShopifyStorePermissionsUI();
   renderShopifyContent();
 }
 function setShopifyTab(tab){
@@ -1715,22 +2266,44 @@ function setShopifyTab(tab){
   renderShopifyContent();
 }
 function renderShopify(){
-  if(!isAdmin()){document.getElementById('shopify-content').innerHTML='<div class="empty">Solo disponible para Admin y Super Admin</div>';return;}
+  var el=document.getElementById('shopify-content');
+  if(!canUseShopify()){if(el)el.innerHTML='<div class="empty">Solo disponible para Admin y Super Admin</div>';return;}
+  applyShopifyStorePermissionsUI();
+  if(!isSuper()&&!getAllowedShopifyStores().length){
+    if(el)el.innerHTML='<div class="empty">No tienes tienda Shopify asignada.<br><span style="font-size:12px;color:var(--tx3)">Pide al Super Admin asignarte ROOZE o DANNA.</span></div>';
+    return;
+  }
   loadShopifyData();
 }
 function loadShopifyData(){
   var el=document.getElementById('shopify-content');if(el)el.innerHTML='<div class="spin"></div>';
+  applyShopifyStorePermissionsUI();
+  if(!canUseShopify()){if(el)el.innerHTML='<div class="empty">Solo disponible para Admin y Super Admin</div>';return;}
+  var allowedStores=getAllowedShopifyStores();
+  if(!isSuper()&&!allowedStores.length){
+    if(el)el.innerHTML='<div class="empty">No tienes tienda Shopify asignada.</div>';
+    return;
+  }
   _shopifyListeners.forEach(function(u){try{u();}catch(e){}});_shopifyListeners=[];shopifyData._errors=[];
   var defs=[['shopify_orders','orders'],['shopify_customers','customers'],['shopify_abandoned','abandoned'],['shopify_drafts','drafts']];
-  var loaded=0;
+  var loaded={orders:false,customers:false,abandoned:false,drafts:false};
+  function checkReady(){if(loaded.orders&&loaded.customers&&loaded.abandoned&&loaded.drafts)renderShopifyContent();}
+  function baseQuery(collectionName){
+    var q=db.collection(collectionName);
+    if(!isSuper()){
+      if(allowedStores.length===1)q=q.where('store','==',allowedStores[0]);
+      else q=q.where('store','in',allowedStores.slice(0,10));
+    }
+    return q.limit(300);
+  }
   defs.forEach(function(def){
     var collectionName=def[0],targetKey=def[1];
-    var unsub=db.collection(collectionName).limit(300).onSnapshot(function(s){
+    var unsub=baseQuery(collectionName).onSnapshot(function(s){
       shopifyData[targetKey]=sortShopifyList(s.docs.map(function(d){return normalizeShopifyDoc(d,targetKey);}));
-      loaded++;renderShopifyContent();
+      loaded[targetKey]=true;checkReady();
     },function(err){
       shopifyData[targetKey]=[];shopifyData._errors.push(collectionName+': '+(err&&err.message?err.message:'Error desconocido'));
-      loaded++;renderShopifyContent();
+      loaded[targetKey]=true;checkReady();
     });
     _shopifyListeners.push(unsub);
   });
@@ -1758,6 +2331,11 @@ function shopifyWaIcon(){
 function shopifyWaLink(url,label){if(!url)return'';return'<a class="shopify-wa" href="'+url+'" target="_blank" rel="noopener" title="'+shopifyHtml(label||'WhatsApp')+'">'+shopifyWaIcon()+'</a>';}
 async function setShopifyOrderStatus(orderId,status){
   if(!orderId||!db)return;
+  var localOrder=(shopifyData.orders||[]).find(function(o){return o.id===orderId;});
+  if(!isSuper()&&localOrder&&!hasShopifyStoreAccess(localOrder.store)){
+    toast('No tienes permiso para modificar esta tienda');
+    return;
+  }
   try{
     var label=status==='confirmed'?'confirmado':status==='pending'?'pendiente':'cancelado';
     await db.collection('shopify_orders').doc(orderId).update({manualStatus:status,manualStatusUpdatedAt:firebase.firestore.FieldValue.serverTimestamp(),manualStatusUpdatedBy:(cu&&cu.id)||(auth.currentUser&&auth.currentUser.uid)||'',manualStatusUpdatedByName:(cu&&cu.name)||''});
@@ -1766,6 +2344,7 @@ async function setShopifyOrderStatus(orderId,status){
 }
 function renderShopifyContent(){
   var el=document.getElementById('shopify-content');if(!el)return;
+  applyShopifyStorePermissionsUI();
   if(curShopifyTab==='analytics')el.innerHTML=buildShopifyAnalytics();
   else if(curShopifyTab==='orders')el.innerHTML=buildShopifyOrders();
   else if(curShopifyTab==='clientes')el.innerHTML=buildShopifyClientes();
