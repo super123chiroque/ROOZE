@@ -362,6 +362,144 @@ tbody tr:hover{background:var(--bg2)}
 .shopify-date-custom-pc button{background:var(--accent);color:#fff;border:none;border-radius:999px;padding:8px 13px;font-size:12px;font-weight:800;font-family:inherit;cursor:pointer;}
 @media(max-width:980px){.shopify-date-custom-pc{width:100%;margin-top:8px}.shopify-date-custom-pc input{flex:1;min-width:0}}
 
+
+/* ── Mi Meta Web · Escala y detalle v9 ───────────────────── */
+.meta-extra-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.meta-scale-card,.meta-detail-card{background:var(--bg);border:1px solid var(--bo);border-radius:var(--r);padding:16px}
+.meta-scale-list{display:flex;flex-direction:column;gap:7px}
+.meta-scale-row{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--bo2);border-radius:10px;padding:9px 12px;background:var(--bg2);font-size:12px;font-weight:800;color:var(--tx2)}
+.meta-scale-row.hit{background:var(--accent2);border-color:var(--accent);color:var(--accent)}
+.meta-scale-row .salary{font-size:13px;font-weight:850}
+.meta-detail-list{display:flex;flex-direction:column}
+.meta-detail-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--bo);font-size:13px;color:var(--tx2)}
+.meta-detail-row:last-child{border-bottom:none}
+.meta-detail-row strong{color:var(--accent);font-weight:850}
+.meta-period-pill{display:inline-flex;align-items:center;background:var(--accent2);color:var(--accent);border-radius:999px;padding:4px 9px;font-size:11px;font-weight:800;margin-left:6px}
+@media(max-width:1000px){.meta-extra-grid{grid-template-columns:1fr}}
+
+
+/* ── Análisis de Ventas · Super Admin v10 ─────────────────── */
+.analysis-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;margin-bottom:14px}
+.analysis-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.analysis-card{background:var(--bg);border:1px solid var(--bo);border-radius:var(--r);padding:16px}
+.analysis-title{font-size:12px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;font-weight:800;margin-bottom:12px}
+.analysis-sub{font-size:11px;color:var(--tx3);font-weight:600;margin-top:2px}
+.rank-list{display:flex;flex-direction:column;gap:9px}
+.rank-row{display:grid;grid-template-columns:minmax(140px,1fr) 70px 90px 90px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--bo)}
+.rank-row:last-child{border-bottom:none}
+.rank-name{font-size:13px;font-weight:800;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-meta{font-size:11px;color:var(--tx3);font-weight:600;margin-top:2px}
+.rank-val{font-size:12px;font-weight:850;color:var(--accent);text-align:right;white-space:nowrap}
+.bar-line{height:7px;background:var(--bg2);border-radius:99px;overflow:hidden;margin-top:6px}
+.bar-fill{height:100%;background:var(--accent);border-radius:99px}
+.mini-stat-list{display:grid;grid-template-columns:1fr;gap:8px}
+.mini-stat{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--bg2);border:1px solid var(--bo);border-radius:10px;padding:9px 11px}
+.mini-stat span{font-size:12px;font-weight:700;color:var(--tx2)}
+.mini-stat strong{font-size:13px;font-weight:850;color:var(--accent);white-space:nowrap}
+.analysis-table{width:100%;border-collapse:collapse}
+.analysis-table th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--tx3);text-align:left;padding:9px 8px;border-bottom:1px solid var(--bo);background:var(--bg2)}
+.analysis-table td{font-size:12px;color:var(--tx);padding:10px 8px;border-bottom:1px solid var(--bo)}
+.analysis-table tr:last-child td{border-bottom:none}
+.analysis-pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:800;background:var(--accent2);color:var(--accent)}
+.analysis-empty{height:120px;display:flex;align-items:center;justify-content:center;color:var(--tx3);font-size:13px}
+@media(max-width:1100px){.analysis-grid,.analysis-grid-3{grid-template-columns:1fr}.rank-row{grid-template-columns:1fr 70px 90px}.rank-row .hide-sm{display:none}}
+
+
+/* ── Meta Empresarial · Super Admin v12 ───────────────────── */
+.biz-hero{background:var(--bg);border:1px solid var(--bo);border-radius:var(--r);padding:18px;margin-bottom:14px}
+.biz-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:14px}
+.biz-title{font-size:19px;font-weight:850;color:var(--tx);margin-bottom:4px}
+.biz-sub{font-size:12px;color:var(--tx2);font-weight:600;line-height:1.45}
+.biz-month-pill{display:inline-flex;align-items:center;border-radius:999px;background:var(--accent2);color:var(--accent);padding:6px 10px;font-size:12px;font-weight:850;white-space:nowrap}
+.biz-progress{height:13px;background:var(--bg2);border:1px solid var(--bo);border-radius:999px;overflow:hidden}
+.biz-progress-fill{height:100%;background:var(--accent);border-radius:999px;transition:width .25s}
+.biz-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px}
+.biz-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.biz-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.biz-card{background:var(--bg);border:1px solid var(--bo);border-radius:var(--r);padding:16px}
+.biz-card-title{font-size:12px;color:var(--tx3);font-weight:850;text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px}
+.biz-fin-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--bo);font-size:13px;color:var(--tx2)}
+.biz-fin-row:last-child{border-bottom:none}
+.biz-fin-row strong{font-size:14px;color:var(--tx);font-weight:850}
+.biz-fin-row.good strong{color:var(--accent)}
+.biz-fin-row.bad strong{color:#991b1b}
+.biz-input-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.biz-field label{display:block;font-size:10px;color:var(--tx3);font-weight:850;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
+.biz-field input{width:100%;background:var(--bg2);border:1px solid var(--bo);border-radius:10px;padding:9px 10px;font-size:13px;font-weight:750;color:var(--tx);font-family:inherit;outline:none}
+.biz-field input:focus{border-color:var(--accent);background:#fff}
+.biz-save{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:850;font-family:inherit;cursor:pointer}
+.biz-week-list{display:flex;flex-direction:column;gap:8px}
+.biz-week-row{display:grid;grid-template-columns:1.2fr .8fr .8fr .8fr;gap:10px;align-items:center;border:1px solid var(--bo);background:var(--bg2);border-radius:12px;padding:10px 12px}
+.biz-week-row.current{background:var(--accent2);border-color:var(--accent)}
+.biz-week-name{font-size:13px;font-weight:850;color:var(--tx)}
+.biz-week-date{font-size:11px;color:var(--tx3);font-weight:600;margin-top:2px}
+.biz-week-val{font-size:12px;font-weight:850;color:var(--accent);text-align:right}
+.biz-salary-row{display:grid;grid-template-columns:1fr 100px 100px 100px;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--bo)}
+.biz-salary-row:last-child{border-bottom:none}
+.biz-salary-name{font-size:13px;font-weight:850;color:var(--tx)}
+.biz-salary-small{font-size:11px;color:var(--tx3);font-weight:600;margin-top:2px}
+.biz-alert{border-radius:12px;padding:12px 14px;font-size:13px;font-weight:750;background:var(--accent2);color:var(--accent);border:1px solid rgba(47,130,86,.25);margin-bottom:14px}
+@media(max-width:1150px){.biz-grid-4,.biz-grid-3,.biz-grid-2,.biz-input-grid{grid-template-columns:1fr 1fr}.biz-week-row{grid-template-columns:1fr 1fr}.biz-salary-row{grid-template-columns:1fr 90px 90px}}
+@media(max-width:780px){.biz-grid-4,.biz-grid-3,.biz-grid-2,.biz-input-grid{grid-template-columns:1fr}.biz-week-row,.biz-salary-row{grid-template-columns:1fr}.biz-week-val{text-align:left}.biz-hero-top{flex-direction:column}}
+
+
+/* ── Meta Empresarial · Fase 2 Insights v13 ───────────────── */
+.biz-insight-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.biz-insight{background:var(--bg);border:1px solid var(--bo);border-radius:var(--r);padding:15px;display:flex;gap:12px;align-items:flex-start}
+.biz-insight-icon{width:32px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:var(--accent2);font-size:16px;flex:0 0 32px}
+.biz-insight.good{border-color:rgba(47,130,86,.35)}
+.biz-insight.warn{border-color:rgba(217,119,6,.35)}
+.biz-insight.danger{border-color:rgba(153,27,27,.35)}
+.biz-insight-title{font-size:13px;font-weight:850;color:var(--tx);margin-bottom:3px}
+.biz-insight-body{font-size:12px;font-weight:650;color:var(--tx2);line-height:1.45}
+.biz-action-list{display:flex;flex-direction:column;gap:9px}
+.biz-action{display:flex;align-items:flex-start;gap:10px;background:var(--bg2);border:1px solid var(--bo);border-radius:12px;padding:11px 12px}
+.biz-action-num{width:22px;height:22px;border-radius:999px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:850;flex:0 0 22px}
+.biz-action-text{font-size:12px;font-weight:700;color:var(--tx2);line-height:1.45}
+.biz-mini-metric{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px}
+.biz-mini-box{background:var(--bg2);border:1px solid var(--bo);border-radius:10px;padding:10px}
+.biz-mini-box span{display:block;font-size:10px;color:var(--tx3);font-weight:850;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.biz-mini-box strong{font-size:16px;color:var(--accent);font-weight:900}
+@media(max-width:1150px){.biz-insight-grid{grid-template-columns:1fr}.biz-mini-metric{grid-template-columns:1fr 1fr}}
+@media(max-width:780px){.biz-mini-metric{grid-template-columns:1fr}}
+
+
+/* ── Meta Empresarial · Fase 3 Edición semanal v14 ────────── */
+.biz-filter{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.biz-filter .bf{border:none;background:var(--bg);color:var(--tx2);border-radius:999px;padding:8px 13px;font-size:12px;font-weight:800;font-family:inherit;cursor:pointer;border:1px solid var(--bo)}
+.biz-filter .bf.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.biz-custom-range{display:none;align-items:center;gap:8px;flex-wrap:wrap}
+.biz-custom-range input{background:var(--bg);border:1px solid var(--bo);border-radius:999px;padding:8px 11px;font-size:12px;font-weight:700;color:var(--tx);font-family:inherit}
+.biz-custom-range button{background:var(--accent);color:#fff;border:none;border-radius:999px;padding:8px 13px;font-size:12px;font-weight:850;font-family:inherit;cursor:pointer}
+.biz-editor-card{background:var(--bg);border:1px solid var(--bo);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.biz-month-editor{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;margin-bottom:12px}
+.biz-week-details{border:1px solid var(--bo);border-radius:14px;background:var(--bg);margin-bottom:10px;overflow:hidden}
+.biz-week-details[open]{border-color:rgba(47,130,86,.35);box-shadow:0 8px 22px rgba(0,0,0,.035)}
+.biz-week-summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;padding:13px 15px;background:var(--bg2)}
+.biz-week-summary::-webkit-details-marker{display:none}
+.biz-week-summary strong{font-size:13px;color:var(--tx);font-weight:900}
+.biz-week-summary span{font-size:11px;color:var(--tx3);font-weight:700}
+.biz-week-summary .right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.biz-chip{display:inline-flex;align-items:center;border-radius:999px;padding:5px 9px;background:var(--accent2);color:var(--accent);font-size:11px;font-weight:850}
+.biz-week-body{padding:15px}
+.biz-week-edit-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.biz-salary-table{width:100%;border-collapse:collapse}
+.biz-salary-table th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--tx3);text-align:left;padding:9px 8px;border-bottom:1px solid var(--bo);background:var(--bg2)}
+.biz-salary-table td{font-size:12px;color:var(--tx);padding:9px 8px;border-bottom:1px solid var(--bo);vertical-align:middle}
+.biz-salary-table tr:last-child td{border-bottom:none}
+.biz-small-input{width:90px;background:var(--bg2);border:1px solid var(--bo);border-radius:9px;padding:7px 8px;font-size:12px;font-weight:800;color:var(--tx);font-family:inherit}
+.biz-note{font-size:11px;color:var(--tx3);font-weight:650;line-height:1.45;margin-top:8px}
+.biz-period-title{font-size:15px;font-weight:900;color:var(--tx);margin-bottom:4px}
+.biz-period-sub{font-size:12px;color:var(--tx2);font-weight:650;margin-bottom:12px}
+.biz-metrics-table{width:100%;border-collapse:collapse}
+.biz-metrics-table td{padding:9px 0;border-bottom:1px solid var(--bo);font-size:13px;color:var(--tx2)}
+.biz-metrics-table tr:last-child td{border-bottom:none}
+.biz-metrics-table td:last-child{text-align:right;font-weight:900;color:var(--accent)}
+.biz-metrics-table .bad td:last-child{color:#991b1b}
+.biz-metrics-table .total td{font-size:14px;color:var(--tx);font-weight:900;border-top:1px solid var(--accent)}
+@media(max-width:1150px){.biz-week-edit-grid{grid-template-columns:1fr 1fr}.biz-month-editor{grid-template-columns:1fr}.biz-salary-table{min-width:720px}.biz-salary-scroll{overflow:auto}}
+@media(max-width:760px){.biz-week-edit-grid{grid-template-columns:1fr}.biz-filter{gap:6px}.biz-filter .bf{font-size:11px;padding:7px 10px}}
+
 </style>
 </head>
 <body>
@@ -393,6 +531,10 @@ tbody tr:hover{background:var(--bg2)}
       <button class="nav-item on" id="nb-dashboard" onclick="showModule('dashboard')">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
         Dashboard
+      </button>
+      <button class="nav-item" id="nb-analisis" onclick="showModule('analisis')">
+        <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l3-3 3 2 5-7"/><path d="M7 19v-4M13 19v-5M18 19V7"/></svg>
+        Análisis de Ventas
       </button>
       <button class="nav-item" id="nb-ventas" onclick="showModule('ventas')">
         <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
@@ -480,6 +622,45 @@ tbody tr:hover{background:var(--bg2)}
             <div id="zona-bars"></div>
             <div class="card-title" style="margin-top:16px">Resumen estados</div>
             <div id="estado-resumen"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ANÁLISIS DE VENTAS ───────────────────────── -->
+      <div id="mod-analisis" style="display:none">
+        <div class="kpi-row" id="analysis-kpis"><div class="spin"></div></div>
+        <div class="analysis-grid">
+          <div class="analysis-card">
+            <div class="analysis-title">Evolución del período</div>
+            <div id="analysis-chart"><div class="spin"></div></div>
+          </div>
+          <div class="analysis-card">
+            <div class="analysis-title">Estados de pedidos</div>
+            <div id="analysis-states"><div class="spin"></div></div>
+          </div>
+        </div>
+        <div class="analysis-grid">
+          <div class="analysis-card">
+            <div class="analysis-title">Productos más vendidos</div>
+            <div id="analysis-products"><div class="spin"></div></div>
+          </div>
+          <div class="analysis-card">
+            <div class="analysis-title">Ventas por ciudad</div>
+            <div id="analysis-cities"><div class="spin"></div></div>
+          </div>
+        </div>
+        <div class="analysis-grid-3">
+          <div class="analysis-card">
+            <div class="analysis-title">Ventas por tienda</div>
+            <div id="analysis-stores"><div class="spin"></div></div>
+          </div>
+          <div class="analysis-card">
+            <div class="analysis-title">Cantidad / ofertas</div>
+            <div id="analysis-qty"><div class="spin"></div></div>
+          </div>
+          <div class="analysis-card">
+            <div class="analysis-title">Ranking de vendedores</div>
+            <div id="analysis-sellers"><div class="spin"></div></div>
           </div>
         </div>
       </div>
@@ -1010,6 +1191,7 @@ function startListeners(){
 
 function renderCurrentModule(){
   if(curModule==='dashboard')renderDashboard();
+  else if(curModule==='analisis')renderAnalisisVentas();
   else if(curModule==='ventas')renderVentas();
   else if(curModule==='resumen')renderResumen();
   else if(curModule==='meta')renderMetaPC();
@@ -1019,7 +1201,7 @@ function renderCurrentModule(){
 
 
 function applyRoleNav(){
-  var ids=['dashboard','ventas','meta','historial','shopify','resumen','config'];
+  var ids=['dashboard','analisis','ventas','meta','historial','shopify','resumen','config'];
   ids.forEach(function(id){var el=document.getElementById('nb-'+id);if(el)el.style.display='none';});
   function show(id){var el=document.getElementById('nb-'+id);if(el)el.style.display='flex';}
   if(isSuper()){
@@ -1038,7 +1220,7 @@ function applyRoleNav(){
 
 // ═══ NAVIGATION ═════════════════════════════════════════════
 function showModule(mod){
-  if((mod==='dashboard'||mod==='resumen'||mod==='config')&&!isSuper()){
+  if((mod==='dashboard'||mod==='analisis'||mod==='resumen'||mod==='config')&&!isSuper()){
     toast('Esta sección es solo para Super Admin');
     mod='ventas';
   }
@@ -1047,18 +1229,19 @@ function showModule(mod){
     mod='ventas';
   }
   curModule=mod;
-  ['dashboard','ventas','meta','historial','shopify','resumen','config'].forEach(m=>{
+  ['dashboard','analisis','ventas','meta','historial','shopify','resumen','config'].forEach(m=>{
     const el=$('mod-'+m); if(el)el.style.display=m===mod?'block':'none';
     const nb=$('nb-'+m); if(nb){nb.classList.toggle('on',m===mod);}
   });
-  const titles={dashboard:'Dashboard',ventas:'Ventas',meta:'Mi meta',historial:'Historial',shopify:'Shopify',resumen:'Vendedores',config:'Configuración'};
-  $('page-title').textContent=titles[mod]||mod;
+  const titles={dashboard:'Dashboard',analisis:'Análisis de Ventas',ventas:'Ventas',meta:'Mi meta',historial:'Historial',shopify:'Shopify',resumen:'Vendedores',config:'Configuración'};
+  $('page-title').textContent=(mod==='meta'&&isSuper())?'Meta Empresarial':(titles[mod]||mod);
   var gf=document.getElementById('global-filter');
-  if(gf)gf.style.display=(mod==='dashboard'||mod==='ventas'||mod==='resumen')?'flex':'none';
+  if(gf)gf.style.display=(mod==='dashboard'||mod==='analisis'||mod==='ventas'||(mod==='meta'&&!isSuper())||mod==='resumen')?'flex':'none';
   var cr=document.getElementById('custom-range');
-  if(cr && !(mod==='dashboard'||mod==='ventas'||mod==='resumen'))cr.style.display='none';
+  if(cr && !(mod==='dashboard'||mod==='analisis'||mod==='ventas'||(mod==='meta'&&!isSuper())||mod==='resumen'))cr.style.display='none';
   // Render current module
   if(mod==='dashboard')renderDashboard();
+  else if(mod==='analisis')renderAnalisisVentas();
   else if(mod==='ventas')renderVentas();
   else if(mod==='meta')renderMetaPC();
   else if(mod==='resumen')renderResumen();
@@ -1092,6 +1275,227 @@ function getGlobalRange(){
   if(gPeriod==='custom')   return{start:gCustomFrom,end:gCustomTo,prev:{start:0,end:0}};
   return{start:dayStart(Y,M,D),end:dayEnd(Y,M,D),prev:{start:dayStart(Y,M,D-1),end:dayEnd(Y,M,D-1)}};
 }
+
+
+// ═══ ANÁLISIS DE VENTAS · SUPER ADMIN ══════════════════════
+function safeNum(v){v=Number(v||0);return isNaN(v)?0:v;}
+function analysisPeriodLabel(){
+  if(gPeriod==='today')return 'Hoy';
+  if(gPeriod==='yesterday')return 'Ayer';
+  if(gPeriod==='week')return 'Semana';
+  if(gPeriod==='15days')return '15 días';
+  if(gPeriod==='month')return 'Mes';
+  if(gPeriod==='custom')return 'Personalizado';
+  return 'Periodo';
+}
+function analysisStoreName(o){
+  var raw=o.tienda||o.store||o.shopifyStore||o.marca||o.origenTienda||o.storeName||'';
+  raw=String(raw||'').trim();
+  var n=normalizeShopifyStoreName(raw);
+  if(n==='rooze')return 'ROOZE';
+  if(n==='danna')return 'DANNA';
+  if(raw)return raw.toUpperCase();
+  return 'Sin tienda';
+}
+function analysisCityName(o){
+  var c=o.ciudad||o.provincia||o.departamento||o.destino||o.distrito||o.zona||'Sin ciudad';
+  c=String(c||'Sin ciudad').replace(/\s*\(departamento\)\s*/ig,'').trim();
+  return c || 'Sin ciudad';
+}
+function analysisProductItems(o){
+  var items=[];
+  var totalQty=safeNum(o.totalCantidad||1)||1;
+  var orderTotal=safeNum(o.cobrar);
+  if(Array.isArray(o.productos)&&o.productos.length){
+    o.productos.forEach(function(p){
+      var name=p.nombre||p.producto||p.title||'Producto';
+      var qty=safeNum(p.cantidad||p.qty||1)||1;
+      var price=safeNum(p.precio||p.price||0);
+      var rev=price>0?price*qty:(orderTotal*(qty/totalQty));
+      items.push({name:name,qty:qty,rev:rev});
+    });
+  }else{
+    items.push({name:o.producto||'Producto',qty:totalQty,rev:orderTotal});
+  }
+  return items;
+}
+function analysisTopRows(map, limit, renderFn){
+  var arr=Object.keys(map).map(function(k){return Object.assign({name:k},map[k]);});
+  arr.sort(function(a,b){return (b.ingresos||b.count||b.unidades||0)-(a.ingresos||a.count||a.unidades||0);});
+  return arr.slice(0,limit).map(renderFn).join('') || '<div class="analysis-empty">Sin datos en este período</div>';
+}
+function renderSimpleBars(map, limit, metric){
+  var arr=Object.keys(map).map(function(k){return Object.assign({name:k},map[k]);});
+  arr.sort(function(a,b){return (b[metric]||0)-(a[metric]||0);});
+  var max=Math.max.apply(null,arr.map(function(x){return x[metric]||0;}).concat([1]));
+  return arr.slice(0,limit).map(function(x){
+    var pct=Math.max(4,Math.round(((x[metric]||0)/max)*100));
+    return '<div class="mini-stat" style="display:block">'+
+      '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center">'+
+        '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+x.name+'</span>'+
+        '<strong>'+((metric==='ingresos')?fmtC0(x[metric]||0):(x[metric]||0))+'</strong>'+
+      '</div>'+
+      '<div class="bar-line"><div class="bar-fill" style="width:'+pct+'%"></div></div>'+
+    '</div>';
+  }).join('') || '<div class="analysis-empty">Sin datos en este período</div>';
+}
+
+function renderCityBarsWithTotal(map, limit){
+  var arr=Object.keys(map).map(function(k){return Object.assign({name:k},map[k]);});
+  arr.sort(function(a,b){return (b.count||0)-(a.count||0);});
+  var total=arr.reduce(function(s,x){return s+(x.count||0);},0);
+  if(!arr.length)return '<div class="analysis-empty">Sin datos en este período</div>';
+  var top=arr.slice(0,limit);
+  var rest=arr.slice(limit);
+  var others=rest.reduce(function(acc,x){
+    acc.count+=(x.count||0);
+    acc.ingresos+=(x.ingresos||0);
+    acc.unidades+=(x.unidades||0);
+    return acc;
+  },{name:'Otros',count:0,ingresos:0,unidades:0});
+  var display=top.slice();
+  if(others.count>0)display.push(others);
+  var max=Math.max.apply(null,display.map(function(x){return x.count||0;}).concat([1]));
+  var rows=display.map(function(x){
+    var pct=Math.max(4,Math.round(((x.count||0)/max)*100));
+    var isOthers=x.name==='Otros';
+    return '<div class="mini-stat" style="display:block;'+(isOthers?'background:#f8faf9;border-style:dashed;':'')+'">'+
+      '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center">'+
+        '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+x.name+
+          (isOthers?'<div class="analysis-sub">Resto de ciudades</div>':'')+
+        '</span>'+
+        '<strong>'+x.count+'</strong>'+
+      '</div>'+
+      '<div class="bar-line"><div class="bar-fill" style="width:'+pct+'%"></div></div>'+
+    '</div>';
+  }).join('');
+  rows += '<div class="mini-stat" style="margin-top:10px;background:var(--accent2);border-color:var(--accent)">'+
+    '<span>Total ciudades</span><strong>'+total+' pedidos</strong>'+
+  '</div>';
+  return rows;
+}
+function renderAnalisisVentas(){
+  if(!isSuper())return;
+  var range=getGlobalRange();
+  var all=orders.filter(function(o){var t=o.fv||o.fechaMs||o.ts;return t>=range.start&&t<=range.end;});
+  var valid=all.filter(function(o){return o.estado!=='anulado';});
+  var totalIngresos=valid.reduce(function(s,o){return s+safeNum(o.cobrar);},0);
+  var totalGanancia=calcGananciaTotal(all);
+  var totalUnidades=valid.reduce(function(s,o){return s+(safeNum(o.totalCantidad)||1);},0);
+  var ticket=valid.length?totalIngresos/valid.length:0;
+
+  var kpis=document.getElementById('analysis-kpis');
+  if(kpis){
+    kpis.innerHTML=
+      '<div class="kpi"><div class="kpi-lbl">Ingresos</div><div class="kpi-val g">'+fmtC0(totalIngresos)+'</div><div class="kpi-delta">'+analysisPeriodLabel()+'</div></div>'+
+      '<div class="kpi"><div class="kpi-lbl">Pedidos</div><div class="kpi-val">'+valid.length+'</div><div class="kpi-delta">Sin anulados</div></div>'+
+      '<div class="kpi"><div class="kpi-lbl">Ganancia real</div><div class="kpi-val g">'+fmtC0(totalGanancia)+'</div><div class="kpi-delta">Utilidad estimada</div></div>'+
+      '<div class="kpi"><div class="kpi-lbl">Ticket promedio</div><div class="kpi-val">'+fmtC0(ticket)+'</div><div class="kpi-delta">'+totalUnidades+' unidades</div></div>';
+  }
+
+  var chart=document.getElementById('analysis-chart');
+  if(chart)chart.innerHTML=renderLineChart(buildChartData(orders,range.start,range.end),null);
+
+  var states={pendiente:0,enviado:0,entregado:0,anulado:0};
+  all.forEach(function(o){if(states[o.estado]!==undefined)states[o.estado]++;});
+  var statesEl=document.getElementById('analysis-states');
+  if(statesEl){
+    statesEl.innerHTML=
+      '<div class="mini-stat-list">'+
+        '<div class="mini-stat"><span>Pendientes</span><strong style="color:#92400e">'+states.pendiente+'</strong></div>'+
+        '<div class="mini-stat"><span>Enviados</span><strong style="color:#1e40af">'+states.enviado+'</strong></div>'+
+        '<div class="mini-stat"><span>Entregados</span><strong style="color:#166534">'+states.entregado+'</strong></div>'+
+        '<div class="mini-stat"><span>Anulados</span><strong style="color:#991b1b">'+states.anulado+'</strong></div>'+
+      '</div>';
+  }
+
+  var products={}, cities={}, stores={}, qtys={}, sellers={};
+  all.forEach(function(o){
+    var orderValid=o.estado!=='anulado';
+    var seller=o.vendedor||'Sin vendedor';
+    if(!sellers[seller])sellers[seller]={count:0,ingresos:0,ganancia:0,unidades:0};
+    if(orderValid){
+      sellers[seller].count++;
+      sellers[seller].ingresos+=safeNum(o.cobrar);
+      sellers[seller].ganancia+=getCostoReal(o).ganancia;
+      sellers[seller].unidades+=(safeNum(o.totalCantidad)||1);
+    }
+
+    var city=analysisCityName(o);
+    if(!cities[city])cities[city]={count:0,ingresos:0,unidades:0};
+    if(orderValid){
+      cities[city].count++;
+      cities[city].ingresos+=safeNum(o.cobrar);
+      cities[city].unidades+=(safeNum(o.totalCantidad)||1);
+    }
+
+    var store=analysisStoreName(o);
+    if(!stores[store])stores[store]={count:0,ingresos:0,ganancia:0,unidades:0};
+    if(orderValid){
+      stores[store].count++;
+      stores[store].ingresos+=safeNum(o.cobrar);
+      stores[store].ganancia+=getCostoReal(o).ganancia;
+      stores[store].unidades+=(safeNum(o.totalCantidad)||1);
+    }
+
+    var q=String(safeNum(o.totalCantidad)||1);
+    if(!qtys[q])qtys[q]={count:0,ingresos:0,unidades:0};
+    if(orderValid){
+      qtys[q].count++;
+      qtys[q].ingresos+=safeNum(o.cobrar);
+      qtys[q].unidades+=safeNum(o.totalCantidad)||1;
+    }
+
+    if(orderValid){
+      analysisProductItems(o).forEach(function(it){
+        var name=it.name||'Producto';
+        if(!products[name])products[name]={count:0,unidades:0,ingresos:0,ganancia:0};
+        products[name].count++;
+        products[name].unidades+=safeNum(it.qty)||1;
+        products[name].ingresos+=safeNum(it.rev);
+        var prodCfg=(cfg.productos||[]).find(function(p){return String(p.nombre||'').toLowerCase()===String(name||'').toLowerCase();});
+        var cost=safeNum(prodCfg&&prodCfg.costo)*safeNum(it.qty);
+        products[name].ganancia+=safeNum(it.rev)-cost;
+      });
+    }
+  });
+
+  var prodEl=document.getElementById('analysis-products');
+  if(prodEl){
+    prodEl.innerHTML='<table class="analysis-table"><thead><tr><th>Producto</th><th>Pedidos</th><th>Unid.</th><th>Ingresos</th><th>Ganancia</th></tr></thead><tbody>'+
+      (analysisTopRows(products,8,function(p){
+        return '<tr><td><strong>'+p.name+'</strong></td><td>'+p.count+'</td><td>'+p.unidades+'</td><td><strong style="color:var(--accent)">'+fmtC0(p.ingresos)+'</strong></td><td>'+fmtC0(p.ganancia)+'</td></tr>';
+      }) || '')+
+      '</tbody></table>';
+  }
+
+  var citiesEl=document.getElementById('analysis-cities');
+  if(citiesEl)citiesEl.innerHTML=renderCityBarsWithTotal(cities,8);
+
+  var storesEl=document.getElementById('analysis-stores');
+  if(storesEl){
+    storesEl.innerHTML=analysisTopRows(stores,6,function(s){
+      return '<div class="mini-stat"><span>'+s.name+'<div class="analysis-sub">'+s.count+' pedidos · '+s.unidades+' un.</div></span><strong>'+fmtC0(s.ingresos)+'</strong></div>';
+    });
+  }
+
+  var qtyEl=document.getElementById('analysis-qty');
+  if(qtyEl){
+    var arr=Object.keys(qtys).sort(function(a,b){return Number(a)-Number(b);});
+    qtyEl.innerHTML=arr.map(function(k){
+      var x=qtys[k];
+      return '<div class="mini-stat"><span>'+x.count+' venta'+(x.count!==1?'s':'')+' de '+k+' unidad'+(Number(k)!==1?'es':'')+'<div class="analysis-sub">'+x.unidades+' unidades totales</div></span><strong>'+fmtC0(x.ingresos)+'</strong></div>';
+    }).join('') || '<div class="analysis-empty">Sin datos en este período</div>';
+  }
+
+  var sellersEl=document.getElementById('analysis-sellers');
+  if(sellersEl){
+    sellersEl.innerHTML=analysisTopRows(sellers,8,function(s){
+      return '<div class="mini-stat"><span>'+s.name+'<div class="analysis-sub">'+s.count+' ventas · '+s.unidades+' un.</div></span><strong>'+fmtC0(s.ingresos)+'</strong></div>';
+    });
+  }
+}
+
 
 // ═══ DASHBOARD ══════════════════════════════════════════════
 function renderDashboard(){
@@ -2098,16 +2502,69 @@ function getNextSalaryLevelPC(numVentas){
   }
   return null;
 }
-function renderMetaPC(){
+
+function getMetaPeriodLabelPC(){
+  if(gPeriod==='today')return 'Hoy';
+  if(gPeriod==='yesterday')return 'Ayer';
+  if(gPeriod==='week')return 'Esta semana';
+  if(gPeriod==='15days')return 'Últimos 15 días';
+  if(gPeriod==='month')return 'Este mes';
+  if(gPeriod==='custom')return 'Personalizado';
+  return 'Periodo';
+}
+function formatMetaPeriodRangePC(r){
+  if(!r||!r.start||!r.end)return '';
+  return new Date(r.start).toLocaleDateString('es-PE')+' al '+new Date(r.end).toLocaleDateString('es-PE');
+}
+function renderMetaScalePC(ventasCount){
+  var scale=[...(salaryScale||[])].sort(function(a,b){return Number(a.ventas||0)-Number(b.ventas||0);});
+  if(!scale.length){
+    return '<div class="empty" style="padding:18px">Configura la escala de sueldos en Configuración.</div>';
+  }
+  return '<div class="meta-scale-list">'+scale.map(function(l){
+    var ventas=Number(l.ventas||0);
+    var sueldo=Number(l.sueldo||0);
+    var hit=ventasCount>=ventas;
+    var faltan=Math.max(0,ventas-ventasCount);
+    return '<div class="meta-scale-row '+(hit?'hit':'')+'">'+
+      '<span>'+ventas+' ventas '+(hit?'← actual':'· faltan '+faltan)+'</span>'+
+      '<span class="salary">S/ '+fmtN(sueldo)+'</span>'+
+    '</div>';
+  }).join('')+'</div>';
+}
+function renderMetaDetailPC(valid){
+  var byCant={};
+  var totalUnits=0;
+  valid.forEach(function(o){
+    var q=Number(o.totalCantidad||1);
+    totalUnits+=q;
+    byCant[q]=(byCant[q]||0)+1;
+  });
+  var rows=[
+    '<div class="meta-detail-row"><span>Total pedidos</span><strong>'+valid.length+'</strong></div>'
+  ];
+  Object.keys(byCant).sort(function(a,b){return Number(a)-Number(b);}).forEach(function(k){
+    var count=byCant[k];
+    var units=count*Number(k);
+    rows.push('<div class="meta-detail-row"><span>'+count+' venta'+(count!==1?'s':'')+' de '+k+' unidad'+(Number(k)!==1?'es':'')+'</span><strong>'+units+' un.</strong></div>');
+  });
+  rows.push('<div class="meta-detail-row"><span>Total unidades</span><strong>'+totalUnits+' un.</strong></div>');
+  return '<div class="meta-detail-list">'+rows.join('')+'</div>';
+}
+function renderPersonalMetaPC(){
   var el=document.getElementById('meta-pc-content');
   if(!el)return;
   var uid=cu&&cu.id;
   var name=(cu&&cu.name)||'Usuario';
-  var r=getWeekRangePC();
+  var r=getGlobalRange();
+  var periodLabel=getMetaPeriodLabelPC();
+  var periodText=periodLabel+' · '+formatMetaPeriodRangePC(r);
+
   var mine=orders.filter(function(o){
     var t=o.fv||o.fechaMs||o.ts;
     return o.vendedorId===uid && t>=r.start && t<=r.end;
   });
+
   var valid=mine.filter(function(o){return o.estado!=='anulado';});
   var entregados=mine.filter(function(o){return o.estado==='entregado';}).length;
   var enviados=mine.filter(function(o){return o.estado==='enviado';}).length;
@@ -2117,23 +2574,22 @@ function renderMetaPC(){
   var ingresos=valid.reduce(function(s,o){return s+(o.cobrar||0);},0);
   var sueldo=calcSueldo(ventasCount);
   var next=getNextSalaryLevelPC(ventasCount);
-  var nextTarget=next?next.ventas:ventasCount;
-  var faltan=next?Math.max(0,next.ventas-ventasCount):0;
+  var nextTarget=next?Number(next.ventas||0):ventasCount;
+  var faltan=next?Math.max(0,Number(next.ventas||0)-ventasCount):0;
   var pct=nextTarget>0?Math.min(100,Math.round((ventasCount/nextTarget)*100)):100;
-  var periodText='Semana actual · '+new Date(r.start).toLocaleDateString('es-PE')+' al '+new Date(r.end).toLocaleDateString('es-PE');
 
   var recent=[...mine].sort(function(a,b){return (b.fv||b.ts)-(a.fv||a.ts);}).slice(0,10);
 
   el.innerHTML=
     '<div class="meta-pc-grid">'+
-      '<div class="kpi"><div class="kpi-lbl">Mis ventas</div><div class="kpi-val">'+ventasCount+'</div><div class="kpi-delta">'+periodText+'</div></div>'+
+      '<div class="kpi"><div class="kpi-lbl">Mis ventas <span class="meta-period-pill">'+periodLabel+'</span></div><div class="kpi-val">'+ventasCount+'</div><div class="kpi-delta">'+periodText+'</div></div>'+
       '<div class="kpi"><div class="kpi-lbl">Ingresos</div><div class="kpi-val g">'+fmtC0(ingresos)+'</div><div class="kpi-delta">Sin anulados</div></div>'+
-      '<div class="kpi"><div class="kpi-lbl">Sueldo estimado</div><div class="kpi-val g">'+fmtC0(sueldo)+'</div><div class="kpi-delta">Según escala semanal</div></div>'+
+      '<div class="kpi"><div class="kpi-lbl">Sueldo estimado</div><div class="kpi-val g">'+fmtC0(sueldo)+'</div><div class="kpi-delta">Según escala configurada</div></div>'+
       '<div class="kpi"><div class="kpi-lbl">Próximo nivel</div><div class="kpi-val">'+(next?next.ventas:'✓')+'</div><div class="kpi-delta">'+(next?('Faltan '+faltan+' ventas'):'Meta máxima alcanzada')+'</div></div>'+
     '</div>'+
     '<div class="meta-progress-card">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
-        '<div><div style="font-size:16px;font-weight:800;color:var(--tx)">Avance semanal de '+name+'</div><div style="font-size:12px;color:var(--tx2);margin-top:2px">'+(next?('Objetivo: '+next.ventas+' ventas para S/ '+next.sueldo):'Sin siguiente nivel configurado')+'</div></div>'+
+        '<div><div style="font-size:16px;font-weight:800;color:var(--tx)">Avance de '+name+'</div><div style="font-size:12px;color:var(--tx2);margin-top:2px">'+(next?('Objetivo: '+next.ventas+' ventas para S/ '+next.sueldo):'Sin siguiente nivel configurado')+'</div></div>'+
         '<div style="font-size:22px;font-weight:850;color:var(--accent)">'+pct+'%</div>'+
       '</div>'+
       '<div class="meta-progress-bar"><div class="meta-progress-fill" style="width:'+pct+'%"></div></div>'+
@@ -2144,8 +2600,12 @@ function renderMetaPC(){
         '<div class="meta-mini-item"><div class="meta-mini-label">Anulados</div><div class="meta-mini-val" style="color:#991b1b">'+anulados+'</div></div>'+
       '</div>'+
     '</div>'+
+    '<div class="meta-extra-grid">'+
+      '<div class="meta-scale-card"><div class="card-title">Escala semanal</div>'+renderMetaScalePC(ventasCount)+'</div>'+
+      '<div class="meta-detail-card"><div class="card-title">Detalle del período</div>'+renderMetaDetailPC(valid)+'</div>'+
+    '</div>'+
     '<div class="card">'+
-      '<div class="card-title">Últimas ventas de la semana</div>'+
+      '<div class="card-title">Últimas ventas del período</div>'+
       (recent.length?'<div class="tbl-wrap" style="box-shadow:none;border-radius:10px;margin-top:10px"><table><thead><tr><th>Fecha</th><th>Cliente</th><th>Producto</th><th>Cobrar</th><th>Estado</th></tr></thead><tbody>'+
         recent.map(function(o){return '<tr>'+
           '<td style="font-size:12px;color:var(--tx2)">'+(o.fechaVenta||'—')+'</td>'+
@@ -2153,9 +2613,393 @@ function renderMetaPC(){
           '<td style="font-size:12px">'+((o.producto)||'—')+'</td>'+
           '<td style="font-weight:800;color:var(--accent)">'+fmtC(o.cobrar||0)+'</td>'+
           '<td><span class="badge '+(o.estado||'pendiente')+'">'+statusLabel(o.estado||'pendiente')+'</span></td>'+
-        '</tr>';}).join('')+'</tbody></table></div>':'<div class="empty">Aún no tienes ventas esta semana</div>')+
+        '</tr>';}).join('')+'</tbody></table></div>':'<div class="empty">Aún no tienes ventas en este período</div>')+
     '</div>';
 }
+
+
+
+// ═══ META EMPRESARIAL · SUPER ADMIN · FASE 3 ═══════════════
+let bizMetaFilter='month', bizMetaCustomFrom=0, bizMetaCustomTo=Date.now();
+
+function bizNum(v){v=Number(v||0);return isNaN(v)?0:v;}
+function bizEsc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function bizMonthKey(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+function bizMonthLabel(d){d=d||new Date();return d.toLocaleDateString('es-PE',{month:'long',year:'numeric'});}
+function bizMonthRange(d){
+  d=d||new Date();
+  var y=d.getFullYear(),m=d.getMonth();
+  var start=dayStart(y,m,1), end=dayEnd(y,m+1,0);
+  var today=dayEnd(d.getFullYear(),d.getMonth(),d.getDate());
+  return {start:start,end:end,actualEnd:Math.min(today,end)};
+}
+function bizWeekRangesForMonth(d){
+  d=d||new Date();
+  var mr=bizMonthRange(d);
+  var first=new Date(mr.start);
+  var day=first.getDay()||7;
+  first.setDate(first.getDate()-(day-1));
+  first.setHours(0,0,0,0);
+  var weeks=[], cur=first.getTime(), idx=1;
+  while(cur<=mr.end){
+    var rawEnd=cur+7*86400000-1;
+    var s=Math.max(cur,mr.start), e=Math.min(rawEnd,mr.end);
+    if(e>=mr.start && s<=mr.end){weeks.push({index:idx,start:s,end:e,label:'Semana '+idx});idx++;}
+    cur+=7*86400000;
+  }
+  return weeks;
+}
+function bizCurrentWeekIndex(weeks){
+  var now=Date.now();
+  for(var i=0;i<weeks.length;i++){if(now>=weeks[i].start&&now<=weeks[i].end)return i;}
+  return Math.max(0,weeks.length-1);
+}
+function bizDateShort(ts){return new Date(ts).toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit'});}
+function bizMoneyInput(id,label,value){
+  return '<div class="biz-field"><label>'+label+'</label><input id="'+id+'" type="number" min="0" step="1" value="'+Math.round(bizNum(value))+'"></div>';
+}
+function bizCfgForMonth(key,weeksLen){
+  cfg.businessMeta=cfg.businessMeta||{};
+  var cur=(cfg.businessMeta||{})[key]||{};
+  var monthlyGoal=bizNum(cur.monthlyGoal)||50000;
+  var defWeek=Math.round(monthlyGoal/(weeksLen||4));
+  var oldWeekly=cur.weeklyGoals||[];
+  var weeks=(cur.weeks||[]).slice(0,weeksLen).map(function(w,i){
+    w=w||{};
+    return {
+      incomeGoal:bizNum(w.incomeGoal)||bizNum(oldWeekly[i])||defWeek,
+      metaAds:bizNum(w.metaAds),
+      tiktokAds:bizNum(w.tiktokAds),
+      other:bizNum(w.other),
+      salaryOverrides:w.salaryOverrides||{}
+    };
+  });
+  while(weeks.length<weeksLen){
+    weeks.push({incomeGoal:defWeek,metaAds:0,tiktokAds:0,other:0,salaryOverrides:{}});
+  }
+  // Compatibilidad con fase anterior: gastos mensuales repartidos si aún no hay gastos por semana.
+  if(cur.expenses && !(cur.weeks&&cur.weeks.length)){
+    var m=bizNum(cur.expenses.metaAds), t=bizNum(cur.expenses.tiktokAds), o=bizNum(cur.expenses.other);
+    weeks.forEach(function(w){w.metaAds=Math.round(m/weeksLen);w.tiktokAds=Math.round(t/weeksLen);w.other=Math.round(o/weeksLen);});
+  }
+  return {monthlyGoal:monthlyGoal,weeks:weeks};
+}
+function bizOrderComponents(o){
+  if(!o || o.estado==='anulado')return {ingresos:0,productCost:0,delivery:0};
+  var ingresos=bizNum(o.cobrar);
+  var qty=bizNum(o.totalCantidad)||1;
+  var productCost=0;
+  if(Array.isArray(o.productos)&&o.productos.length){
+    o.productos.forEach(function(p){
+      var name=p.nombre||p.producto||p.title||'';
+      var q=bizNum(p.cantidad||p.qty||1)||1;
+      var prod=(cfg.productos||[]).find(function(x){return String(x.nombre||'').toLowerCase()===String(name||'').toLowerCase();});
+      productCost+=bizNum(prod&&prod.costo)*q;
+    });
+  }else{
+    var prod=(cfg.productos||[]).find(function(x){return String(x.nombre||'').toLowerCase()===String(o.producto||'').toLowerCase();});
+    productCost=bizNum(prod&&prod.costo)*qty;
+  }
+  return {ingresos:ingresos,productCost:productCost,delivery:getDelivery(o.zona)};
+}
+function bizValidOrdersInRange(start,end){
+  return orders.filter(function(o){var t=o.fv||o.fechaMs||o.ts;return o.estado!=='anulado'&&t>=start&&t<=end;});
+}
+function bizFinancialForOrders(list){
+  var ingresos=0,productCost=0,delivery=0,units=0;
+  list.forEach(function(o){var c=bizOrderComponents(o);ingresos+=c.ingresos;productCost+=c.productCost;delivery+=c.delivery;units+=(bizNum(o.totalCantidad)||1);});
+  return {ingresos:ingresos,productCost:productCost,delivery:delivery,units:units,orders:list.length};
+}
+function bizSalaryLevelForEquivalent(eq){
+  var scale=[...(salaryScale||[])].sort(function(a,b){return bizNum(a.ventas)-bizNum(b.ventas);});
+  var best={ventas:0,sueldo:0};
+  scale.forEach(function(l){if(eq>=bizNum(l.ventas))best={ventas:bizNum(l.ventas),sueldo:bizNum(l.sueldo)};});
+  return best;
+}
+function bizWeekSellerGroups(start,end){
+  var groups={};
+  bizValidOrdersInRange(start,end).forEach(function(o){
+    var key=o.vendedorId||o.vendedor||'sin-vendedor';
+    if(!groups[key])groups[key]={key:key,name:o.vendedor||'Sin vendedor',orders:0,units:0,ingresos:0};
+    groups[key].orders++;
+    groups[key].units+=(bizNum(o.totalCantidad)||1);
+    groups[key].ingresos+=bizNum(o.cobrar);
+  });
+  return groups;
+}
+function bizWeekSalaryData(week,weekCfg,untilTs){
+  var end=Math.min(week.end,untilTs||week.end);
+  var groups=bizWeekSellerGroups(week.start,end);
+  var rows=[], total=0;
+  Object.keys(groups).forEach(function(k){
+    var g=groups[k], eq=Math.max(g.orders,g.units), suggested=bizSalaryLevelForEquivalent(eq);
+    var ov=(weekCfg.salaryOverrides||{})[k]||{};
+    var appliedVentas=ov.appliedVentas!==undefined?bizNum(ov.appliedVentas):(suggested.ventas||g.orders);
+    var salary=ov.salary!==undefined?bizNum(ov.salary):(suggested.sueldo||calcSueldo(g.orders));
+    total+=salary;
+    rows.push({key:k,name:g.name,orders:g.orders,units:g.units,ingresos:g.ingresos,suggestedVentas:suggested.ventas||g.orders,suggestedSalary:suggested.sueldo||calcSueldo(g.orders),appliedVentas:appliedVentas,salary:salary});
+  });
+  rows.sort(function(a,b){return b.salary-a.salary||b.orders-a.orders;});
+  return {rows:rows,total:total};
+}
+function bizMonthSalaryData(weeks,bm,untilTs){
+  var total=0, sellers={};
+  weeks.forEach(function(w,i){
+    var data=bizWeekSalaryData(w,bm.weeks[i]||{},Math.min(w.end,untilTs||w.end));
+    total+=data.total;
+    data.rows.forEach(function(r){
+      if(!sellers[r.key])sellers[r.key]={name:r.name,total:0,orders:0,units:0,weeks:[]};
+      sellers[r.key].total+=r.salary;
+      sellers[r.key].orders+=r.orders;
+      sellers[r.key].units+=r.units;
+      sellers[r.key].weeks.push({week:i+1,salary:r.salary,orders:r.orders,units:r.units,appliedVentas:r.appliedVentas});
+    });
+  });
+  return {total:total,sellers:sellers};
+}
+function bizExpensesForWeeks(bm,weekIndexes){
+  return weekIndexes.reduce(function(acc,i){
+    var w=bm.weeks[i]||{};
+    acc.metaAds+=bizNum(w.metaAds);acc.tiktokAds+=bizNum(w.tiktokAds);acc.other+=bizNum(w.other);
+    return acc;
+  },{metaAds:0,tiktokAds:0,other:0});
+}
+function bizRangeForFilter(){
+  var now=new Date(), mr=bizMonthRange(now), weeks=bizWeekRangesForMonth(now), curIdx=bizCurrentWeekIndex(weeks);
+  if(bizMetaFilter==='month')return {label:'Mes actual',start:mr.start,end:mr.actualEnd,weekIndexes:weeks.map(function(_,i){return i;}),mode:'month'};
+  if(bizMetaFilter==='week_current'){var cw=weeks[curIdx];return {label:'Semana actual',start:cw.start,end:Math.min(cw.end,Date.now()),weekIndexes:[curIdx],mode:'week'};}
+  if(/^week_/.test(bizMetaFilter)){var idx=parseInt(bizMetaFilter.split('_')[1]);var w=weeks[idx];return {label:'Semana '+(idx+1),start:w.start,end:Math.min(w.end,Date.now()),weekIndexes:[idx],mode:'week'};}
+  if(bizMetaFilter==='custom')return {label:'Personalizado',start:bizMetaCustomFrom||mr.start,end:bizMetaCustomTo||Date.now(),weekIndexes:[],mode:'custom'};
+  return {label:'Mes actual',start:mr.start,end:mr.actualEnd,weekIndexes:weeks.map(function(_,i){return i;}),mode:'month'};
+}
+function setBizMetaFilter(f){
+  bizMetaFilter=f;
+  var cr=document.getElementById('biz-custom-range');
+  if(cr)cr.style.display=f==='custom'?'flex':'none';
+  renderBusinessMetaPC();
+}
+function applyBizMetaCustom(){
+  var f=(document.getElementById('biz-custom-from')||{}).value;
+  var t=(document.getElementById('biz-custom-to')||{}).value;
+  if(!f||!t){toast('Selecciona fechas');return;}
+  bizMetaCustomFrom=new Date(f+'T00:00:00').getTime();
+  bizMetaCustomTo=new Date(t+'T23:59:59').getTime();
+  bizMetaFilter='custom';
+  renderBusinessMetaPC();
+}
+function bizRecalcSalaryInput(el){
+  var wrap=el.closest('tr');if(!wrap)return;
+  var salaryInput=wrap.querySelector('.biz-sal-salary');if(!salaryInput)return;
+  var level=bizSalaryLevelForEquivalent(bizNum(el.value));
+  salaryInput.value=Math.round(level.sueldo||0);
+}
+function renderBizDualLine(data){
+  if(!data||data.length<2)return '<div class="analysis-empty">Sin datos para graficar</div>';
+  var W=320,H=150,padL=12,padR=12,padT=18,padB=28;
+  var maxV=Math.max.apply(null,data.map(function(d){return Math.max(d.val,d.ideal||0);}).concat([1]));
+  var x=function(i){return padL+(W-padL-padR)*(data.length===1?0.5:i/(data.length-1));};
+  var y=function(v){return padT+(H-padT-padB)*(1-v/maxV);};
+  var pReal=data.map(function(d,i){return (i===0?'M':'L')+x(i).toFixed(1)+','+y(d.val).toFixed(1);}).join(' ');
+  var pIdeal=data.map(function(d,i){return (i===0?'M':'L')+x(i).toFixed(1)+','+y(d.ideal||0).toFixed(1);}).join(' ');
+  var labels='',step=Math.max(1,Math.floor(data.length/5));
+  data.forEach(function(d,i){if(i%step===0||i===data.length-1){var parts=d.date.split('-');labels+='<text x="'+x(i).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle" font-size="9" fill="#aaa">'+parts[2]+'/'+parts[1]+'</text>';}})
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:210px;display:block">'+
+    '<path d="'+pIdeal+'" fill="none" stroke="#93c5fd" stroke-width="2" stroke-dasharray="5,4" opacity=".9"/>'+
+    '<path d="'+pReal+'" fill="none" stroke="var(--accent)" stroke-width="2.5"/>'+labels+
+    '<text x="'+(W-10)+'" y="14" text-anchor="end" font-size="9" fill="#2f8256">Actual</text>'+
+    '<text x="'+(W-10)+'" y="28" text-anchor="end" font-size="9" fill="#93c5fd">Meta ideal</text>'+
+  '</svg>';
+}
+function renderBizIdealChart(monthGoal,actualOrders,mr){
+  var days=[],totalDays=new Date(mr.end).getDate(),accum=0,byDate={};
+  actualOrders.forEach(function(o){var d=new Date(o.fv||o.ts);var key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');byDate[key]=(byDate[key]||0)+bizNum(o.cobrar);});
+  var cur=new Date(mr.start);
+  while(cur<=new Date(mr.end)){
+    var key=cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'-'+String(cur.getDate()).padStart(2,'0');
+    if(cur.getTime()<=mr.actualEnd)accum+=(byDate[key]||0);
+    days.push({date:key,val:cur.getTime()<=mr.actualEnd?accum:0,ideal:monthGoal*(cur.getDate()/totalDays)});
+    cur.setDate(cur.getDate()+1);
+  }
+  return renderBizDualLine(days);
+}
+function bizTopFromMap(map,metric){
+  var arr=Object.keys(map||{}).map(function(k){return Object.assign({name:k},map[k]);});
+  arr.sort(function(a,b){return (b[metric]||0)-(a[metric]||0);});
+  return arr[0]||null;
+}
+function bizAggregateForInsights(list){
+  var products={},stores={},cities={};
+  list.forEach(function(o){
+    var ingresos=bizNum(o.cobrar), store=analysisStoreName(o), city=analysisCityName(o);
+    if(!stores[store])stores[store]={ingresos:0,count:0};stores[store].ingresos+=ingresos;stores[store].count++;
+    if(!cities[city])cities[city]={ingresos:0,count:0};cities[city].ingresos+=ingresos;cities[city].count++;
+    analysisProductItems(o).forEach(function(it){var n=it.name||'Producto';if(!products[n])products[n]={ingresos:0,count:0,unidades:0};products[n].ingresos+=bizNum(it.rev);products[n].count++;products[n].unidades+=bizNum(it.qty)||1;});
+  });
+  return {topProduct:bizTopFromMap(products,'ingresos'),topStore:bizTopFromMap(stores,'ingresos'),topCity:bizTopFromMap(cities,'count')};
+}
+function bizBuildInsights(ctx){
+  var insights=[],margin=ctx.ingresos>0?(ctx.net/ctx.ingresos)*100:0,adsTotal=ctx.expenses.metaAds+ctx.expenses.tiktokAds,adsPct=ctx.ingresos>0?(adsTotal/ctx.ingresos)*100:0;
+  insights.push(ctx.ingresos>=ctx.paceIdeal?{type:'good',icon:'✅',title:'Ritmo mensual saludable',body:'Vas al ritmo o por encima de la meta mensual.'}:{type:'warn',icon:'⚠️',title:'Ritmo por debajo de la meta',body:'Necesitas aprox. '+fmtC0(ctx.dailyNeed)+' diarios para alcanzar la meta.'});
+  insights.push(margin>=20?{type:'good',icon:'💰',title:'Margen fuerte',body:'Margen neto estimado: '+margin.toFixed(1)+'%.'}:margin>=10?{type:'warn',icon:'📊',title:'Margen ajustado',body:'Margen neto estimado: '+margin.toFixed(1)+'%.'}:{type:'danger',icon:'🧯',title:'Margen bajo',body:'Margen neto estimado: '+margin.toFixed(1)+'%.'});
+  insights.push(adsPct>30?{type:'danger',icon:'📣',title:'Publicidad alta',body:'Publicidad representa '+adsPct.toFixed(1)+'% de ingresos.'}:adsPct>20?{type:'warn',icon:'📣',title:'Publicidad en observación',body:'Publicidad representa '+adsPct.toFixed(1)+'% de ingresos.'}:{type:'good',icon:'📣',title:'Publicidad controlada',body:'Publicidad representa '+adsPct.toFixed(1)+'% de ingresos.'});
+  if(ctx.topProduct)insights.push({type:'good',icon:'🏆',title:'Producto líder',body:ctx.topProduct.name+' lidera con '+fmtC0(ctx.topProduct.ingresos||0)+'.'});
+  if(ctx.topCity)insights.push({type:'good',icon:'📍',title:'Zona con respuesta',body:ctx.topCity.name+' lidera con '+ctx.topCity.count+' pedidos.'});
+  return insights.slice(0,5);
+}
+function bizRenderInsights(ctx){
+  return '<div class="biz-insight-grid">'+bizBuildInsights(ctx).map(function(x){
+    return '<div class="biz-insight '+x.type+'"><div class="biz-insight-icon">'+x.icon+'</div><div><div class="biz-insight-title">'+x.title+'</div><div class="biz-insight-body">'+x.body+'</div></div></div>';
+  }).join('')+'</div>';
+}
+function bizBuildActions(ctx){
+  var actions=[],adsTotal=ctx.expenses.metaAds+ctx.expenses.tiktokAds,adsPct=ctx.ingresos>0?(adsTotal/ctx.ingresos)*100:0,margin=ctx.ingresos>0?(ctx.net/ctx.ingresos)*100:0;
+  if(ctx.ingresos<ctx.paceIdeal)actions.push('Impulsa cierres esta semana: faltan '+fmtC0(Math.max(0,ctx.monthlyGoal-ctx.ingresos))+' para la meta mensual.');
+  if(ctx.topProduct)actions.push('Prioriza stock y creativos del producto ganador: '+ctx.topProduct.name+'.');
+  if(ctx.topCity)actions.push('Refuerza pauta y seguimiento en '+ctx.topCity.name+', zona con mejor respuesta.');
+  if(adsPct>25)actions.push('Revisa Meta Ads/TikTok Ads: publicidad sobre 25% de ingresos.');
+  if(margin<15)actions.push('Revisa precio, costo de producto y delivery para elevar margen neto.');
+  return actions.length?actions:['Mantén el control diario del margen y documenta qué campaña genera ventas más rentables.'];
+}
+function bizRenderActions(ctx){
+  return '<div class="biz-card"><div class="biz-card-title">Acciones recomendadas</div><div class="biz-action-list">'+bizBuildActions(ctx).map(function(a,i){
+    return '<div class="biz-action"><div class="biz-action-num">'+(i+1)+'</div><div class="biz-action-text">'+a+'</div></div>';
+  }).join('')+'</div></div>';
+}
+async function saveBusinessMetaPC(){
+  if(!isSuper())return;
+  var now=new Date(),key=bizMonthKey(now),weeks=bizWeekRangesForMonth(now);
+  cfg.businessMeta=cfg.businessMeta||{};
+  var monthlyGoal=bizNum(document.getElementById('biz-monthly-goal')&&document.getElementById('biz-monthly-goal').value)||50000;
+  var data={monthlyGoal:monthlyGoal,weeks:[],updatedAt:Date.now()};
+  weeks.forEach(function(w,i){
+    var week={incomeGoal:bizNum(document.getElementById('biz-w'+i+'-goal')&&document.getElementById('biz-w'+i+'-goal').value),metaAds:bizNum(document.getElementById('biz-w'+i+'-meta')&&document.getElementById('biz-w'+i+'-meta').value),tiktokAds:bizNum(document.getElementById('biz-w'+i+'-tiktok')&&document.getElementById('biz-w'+i+'-tiktok').value),other:bizNum(document.getElementById('biz-w'+i+'-other')&&document.getElementById('biz-w'+i+'-other').value),salaryOverrides:{}};
+    document.querySelectorAll('.biz-sal-count[data-week="'+i+'"]').forEach(function(inp){
+      var seller=inp.getAttribute('data-seller');
+      var salary=document.querySelector('.biz-sal-salary[data-week="'+i+'"][data-seller="'+CSS.escape(seller)+'"]');
+      var name=inp.getAttribute('data-name')||seller;
+      week.salaryOverrides[seller]={name:name,appliedVentas:bizNum(inp.value),salary:bizNum(salary&&salary.value)};
+    });
+    data.weeks.push(week);
+  });
+  cfg.businessMeta[key]=data;
+  try{
+    await db.collection('config').doc('ventas').set({businessMeta:cfg.businessMeta},{merge:true});
+    toast('✓ Meta empresarial guardada');
+    renderBusinessMetaPC();
+  }catch(e){toast('Error: '+e.message);}
+}
+function renderBusinessMetaPC(){
+  var el=document.getElementById('meta-pc-content');if(!el)return;
+  var now=new Date(),key=bizMonthKey(now),mr=bizMonthRange(now),weeks=bizWeekRangesForMonth(now),curWeekIdx=bizCurrentWeekIndex(weeks),bm=bizCfgForMonth(key,weeks.length);
+  var monthOrders=bizValidOrdersInRange(mr.start,mr.actualEnd),monthFin=bizFinancialForOrders(monthOrders),monthSalary=bizMonthSalaryData(weeks,bm,mr.actualEnd),monthExp=bizExpensesForWeeks(bm,weeks.map(function(_,i){return i;}));
+  var monthExpensesTotal=monthExp.metaAds+monthExp.tiktokAds+monthExp.other,monthNet=monthFin.ingresos-monthFin.productCost-monthFin.delivery-monthSalary.total-monthExpensesTotal;
+  var progress=bm.monthlyGoal>0?Math.min(100,Math.round((monthFin.ingresos/bm.monthlyGoal)*100)):0,missing=Math.max(0,bm.monthlyGoal-monthFin.ingresos);
+  var daysInMonth=new Date(now.getFullYear(),now.getMonth()+1,0).getDate(),daysLeft=Math.max(1,daysInMonth-now.getDate()+1),dailyNeed=missing/daysLeft,paceIdeal=bm.monthlyGoal*(now.getDate()/daysInMonth);
+  var selected=bizRangeForFilter(),selectedOrders=bizValidOrdersInRange(selected.start,selected.end),selectedFin=bizFinancialForOrders(selectedOrders);
+  var selectedExp=selected.weekIndexes.length?bizExpensesForWeeks(bm,selected.weekIndexes):{metaAds:0,tiktokAds:0,other:0};
+  var selectedSalary=0;
+  if(selected.weekIndexes.length){
+    selected.weekIndexes.forEach(function(i){selectedSalary+=bizWeekSalaryData(weeks[i],bm.weeks[i]||{},selected.end).total;});
+  }else{
+    selectedSalary=bizWeekSalaryData({start:selected.start,end:selected.end},{salaryOverrides:{}},selected.end).total;
+  }
+  var selectedNet=selectedFin.ingresos-selectedFin.productCost-selectedFin.delivery-selectedSalary-selectedExp.metaAds-selectedExp.tiktokAds-selectedExp.other;
+  var selectedMargin=selectedFin.ingresos>0?(selectedNet/selectedFin.ingresos)*100:0;
+  var ag=bizAggregateForInsights(monthOrders);
+  var insightCtx={monthlyGoal:bm.monthlyGoal,ingresos:monthFin.ingresos,productCost:monthFin.productCost,delivery:monthFin.delivery,salaries:monthSalary.total,expenses:monthExp,net:monthNet,paceIdeal:paceIdeal,dailyNeed:dailyNeed,topProduct:ag.topProduct,topStore:ag.topStore,topCity:ag.topCity};
+  var alert=monthFin.ingresos>=paceIdeal?'✅ Vas al ritmo o por encima de la meta mensual.':'⚠️ Vas por debajo del ritmo ideal. Necesitas aprox. '+fmtC0(dailyNeed)+' diarios para llegar a la meta.';
+  var filterBtns='<div class="biz-filter">'+
+    '<button class="bf '+(bizMetaFilter==='month'?'on':'')+'" onclick="setBizMetaFilter(&quot;month&quot;)">Mes actual</button>'+
+    '<button class="bf '+(bizMetaFilter==='week_current'?'on':'')+'" onclick="setBizMetaFilter(&quot;week_current&quot;)">Semana actual</button>'+
+    weeks.map(function(w,i){return '<button class="bf '+(bizMetaFilter==='week_'+i?'on':'')+'" onclick="setBizMetaFilter(&quot;week_'+i+'&quot;)">S'+(i+1)+'</button>';}).join('')+
+    '<button class="bf '+(bizMetaFilter==='custom'?'on':'')+'" onclick="setBizMetaFilter(&quot;custom&quot;)">Personalizado</button>'+
+    '<div class="biz-custom-range" id="biz-custom-range" style="display:'+(bizMetaFilter==='custom'?'flex':'none')+'"><input type="date" id="biz-custom-from"><input type="date" id="biz-custom-to"><button onclick="applyBizMetaCustom()">Ver</button></div>'+
+  '</div>';
+  var weekEditors=weeks.map(function(w,i){
+    var wc=bm.weeks[i]||{},ordersW=bizValidOrdersInRange(w.start,Math.min(w.end,mr.actualEnd)),finW=bizFinancialForOrders(ordersW),salW=bizWeekSalaryData(w,wc,Math.min(w.end,mr.actualEnd));
+    var expW=bizNum(wc.metaAds)+bizNum(wc.tiktokAds)+bizNum(wc.other),netW=finW.ingresos-finW.productCost-finW.delivery-salW.total-expW,pct=(bizNum(wc.incomeGoal)>0?Math.min(100,Math.round((finW.ingresos/bizNum(wc.incomeGoal))*100)):0);
+    var rows=salW.rows.map(function(r){
+      return '<tr>'+
+        '<td><strong>'+bizEsc(r.name)+'</strong><div class="biz-note">'+r.orders+' pedidos · '+r.units+' unidades · '+fmtC0(r.ingresos)+'</div></td>'+
+        '<td>'+r.suggestedVentas+' ventas<br><span class="biz-note">'+fmtC0(r.suggestedSalary)+'</span></td>'+
+        '<td><input class="biz-small-input biz-sal-count" data-week="'+i+'" data-seller="'+bizEsc(r.key)+'" data-name="'+bizEsc(r.name)+'" type="number" value="'+Math.round(r.appliedVentas)+'" oninput="bizRecalcSalaryInput(this)"></td>'+
+        '<td><input class="biz-small-input biz-sal-salary" data-week="'+i+'" data-seller="'+bizEsc(r.key)+'" type="number" value="'+Math.round(r.salary)+'"></td>'+
+      '</tr>';
+    }).join('') || '<tr><td colspan="4"><div class="analysis-empty">Sin vendedores en esta semana</div></td></tr>';
+    return '<details class="biz-week-details" '+(i===curWeekIdx?'open':'')+'>'+
+      '<summary class="biz-week-summary"><div><strong>Semana '+(i+1)+(i===curWeekIdx?' · actual':'')+'</strong><br><span>'+bizDateShort(w.start)+' al '+bizDateShort(w.end)+'</span></div><div class="right"><span class="biz-chip">'+fmtC0(finW.ingresos)+' / '+fmtC0(wc.incomeGoal)+'</span><span class="biz-chip">'+pct+'%</span><span class="biz-chip">Neta '+fmtC0(netW)+'</span></div></summary>'+
+      '<div class="biz-week-body">'+
+        '<div class="biz-week-edit-grid">'+
+          bizMoneyInput('biz-w'+i+'-goal','Meta ingresos semana '+(i+1),wc.incomeGoal)+
+          bizMoneyInput('biz-w'+i+'-meta','Meta Ads semana '+(i+1),wc.metaAds)+
+          bizMoneyInput('biz-w'+i+'-tiktok','TikTok Ads semana '+(i+1),wc.tiktokAds)+
+          bizMoneyInput('biz-w'+i+'-other','Otros gastos semana '+(i+1),wc.other)+
+        '</div>'+
+        '<table class="biz-metrics-table" style="margin-bottom:12px">'+
+          '<tr><td>Ingresos</td><td>'+fmtC0(finW.ingresos)+'</td></tr>'+
+          '<tr class="bad"><td>Costo productos</td><td>- '+fmtC0(finW.productCost)+'</td></tr>'+
+          '<tr class="bad"><td>Delivery / envíos</td><td>- '+fmtC0(finW.delivery)+'</td></tr>'+
+          '<tr class="bad"><td>Sueldos editables</td><td>- '+fmtC0(salW.total)+'</td></tr>'+
+          '<tr class="bad"><td>Publicidad y otros</td><td>- '+fmtC0(expW)+'</td></tr>'+
+          '<tr class="total"><td>Ganancia neta semana</td><td>'+fmtC0(netW)+'</td></tr>'+
+        '</table>'+
+        '<div class="biz-card-title">Sueldos editables de vendedores</div>'+
+        '<div class="biz-salary-scroll"><table class="biz-salary-table"><thead><tr><th>Vendedor</th><th>Sugerido</th><th>Nivel aplicado</th><th>Sueldo final</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+        '<div class="biz-note">Puedes redondear el nivel aplicado. Ejemplo: si hizo 26 pedidos pero vendió varias unidades, puedes colocar 30 y pagar el nivel de 30 ventas.</div>'+
+      '</div>'+
+    '</details>';
+  }).join('');
+  var sellerMonthRows=Object.keys(monthSalary.sellers).map(function(k){var s=monthSalary.sellers[k];return '<div class="biz-salary-row"><div><div class="biz-salary-name">'+bizEsc(s.name)+'</div><div class="biz-salary-small">'+s.orders+' pedidos · '+s.units+' unidades</div></div><div style="text-align:right;font-weight:850;color:var(--tx2)">'+s.weeks.length+' sem.</div><div style="text-align:right;font-weight:850;color:var(--accent)">'+fmtC0(s.total)+'</div><div></div></div>';}).join('') || '<div class="analysis-empty">Sin pagos calculados aún</div>';
+  el.innerHTML=
+    '<div class="biz-hero">'+
+      '<div class="biz-hero-top"><div><div class="biz-title">Meta Empresarial</div><div class="biz-sub">Control mensual y semanal con gastos, publicidad y sueldos editables por vendedor.</div></div><div class="biz-month-pill">'+bizMonthLabel(now)+'</div></div>'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><strong style="font-size:13px;color:var(--tx)">Avance mensual</strong><strong style="font-size:18px;color:var(--accent)">'+progress+'%</strong></div>'+
+      '<div class="biz-progress"><div class="biz-progress-fill" style="width:'+progress+'%"></div></div>'+
+    '</div>'+
+    filterBtns+
+    '<div class="biz-alert">'+alert+'</div>'+
+    bizRenderInsights(insightCtx)+
+    '<div class="biz-grid-4">'+
+      '<div class="kpi"><div class="kpi-lbl">Meta mensual</div><div class="kpi-val">'+fmtC0(bm.monthlyGoal)+'</div><div class="kpi-delta">Editable</div></div>'+
+      '<div class="kpi"><div class="kpi-lbl">Ingresos mes</div><div class="kpi-val g">'+fmtC0(monthFin.ingresos)+'</div><div class="kpi-delta">Faltan '+fmtC0(missing)+'</div></div>'+
+      '<div class="kpi"><div class="kpi-lbl">Ganancia neta mes</div><div class="kpi-val '+(monthNet>=0?'g':'')+'">'+fmtC0(monthNet)+'</div><div class="kpi-delta">Con sueldos editables</div></div>'+
+      '<div class="kpi"><div class="kpi-lbl">Promedio necesario</div><div class="kpi-val">'+fmtC0(dailyNeed)+'</div><div class="kpi-delta">Por día restante</div></div>'+
+    '</div>'+
+    '<div class="biz-grid-2">'+
+      '<div class="biz-card"><div class="biz-period-title">Métricas del filtro: '+selected.label+'</div><div class="biz-period-sub">'+bizDateShort(selected.start)+' al '+bizDateShort(selected.end)+'</div>'+
+        '<table class="biz-metrics-table">'+
+          '<tr><td>Pedidos</td><td>'+selectedFin.orders+'</td></tr>'+
+          '<tr><td>Unidades</td><td>'+selectedFin.units+' un.</td></tr>'+
+          '<tr><td>Ingresos</td><td>'+fmtC0(selectedFin.ingresos)+'</td></tr>'+
+          '<tr class="bad"><td>Costos productos</td><td>- '+fmtC0(selectedFin.productCost)+'</td></tr>'+
+          '<tr class="bad"><td>Delivery / envíos</td><td>- '+fmtC0(selectedFin.delivery)+'</td></tr>'+
+          '<tr class="bad"><td>Sueldos</td><td>- '+fmtC0(selectedSalary)+'</td></tr>'+
+          '<tr class="bad"><td>Publicidad / otros</td><td>- '+fmtC0(selectedExp.metaAds+selectedExp.tiktokAds+selectedExp.other)+'</td></tr>'+
+          '<tr class="total"><td>Ganancia neta</td><td>'+fmtC0(selectedNet)+'</td></tr>'+
+          '<tr><td>Margen neto</td><td>'+selectedMargin.toFixed(1)+'%</td></tr>'+
+        '</table>'+
+      '</div>'+
+      '<div class="biz-card"><div class="biz-card-title">Avance real vs meta mensual</div>'+renderBizIdealChart(bm.monthlyGoal,monthOrders,mr)+
+        '<div class="biz-mini-metric"><div class="biz-mini-box"><span>Margen neto</span><strong>'+((monthFin.ingresos>0?(monthNet/monthFin.ingresos)*100:0).toFixed(1))+'%</strong></div><div class="biz-mini-box"><span>Publicidad / ingresos</span><strong>'+((monthFin.ingresos>0?(((monthExp.metaAds+monthExp.tiktokAds)/monthFin.ingresos)*100):0).toFixed(1))+'%</strong></div><div class="biz-mini-box"><span>Sueldos mes</span><strong>'+fmtC0(monthSalary.total)+'</strong></div></div>'+
+      '</div>'+
+    '</div>'+
+    bizRenderActions(insightCtx)+
+    '<div class="biz-editor-card">'+
+      '<div class="biz-card-title">Configuración editable mensual y semanal</div>'+
+      '<div class="biz-month-editor">'+bizMoneyInput('biz-monthly-goal','Meta mensual',bm.monthlyGoal)+'<button class="biz-save" onclick="saveBusinessMetaPC()">Guardar todo</button></div>'+
+      weekEditors+
+      '<button class="biz-save" style="width:100%;margin-top:4px" onclick="saveBusinessMetaPC()">Guardar meta empresarial</button>'+
+    '</div>'+
+    '<div class="biz-card"><div class="biz-card-title">Resumen mensual de pagos vendedores</div>'+
+      '<div class="biz-salary-row" style="border-bottom:1px solid var(--bo);padding-top:0;color:var(--tx3);text-transform:uppercase;font-size:10px;font-weight:850"><div>Vendedor</div><div style="text-align:right">Semanas</div><div style="text-align:right">Pago acumulado</div><div></div></div>'+
+      sellerMonthRows+
+    '</div>';
+}
+function renderMetaPC(){
+  if(isSuper())return renderBusinessMetaPC();
+  return renderPersonalMetaPC();
+}
+
 
 // ═══ HISTORIAL PC · ROLES Y FILTROS ═════════════════════════
 let histPCPeriod='all', histPCVendedor='all', histPCStatus='all', histPCPage=1;
