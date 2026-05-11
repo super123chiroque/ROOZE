@@ -513,6 +513,106 @@ button:disabled{opacity:0.55;cursor:not-allowed;}
 .bizm-insight-body{font-size:11px;color:var(--tx2);font-weight:650;line-height:1.4}
 @media(max-width:380px){.bizm-kpis,.bizm-input-grid,.bizm-salary-controls{grid-template-columns:1fr}.bizm-value{font-size:20px}}
 
+
+/* ── Bottom nav scroll para Super Admin con Meta v18 ───────── */
+.nav{
+  overflow-x:auto;
+  justify-content:flex-start;
+  gap:4px;
+  padding-left:10px;
+  padding-right:10px;
+  -webkit-overflow-scrolling:touch;
+}
+.nav::-webkit-scrollbar{display:none}
+.nb{min-width:70px;flex:0 0 auto}
+.nb.on{min-width:78px}
+
+
+/* ── Fix UX móvil: filtros horizontales visibles v19 ───────── */
+.body{overflow-x:hidden;padding-bottom:145px}
+#meta-body{padding-top:12px}
+.bizm-hero{margin-bottom:14px;flex-shrink:0}
+.bizm-filter{
+  min-height:42px;
+  height:auto;
+  align-items:center;
+  overflow-x:auto;
+  overflow-y:visible;
+  padding:0 2px 12px;
+  margin:0 0 12px;
+  position:relative;
+  z-index:2;
+  flex-shrink:0;
+}
+.bizm-filter .bf{
+  min-height:34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
+  flex:0 0 auto;
+  box-shadow:0 1px 2px rgba(0,0,0,.03);
+}
+.bizm-alert{position:relative;z-index:1}
+.meta-filter-bar,
+.shtabs,
+.shopify-store-tabs,
+.hist-status-row,
+.ventas-status-row{
+  overflow-x:auto;
+  overflow-y:visible;
+  -webkit-overflow-scrolling:touch;
+  min-height:42px;
+}
+.meta-filter-bar::-webkit-scrollbar,
+.shtabs::-webkit-scrollbar,
+.shopify-store-tabs::-webkit-scrollbar,
+.hist-status-row::-webkit-scrollbar,
+.ventas-status-row::-webkit-scrollbar{display:none}
+.meta-filter-bar button,
+.shtabs button,
+.shopify-store-tabs button{
+  flex:0 0 auto;
+  min-height:34px;
+  line-height:1;
+}
+.bizm-week summary{min-height:62px}
+.bizm-salary-controls input,
+.bizm-field input{min-height:38px}
+.nav{max-width:calc(100vw - 22px)}
+
+
+/* ── Fix semanas Meta Empresarial móvil v20 ───────────────── */
+.bizm-week-card{
+  background:var(--bg);
+  border:0.5px solid var(--bo);
+  border-radius:16px;
+  margin-bottom:10px;
+  overflow:hidden;
+}
+.bizm-week-card.open{
+  border-color:rgba(45,122,79,.35);
+  box-shadow:0 4px 16px rgba(0,0,0,.035);
+}
+.bizm-week-head{
+  width:100%;
+  border:none;
+  background:var(--bg2);
+  padding:13px 14px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  text-align:left;
+  font-family:var(--fs);
+  cursor:pointer;
+}
+.bizm-week-card .bizm-week-body{display:none;padding:13px}
+.bizm-week-card.open .bizm-week-body{display:block}
+.bizm-week-card.open .bizm-chevron{transform:rotate(180deg)}
+.bizm-chevron{font-size:10px;color:var(--tx3);transition:.15s;display:inline-flex}
+.bizm-week{display:none!important}
+
 </style>
 </head>
 <body>
@@ -828,6 +928,7 @@ button:disabled{opacity:0.55;cursor:not-allowed;}
     <div style="display:flex;flex-direction:column;gap:10px">
       <div class="fld"><label>Cliente</label><input id="eo-cliente" placeholder="Nombre completo"></div>
       <div class="fld"><label>Celular</label><input id="eo-celular" type="tel" placeholder="+51 9XX XXX XXX"></div>
+      <div class="fld"><label>DNI <span style="font-weight:400;color:var(--tx2)">(opcional)</span></label><input id="eo-dni" placeholder="12345678" maxlength="12"></div>
       <div class="fld"><label>Producto</label>
         <select id="eo-producto" style="background:var(--bg2);border:0.5px solid var(--bo2);border-radius:8px;padding:11px 12px;font-size:14px;color:var(--tx);font-family:var(--fs);width:100%;outline:none"></select>
       </div>
@@ -1010,6 +1111,7 @@ const TABS_VENDEDOR=[
 ];
 const TABS_ADMIN=[
   {id:'ventas',label:'Ventas',svg:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'},
+    {id:'meta',label:'Meta',svg:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>'},
   {id:'resumen',label:'Resumen',svg:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>'},
   {id:'historial',label:'Historial',svg:'<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/>'},
   {id:'shopify',label:'Shopify',svg:'<path d="M15.7 4.3c0 0-.2 0-.4.1-.4-1.1-1.2-2.1-2.5-2.1h-.1C12.3 1.6 11.8 1 11 1c-3.1 0-4.6 3.9-5.1 5.9l-2.2.7C3 7.9 3 8 2.9 8.3L1 19.8l14.1 2.6 6.4-1.6L15.7 4.3zM13 3.8c-.6.2-1.3.4-2 .6.4-1.5 1.1-2.3 1.7-2.6.3.5.4 1.3.3 2zm-2.5-1.8c.1 0 .3.1.4.1-.8.4-1.6 1.5-2 3.3l-1.5.5C8 3.9 9.3 2 10.5 2zm1.6 10.3c-.1.2-.4.4-.8.4-.3 0-.5-.1-.7-.2L10 14l-.6-1.5c-.2.1-.4.2-.7.2-.4 0-.7-.1-.8-.4-.1-.2 0-.5.3-.7.1-.1.3-.1.5-.1.5 0 .9.3 1 .8h.6c.1-.5.5-.8 1-.8.2 0 .4 0 .5.1.3.2.4.5.3.7z"/>'},
@@ -2003,10 +2105,30 @@ function renderBusinessMetaMobile(){
           '<div class="bizm-field"><label>Sueldo final</label><input class="bizm-sal-salary" type="number" value="'+Math.round(r.salary)+'"></div>'+
         '</div></div>';
     }).join('') || '<div class="empty" style="padding:14px">Sin vendedores esta semana</div>';
-    return '<details class="bizm-week" '+(i===curIdx?'open':'')+'><summary><div><div class="bizm-week-name">Semana '+(i+1)+(i===curIdx?' · actual':'')+'</div><div class="bizm-week-date">'+bizmDateShort(w.start)+' al '+bizmDateShort(w.end)+'</div></div><div class="bizm-week-right"><span class="bizm-chip">'+pct+'%</span><span class="bizm-chip">Neta '+fmtC0(netW)+'</span></div></summary>'+
-      '<div class="bizm-week-body"><div class="bizm-input-grid">'+bizmMoneyInput('bizm-w'+i+'-goal','Meta ingresos',wc.incomeGoal)+bizmMoneyInput('bizm-w'+i+'-meta','Meta Ads',wc.metaAds)+bizmMoneyInput('bizm-w'+i+'-tiktok','TikTok Ads',wc.tiktokAds)+bizmMoneyInput('bizm-w'+i+'-other','Otros',wc.other)+'</div>'+
-      '<div class="bizm-card" style="box-shadow:none;margin:12px 0 0"><div class="bizm-metric-row"><span>Ingresos</span><strong>'+fmtC0(finW.ingresos)+'</strong></div><div class="bizm-metric-row bad"><span>Costos productos</span><strong>- '+fmtC0(finW.productCost)+'</strong></div><div class="bizm-metric-row bad"><span>Delivery/envíos</span><strong>- '+fmtC0(finW.delivery)+'</strong></div><div class="bizm-metric-row bad"><span>Sueldos</span><strong>- '+fmtC0(salW.total)+'</strong></div><div class="bizm-metric-row total"><span>Neta semana</span><strong>'+fmtC0(netW)+'</strong></div></div>'+
-      '<div class="bizm-editor-title">Sueldos editables</div>'+salaries+'<div class="bizm-note">Puedes redondear el nivel aplicado cuando el vendedor tenga pedidos de 2 o 3 unidades.</div></div></details>';
+    return '<div class="bizm-week-card '+(i===curIdx?'open':'')+'">'+
+      '<button type="button" class="bizm-week-head" onclick="this.parentNode.classList.toggle(&quot;open&quot;)">'+
+        '<div><div class="bizm-week-name">Semana '+(i+1)+(i===curIdx?' · actual':'')+'</div><div class="bizm-week-date">'+bizmDateShort(w.start)+' al '+bizmDateShort(w.end)+'</div></div>'+
+        '<div class="bizm-week-right"><span class="bizm-chip">'+pct+'%</span><span class="bizm-chip">Neta '+fmtC0(netW)+'</span><span class="bizm-chevron">▼</span></div>'+
+      '</button>'+
+      '<div class="bizm-week-body">'+
+        '<div class="bizm-input-grid">'+
+          bizmMoneyInput('bizm-w'+i+'-goal','Meta ingresos',wc.incomeGoal)+
+          bizmMoneyInput('bizm-w'+i+'-meta','Meta Ads',wc.metaAds)+
+          bizmMoneyInput('bizm-w'+i+'-tiktok','TikTok Ads',wc.tiktokAds)+
+          bizmMoneyInput('bizm-w'+i+'-other','Otros',wc.other)+
+        '</div>'+
+        '<div class="bizm-card" style="box-shadow:none;margin:12px 0 0">'+
+          '<div class="bizm-metric-row"><span>Ingresos</span><strong>'+fmtC0(finW.ingresos)+'</strong></div>'+
+          '<div class="bizm-metric-row bad"><span>Costos productos</span><strong>- '+fmtC0(finW.productCost)+'</strong></div>'+
+          '<div class="bizm-metric-row bad"><span>Delivery/envíos</span><strong>- '+fmtC0(finW.delivery)+'</strong></div>'+
+          '<div class="bizm-metric-row bad"><span>Sueldos</span><strong>- '+fmtC0(salW.total)+'</strong></div>'+
+          '<div class="bizm-metric-row total"><span>Neta semana</span><strong>'+fmtC0(netW)+'</strong></div>'+
+        '</div>'+
+        '<div class="bizm-editor-title">Sueldos editables</div>'+
+        salaries+
+        '<div class="bizm-note">Puedes redondear el nivel aplicado cuando el vendedor tenga pedidos de 2 o 3 unidades.</div>'+
+      '</div>'+
+    '</div>';
   }).join('');
   var sellers=Object.keys(monthSalary.sellers).map(function(k){return monthSalary.sellers[k];}).sort(function(a,b){return b.total-a.total;}).map(function(s){return '<div class="bizm-metric-row"><span>'+bizmEsc(s.name)+'<div class="bizm-mini">'+s.orders+' pedidos · '+s.units+' unidades</div></span><strong>'+fmtC0(s.total)+'</strong></div>';}).join('') || '<div class="empty" style="padding:14px">Sin pagos calculados</div>';
   el.innerHTML='<div class="bizm-hero"><div class="bizm-title">Meta Empresarial</div><div class="bizm-sub">Control mensual y semanal con gastos, publicidad y sueldos editables.</div><span class="bizm-pill">'+bizmMonthLabel(now)+'</span><div class="bizm-progress"><div class="bizm-progress-fill" style="width:'+progress+'%"></div></div></div>'+
@@ -2945,6 +3067,7 @@ function openEditOrder(id){
   document.getElementById('eo-order-id').value=id;
   document.getElementById('eo-cliente').value=o.cliente||'';
   document.getElementById('eo-celular').value=o.celular||'';
+  document.getElementById('eo-dni').value=o.dni||'';
   document.getElementById('eo-cobrar').value=o.cobrar||'';
   document.getElementById('eo-zona').value=o.zona||'Lima';
   document.getElementById('eo-ciudad').value=o.ciudad||'';
@@ -2964,6 +3087,7 @@ document.getElementById('btn-edit-order').onclick=async function(){
   err.style.display='none';
   var cliente=(document.getElementById('eo-cliente').value||'').trim();
   var celular=(document.getElementById('eo-celular').value||'').trim();
+  var dni=(document.getElementById('eo-dni').value||'').trim();
   var cobrar=parseFloat(document.getElementById('eo-cobrar').value)||0;
   var producto=document.getElementById('eo-producto').value;
   var zona=document.getElementById('eo-zona').value||'Lima';
@@ -2976,7 +3100,7 @@ document.getElementById('btn-edit-order').onclick=async function(){
   btn.disabled=true;btn.textContent='Guardando...';
   try{
     await db.collection('orders').doc(id).update({
-      cliente:cliente, celular:celular, cobrar:cobrar,
+      cliente:cliente, celular:celular, dni:dni, cobrar:cobrar,
       producto:producto, zona:zona, ciudad:ciudad,
       fechaVenta:fechaVenta, fechaMs:fechaMs
     });
@@ -4229,12 +4353,14 @@ function buildShopifyDrafts(){
     var tel=(d.phone||d.shippingPhone||'').replace(/\D/g,'');
     var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;
     var fecha=shopifyDateTime(d);
+    var province=shopifyProvince(d);
     return '<div class="shopify-card">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">'
         +'<div>'
           +'<div class="sc-name">'+(d.customerName||d.name||'Sin nombre')+'</div>'
           +'<div class="sc-sub">'+(d.orderNumber||d.id||'')+'</div>'
           +'<div style="font-size:11px;color:var(--tx3)">'+fecha+'</div>'
+          +(province?'<div style="font-size:11px;color:var(--tx2);font-weight:650;margin-top:2px">📍 '+province+'</div>':'')
         +'</div>'
         +'<span class="shopify-badge sh-draft">Preliminar</span>'
       +'</div>'

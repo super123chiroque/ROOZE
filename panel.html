@@ -826,6 +826,7 @@ tbody tr:hover{background:var(--bg2)}
       <div class="fld"><label>Celular</label><input id="vf-celular" type="tel" placeholder="+51 9XX XXX XXX"></div>
     </div>
     <div class="fld-row">
+      <div class="fld"><label>DNI <span style="font-weight:400;color:var(--tx2)">(opcional)</span></label><input id="vf-dni" placeholder="12345678" maxlength="12"></div>
       <div class="fld"><label>Producto</label>
         <select id="vf-producto"></select>
       </div>
@@ -1631,7 +1632,7 @@ function openDetalle(id){
 function openNuevaVenta(){
   editOrderId=null;
   $('vf-title').textContent='Nueva venta';
-  $('vf-cliente').value='';$('vf-celular').value='';
+  $('vf-cliente').value='';$('vf-celular').value='';$('vf-dni').value='';
   $('vf-cobrar').value='';$('vf-ciudad').value='';
   $('vf-cantidad').value='1';$('vf-zona').value='Lima';
   const today=new Date();
@@ -1650,6 +1651,7 @@ function openEditVenta(id){
   $('vf-title').textContent='Editar venta';
   $('vf-cliente').value=o.cliente||'';
   $('vf-celular').value=o.celular||'';
+  $('vf-dni').value=o.dni||'';
   $('vf-cobrar').value=o.cobrar||'';
   $('vf-ciudad').value=o.ciudad||'';
   $('vf-cantidad').value=o.totalCantidad||1;
@@ -1673,6 +1675,7 @@ $('btn-vf-save').onclick=async function(){
   const err=$('vf-err'); err.style.display='none';
   const cliente=($('vf-cliente').value||'').trim();
   const celular=($('vf-celular').value||'').trim();
+  const dni=($('vf-dni').value||'').trim();
   const cobrar=parseFloat($('vf-cobrar').value)||0;
   const producto=$('vf-producto').value;
   const zona=$('vf-zona').value||'Lima';
@@ -1684,7 +1687,7 @@ $('btn-vf-save').onclick=async function(){
   const fechaMs=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]),12,0,0).getTime();
   const btn=$('btn-vf-save'); btn.disabled=true; btn.textContent='Guardando...';
   try{
-    const data={cliente,celular,cobrar,producto,zona,ciudad,fechaVenta,fechaMs,
+    const data={cliente,celular,dni,cobrar,producto,zona,ciudad,fechaVenta,fechaMs,
       totalCantidad:cantidad,estado:vfStatus,
       productos:[{nombre:producto,cantidad}]};
     if(editOrderId){
@@ -3473,9 +3476,34 @@ function buildShopifyAbandoned(){
   return '<div class="grid-3">'+abandoned.slice(0,80).map(function(a){var tel=(a.phone||a.shippingPhone||'').replace(/\D/g,'');var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;var fecha=shopifyDateTime(a);var msg='Hola '+(a.firstName||a.customerName||'')+' 👋 Notamos que dejaste artículos en tu carrito. ¿Te podemos ayudar a completar tu compra? 🛍️';var waUrl=cel?'https://wa.me/'+cel+'?text='+encodeURIComponent(msg):'';return '<div class="shopify-card"><div style="display:flex;justify-content:space-between;gap:10px"><div><div class="shopify-main-name">'+shopifyHtml(a.firstName||a.customerName||a.email||'Visitante')+(a.lastName?' '+shopifyHtml(a.lastName):'')+'</div>'+(a.email?'<div class="shopify-sub-line">'+shopifyHtml(a.email)+'</div>':'')+(a.phone?'<div class="shopify-sub-line">📱 '+shopifyHtml(a.phone)+'</div>':'')+'<div class="shopify-sub-line">'+shopifyHtml(fecha)+'</div></div><span class="shopify-badge sh-abandoned">Abandonado</span></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px"><div style="font-size:17px;font-weight:850;color:#dc2626">S/ '+shopifyMoney(a).toFixed(2)+'</div>'+shopifyWaLink(waUrl,'Recuperar venta')+'</div></div>';}).join('')+'</div>';
 }
 function buildShopifyDrafts(){
-  var drafts=filterByStore(shopifyData.drafts);if(!drafts.length)return '<div class="empty">Sin pedidos preliminares</div>';
-  return '<div class="grid-3">'+drafts.slice(0,80).map(function(d){var tel=(d.phone||d.shippingPhone||'').replace(/\D/g,'');var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;var fecha=shopifyDateTime(d);return '<div class="shopify-card"><div style="display:flex;justify-content:space-between;gap:10px"><div><div class="shopify-main-name">'+shopifyHtml(d.customerName||d.name||'Sin nombre')+'</div><div class="shopify-sub-line">'+shopifyHtml(d.orderNumber||d.id||'')+'</div><div class="shopify-sub-line">'+shopifyHtml(fecha)+'</div></div><span class="shopify-badge sh-draft">Preliminar</span></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px"><div><div style="font-size:17px;font-weight:850;color:#6366f1">S/ '+shopifyMoney(d).toFixed(2)+'</div>'+(d.items?'<div class="shopify-product-line">'+shopifyHtml(d.items)+'</div>':'')+'</div>'+(cel?shopifyWaLink('https://wa.me/'+cel,'Escribir por WhatsApp'):'')+'</div></div>';}).join('')+'</div>';
+  var drafts=filterByStore(shopifyData.drafts);
+  if(!drafts.length)return '<div class="empty">Sin pedidos preliminares</div>';
+  return '<div class="grid-3">'+drafts.slice(0,80).map(function(d){
+    var tel=(d.phone||d.shippingPhone||'').replace(/\D/g,'');
+    var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;
+    var fecha=shopifyDateTime(d);
+    var province=shopifyProvince(d);
+    return '<div class="shopify-card">'+
+      '<div style="display:flex;justify-content:space-between;gap:10px">'+
+        '<div>'+
+          '<div class="shopify-main-name">'+shopifyHtml(d.customerName||d.name||'Sin nombre')+'</div>'+
+          '<div class="shopify-sub-line">'+shopifyHtml(d.orderNumber||d.id||'')+'</div>'+
+          '<div class="shopify-sub-line">'+shopifyHtml(fecha)+'</div>'+
+          (province?'<div class="shopify-sub-line" style="color:var(--accent);font-weight:800">📍 '+shopifyHtml(province)+'</div>':'')+
+        '</div>'+
+        '<span class="shopify-badge sh-draft">Preliminar</span>'+
+      '</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">'+
+        '<div>'+
+          '<div style="font-size:17px;font-weight:850;color:#6366f1">S/ '+shopifyMoney(d).toFixed(2)+'</div>'+
+          (d.items?'<div class="shopify-product-line">'+shopifyHtml(d.items)+'</div>':'')+
+        '</div>'+
+        (cel?shopifyWaLink('https://wa.me/'+cel,'Escribir por WhatsApp'):'')+
+      '</div>'+
+    '</div>';
+  }).join('')+'</div>';
 }
+
 
 // ═══ MODALS ══════════════════════════════════════════════════
 function openModal(id){document.getElementById(id).classList.add('open');}
