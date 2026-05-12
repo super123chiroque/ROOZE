@@ -1901,8 +1901,8 @@ function renderPersonalMeta(){
       unitRows+'</div>';
   }
 
-  // Celebrate
-  checkCelebration(ventasSemana);
+  // Celebración semanal acumulada, independiente del filtro seleccionado.
+  checkCelebrationFromVentas();
   el.innerHTML=html;
 }
 
@@ -3141,7 +3141,7 @@ document.querySelectorAll('.ov').forEach(o=>o.onclick=e=>{if(e.target===o)o.clas
 // ═══ TOAST ═══
 const CEL_MSGS=[
   {ventas:10,emoji:'🎯',title:'¡Primera meta!',msg:'Arrancaste con todo. ¡10 ventas y contando!'},
-  {ventas:15,emoji:'🔥',title:'¡En llamas!',msg:'15 ventas en el período. ¡Eres imparable!'},
+  {ventas:15,emoji:'🔥',title:'¡En llamas!',msg:'15 ventas esta semana. ¡Eres imparable!'},
   {ventas:20,emoji:'💪',title:'¡Brutal!',msg:'20 ventas. Tu esfuerzo está dando frutos. ¡Sigue así!'},
   {ventas:25,emoji:'⚡',title:'¡Bestia de las ventas!',msg:'25 ventas. Eres de los mejores. ¡Orgullo del equipo!'},
   {ventas:30,emoji:'🏆',title:'¡Nivel máximo!',msg:'¡30 ventas! Meta absoluta alcanzada. ¡CRACK TOTAL!'}
@@ -3158,14 +3158,18 @@ function getCelebrationLevel(n){
       ventas:n,
       emoji:'🏆',
       title:'¡Meta alcanzada!',
-      msg:'Llegaste al nivel de '+n+' ventas. ¡Excelente trabajo!'
+      msg:'Llegaste al nivel de '+n+' ventas esta semana. ¡Excelente trabajo!'
     };
   }
   return null;
 }
 function getCelebrationVentasCount(){
+  // Siempre calcula la meta por semana completa acumulada.
+  // Ejemplo: lunes 5 + martes 5 = 10 ventas; miércoles +5 = 15 ventas.
+  // No depende del filtro visual de Ventas ni del filtro de Mi Meta.
   if(!cu||isSuper())return 0;
-  var range=getMetaRange(metaPeriod);
+  var n=new Date(), Y=n.getFullYear(), M=n.getMonth(), D=n.getDate();
+  var range={start:weekStart(),end:dayEnd(Y,M,D)};
   return orders.filter(function(o){
     return o.vendedorId===cu.id && o.estado!=='anulado' && o.fv>=range.start && o.fv<=range.end;
   }).length;

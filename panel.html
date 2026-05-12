@@ -2717,7 +2717,7 @@ function renderPersonalMetaPC(){
           '<td><span class="badge '+(o.estado||'pendiente')+'">'+statusLabel(o.estado||'pendiente')+'</span></td>'+
         '</tr>';}).join('')+'</tbody></table></div>':'<div class="empty">Aún no tienes ventas en este período</div>')+
     '</div>';
-  checkCelebrationPC(ventasCount);
+  checkCelebrationFromVentasPC();
 }
 
 
@@ -3908,7 +3908,7 @@ function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show')
 // ═══ CELEBRACIÓN DE META EN VENTAS Y MI META ═══════════════
 const CEL_MSGS_PC=[
   {ventas:10,emoji:'🎯',title:'¡Primera meta!',msg:'Arrancaste con todo. ¡10 ventas y contando!'},
-  {ventas:15,emoji:'🔥',title:'¡En llamas!',msg:'15 ventas en el período. ¡Eres imparable!'},
+  {ventas:15,emoji:'🔥',title:'¡En llamas!',msg:'15 ventas esta semana. ¡Eres imparable!'},
   {ventas:20,emoji:'💪',title:'¡Brutal!',msg:'20 ventas. Tu esfuerzo está dando frutos. ¡Sigue así!'},
   {ventas:25,emoji:'⚡',title:'¡Bestia de las ventas!',msg:'25 ventas. Eres de los mejores. ¡Orgullo del equipo!'},
   {ventas:30,emoji:'🏆',title:'¡Nivel máximo!',msg:'¡30 ventas! Meta absoluta alcanzada. ¡CRACK TOTAL!'}
@@ -3919,12 +3919,16 @@ function getCelebrationLevelPC(n){
   var preset=CEL_MSGS_PC.find(function(c){return Number(c.ventas)===n;});
   var level=(salaryScale||[]).find(function(l){return Number(l.ventas||0)===n;});
   if(preset)return preset;
-  if(level){return {ventas:n,emoji:'🏆',title:'¡Meta alcanzada!',msg:'Llegaste al nivel de '+n+' ventas. ¡Excelente trabajo!'};}
+  if(level){return {ventas:n,emoji:'🏆',title:'¡Meta alcanzada!',msg:'Llegaste al nivel de '+n+' ventas esta semana. ¡Excelente trabajo!'};}
   return null;
 }
 function getCelebrationVentasCountPC(){
+  // Siempre calcula la meta por semana completa acumulada.
+  // Ejemplo: lunes 5 + martes 5 = 10 ventas; miércoles +5 = 15 ventas.
+  // No depende del filtro global ni de la sección donde esté el usuario.
   if(!cu||isSuper())return 0;
-  var r=getGlobalRange();
+  var n=new Date(), Y=n.getFullYear(), M=n.getMonth(), D=n.getDate();
+  var r={start:weekStart(),end:dayEnd(Y,M,D)};
   return orders.filter(function(o){
     var t=o.fv||o.fechaMs||o.ts;
     return o.vendedorId===cu.id && o.estado!=='anulado' && t>=r.start && t<=r.end;
