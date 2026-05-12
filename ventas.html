@@ -1312,6 +1312,7 @@ function renderVentas(){
     .filter(o=>hasSearch ? true : (ventasDatePeriod==='all'||(o.fv>=vStart&&o.fv<=vEnd)))
     .filter(o=>orderMatchesVentasSearch(o,ventasSearch))
     .sort((a,b)=>b.ts-a.ts);
+  checkCelebrationFromVentas();
   if(!filtered.length){el.innerHTML=`<div class="empty"><div style="font-size:32px;margin-bottom:8px">📋</div><p>${ventasSearch?'Sin resultados para tu búsqueda':'Sin ventas registradas'}</p></div>`;return;}
   el.innerHTML=filtered.map(o=>`
     <div class="card" onclick="openDetalle('${o.id}')" style="cursor:pointer">
@@ -3140,15 +3141,42 @@ document.querySelectorAll('.ov').forEach(o=>o.onclick=e=>{if(e.target===o)o.clas
 // ═══ TOAST ═══
 const CEL_MSGS=[
   {ventas:10,emoji:'🎯',title:'¡Primera meta!',msg:'Arrancaste con todo. ¡10 ventas y contando!'},
-  {ventas:15,emoji:'🔥',title:'¡En llamas!',msg:'15 ventas esta semana. ¡Eres imparable!'},
+  {ventas:15,emoji:'🔥',title:'¡En llamas!',msg:'15 ventas en el período. ¡Eres imparable!'},
   {ventas:20,emoji:'💪',title:'¡Brutal!',msg:'20 ventas. Tu esfuerzo está dando frutos. ¡Sigue así!'},
   {ventas:25,emoji:'⚡',title:'¡Bestia de las ventas!',msg:'25 ventas. Eres de los mejores. ¡Orgullo del equipo!'},
   {ventas:30,emoji:'🏆',title:'¡Nivel máximo!',msg:'¡30 ventas! Meta absoluta alcanzada. ¡CRACK TOTAL!'}
 ];
 let lastCelVentas=0;
 
+function getCelebrationLevel(n){
+  n=Number(n||0);
+  var preset=CEL_MSGS.find(function(c){return Number(c.ventas)===n;});
+  var level=(salaryScale||[]).find(function(l){return Number(l.ventas||0)===n;});
+  if(preset)return preset;
+  if(level){
+    return {
+      ventas:n,
+      emoji:'🏆',
+      title:'¡Meta alcanzada!',
+      msg:'Llegaste al nivel de '+n+' ventas. ¡Excelente trabajo!'
+    };
+  }
+  return null;
+}
+function getCelebrationVentasCount(){
+  if(!cu||isSuper())return 0;
+  var range=getMetaRange(metaPeriod);
+  return orders.filter(function(o){
+    return o.vendedorId===cu.id && o.estado!=='anulado' && o.fv>=range.start && o.fv<=range.end;
+  }).length;
+}
+function checkCelebrationFromVentas(){
+  checkCelebration(getCelebrationVentasCount());
+}
 function checkCelebration(n){
-  const cel=CEL_MSGS.find(c=>c.ventas===n);
+  if(isSuper())return;
+  n=Number(n||0);
+  const cel=getCelebrationLevel(n);
   if(cel&&n>lastCelVentas){lastCelVentas=n;showCelebration(cel,n);}
 }
 function showCelebration(cel,n){
