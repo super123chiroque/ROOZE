@@ -816,6 +816,9 @@ tbody tr:hover{background:var(--bg2)}
           <button onclick="setShopifyTab('abandoned')" id="sht-abandoned" class="sht">🛒 Abandonados</button>
           <button onclick="setShopifyTab('drafts')" id="sht-drafts" class="sht">📝 Preliminares</button>
         </div>
+        <div id="shopify-search-wrap-pc" style="display:none;margin:0 0 12px">
+          <input id="shopify-search-input-pc" oninput="setShopifySearch(this.value)" placeholder="Buscar por cliente, celular, DNI, provincia o producto..." style="width:100%;padding:10px 14px;border:1px solid var(--bo2);border-radius:12px;background:var(--bg);color:var(--tx);font-size:13px;font-family:inherit;outline:none">
+        </div>
         <div id="shopify-content"><div class="spin"></div></div>
       </div>
 
@@ -3276,6 +3279,7 @@ function renderHistorialPC(){
 
 // ═══ SHOPIFY PC MODULE ══════════════════════════════════════
 let curShopifyStore='all', curShopifyTab='analytics';
+let curShopifySearch='';
 let curShopifyDatePeriod='all', shopifyCustomFrom=0, shopifyCustomTo=Date.now();
 let shopifyData={orders:[],customers:[],abandoned:[],drafts:[],_errors:[]};
 let _shopifyListeners=[];
@@ -3310,11 +3314,67 @@ function shopifyMoney(item){
   if(v===undefined||v===null||v==='')v=item.subtotal_price;
   var n=parseFloat(v||0);return isNaN(n)?0:n;
 }
+function shopifyVariantText(li){
+  li=li||{};
+  var parts=[];
+  function add(v){v=String(v==null?'':v).trim();if(!v||v.toLowerCase()==='default title')return;if(parts.indexOf(v)===-1)parts.push(v);}
+  add(li.variant_title||li.variantTitle||li.variant||li.option_title||li.optionTitle);
+  add(li.size||li.talla||li.color||li.sku);
+  if(Array.isArray(li.options_with_values)){
+    li.options_with_values.forEach(function(op){
+      var name=op.name||op.option_name||'';var val=op.value||op.option_value||'';
+      if(val&&String(val).toLowerCase()!=='default title')add((name&&String(name).toLowerCase()!=='title'?name+': ':'')+val);
+    });
+  }
+  if(Array.isArray(li.properties)){
+    li.properties.forEach(function(pr){
+      var name=pr.name||pr.key||'';var val=pr.value||'';
+      if(val&&String(val).toLowerCase()!=='default title')add((name?name+': ':'')+val);
+    });
+  }
+  return parts.join(' · ');
+}
 function shopifyLineItems(payload){
-  try{var items=(payload&&payload.line_items)?payload.line_items:[];if(!items||!items.length)return '';
-    return items.map(function(li){var qty=li.quantity?(li.quantity+'× '):'';return qty+(li.title||li.name||li.product_title||'Producto');}).join(', ');
+  try{
+    var items=(payload&&payload.line_items)|| (payload&&payload.lineItems) || (payload&&payload.items) || [];
+    if(!items||!items.length)return '';
+    return items.map(function(li){
+      var qty=li.quantity||li.qty||1;
+      var name=li.title||li.name||li.product_title||li.productTitle||'Producto';
+      var variant=shopifyVariantText(li);
+      return (qty?(qty+'× '):'')+name+(variant?' · '+variant:'');
+    }).join(', ');
   }catch(e){return '';}
 }
+function shopifyPlain(v){return String(v==null?'':v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+function shopifySearchText(item,type){
+  item=item||{};var p=item.payload||{};var a=shopifyAddressData(item);var chunks=[];
+  function push(v){if(v!==undefined&&v!==null&&String(v).trim())chunks.push(String(v));}
+  push(type);push(item.id);push(item.store);push(item.name);push(item.orderNumber);push(item.shopifyId);push(item.customerName);push(item.customer_name);push(item.firstName);push(item.lastName);push(item.email);push(item.customerEmail);push(item.phone);push(item.customer_phone);push(item.dni);push(item.document);push(item.documentNumber);
+  push(item.province);push(item.city);push(item.region);push(item.state);push(item.items);push(shopifyLineItems(p));
+  push(a.address);push(a.address2);push(a.city);push(a.state);push(a.country);push(a.zip);
+  if(p.customer){push(p.customer.first_name);push(p.customer.last_name);push(p.customer.email);push(p.customer.phone);push(p.customer.dni);}
+  if(p.shipping_address){push(p.shipping_address.name);push(p.shipping_address.phone);push(p.shipping_address.address1);push(p.shipping_address.address2);push(p.shipping_address.city);push(p.shipping_address.province);push(p.shipping_address.country);push(p.shipping_address.zip);}
+  if(p.billing_address){push(p.billing_address.name);push(p.billing_address.phone);push(p.billing_address.address1);push(p.billing_address.address2);push(p.billing_address.city);push(p.billing_address.province);push(p.billing_address.country);push(p.billing_address.zip);}
+  return shopifyPlain(chunks.join(' '));
+}
+function filterShopifySearch(list,type){
+  var q=shopifyPlain(curShopifySearch||'').trim();
+  if(!q)return list;
+  return (list||[]).filter(function(item){return shopifySearchText(item,type).indexOf(q)!==-1;});
+}
+function setShopifySearch(q){
+  curShopifySearch=String(q||'').trim();
+  renderShopifyContent();
+}
+function shopifyEmptySearchMsg(label){return '<div class="empty">Sin resultados para la búsqueda en '+shopifyHtml(label||'Shopify')+'</div>';}
+function updateShopifySearchUI(){
+  var wrap=document.getElementById('shopify-search-wrap')||document.getElementById('shopify-search-wrap-pc');
+  var inp=document.getElementById('shopify-search-input')||document.getElementById('shopify-search-input-pc');
+  if(wrap)wrap.style.display=(curShopifyTab==='analytics')?'none':'block';
+  if(inp&&inp.value!==curShopifySearch)inp.value=curShopifySearch||'';
+}
+
 
 function shopifyDayStartFromDate(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();}
 function shopifyDayEndFromDate(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate(),23,59,59,999).getTime();}
@@ -3436,7 +3496,9 @@ function normalizeShopifyDoc(doc,type){
   if(!d.email)d.email=p.email||p.contact_email||'';
   if(!d.customerEmail)d.customerEmail=d.email||'';
   if(!d.phone)d.phone=p.phone||(p.customer&&p.customer.phone)||(p.shipping_address&&p.shipping_address.phone)||(p.billing_address&&p.billing_address.phone)||'';
-  if(!d.items)d.items=shopifyLineItems(p);
+  var enhancedItems=shopifyLineItems(p)||shopifyLineItems(d);
+  if(enhancedItems)d.items=enhancedItems;
+  else if(!d.items)d.items='';
   if(!d.orderNumber&&p.order_number)d.orderNumber=p.order_number;
   if(!d.name&&p.name)d.name=p.name;
   if(!d.province)d.province=(p.shipping_address&&(p.shipping_address.province||p.shipping_address.city))||(p.billing_address&&(p.billing_address.province||p.billing_address.city))||(p.customer&&p.customer.default_address&&(p.customer.default_address.province||p.customer.default_address.city))||p.province||p.city||'';
@@ -3573,6 +3635,7 @@ async function setShopifyOrderStatus(orderId,status){
 }
 function renderShopifyContent(){
   var el=document.getElementById('shopify-content');if(!el)return;
+  updateShopifySearchUI();
   applyShopifyStorePermissionsUI();
   if(curShopifyTab==='analytics')el.innerHTML=buildShopifyAnalytics();
   else if(curShopifyTab==='orders')el.innerHTML=buildShopifyOrders();
@@ -3606,54 +3669,58 @@ function buildShopifyRevenueBars(orders){
   return '<div class="shopify-mini-chart"><div class="card-title">Ingresos confirmados últimos 7 días</div><div class="shopify-mini-bars">'+days.map(function(d){var h=Math.max(3,Math.round(d.rev/max*100));return '<div class="shopify-mini-bar"><span style="height:'+h+'%"></span><span>'+d.label+'</span></div>';}).join('')+'</div></div>';
 }
 function buildShopifyOrders(){
-  var orders=filterByStore(shopifyData.orders);if(!orders.length)return '<div class="empty">Sin pedidos de Shopify</div>';
-  return '<div class="tbl-wrap shopify-table-wrap"><table class="shopify-pc-table"><thead><tr><th>Cliente</th><th>Producto</th><th>Estado</th><th>Acciones</th><th>Total</th><th>Contacto</th></tr></thead><tbody>'+orders.slice(0,80).map(function(o){
-    var meta=shopifyStatusMeta(o);var tel=(o.phone||o.customer_phone||'').replace(/\D/g,'');var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;var fecha=shopifyDateTime(o);var province=shopifyProvince(o);var addressBlock=shopifyAddressBlock(o,'shopify-sub-line');var product=o.items||'Producto sin detalle';var name=o.customerName||o.customer_name||'Sin nombre';var orderRef=o.orderNumber||o.name||o.id||'';var firstName=String(name).split(' ')[0]||'';var msg='Hola '+firstName+' 👋 Te escribimos de '+(o.store==='danna'?'Danna':'Rooze')+' para confirmar tu pedido '+(orderRef?('#'+orderRef):'')+'. ¿Nos confirmas tus datos por favor?';var waUrl=cel?('https://wa.me/'+cel+'?text='+encodeURIComponent(msg)):'';
+  var base=filterByStore(shopifyData.orders);
+  var orders=filterShopifySearch(base,'pedidos');
+  if(!base.length)return '<div class="empty">Sin pedidos de Shopify</div>';
+  if(!orders.length)return shopifyEmptySearchMsg('pedidos');
+  return '<div class="tbl-wrap shopify-table-wrap"><table class="shopify-pc-table"><thead><tr><th>Cliente</th><th>Producto / variante</th><th>Estado</th><th>Acciones</th><th>Total</th><th>Contacto</th></tr></thead><tbody>'+orders.slice(0,80).map(function(o){
+    var meta=shopifyStatusMeta(o);var tel=(o.phone||o.customer_phone||'').replace(/\D/g,'');var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;var fecha=shopifyDateTime(o);var province=shopifyProvince(o);var addressBlock=shopifyAddressBlock(o,'shopify-sub-line');var product=o.items||shopifyLineItems(o.payload)||'Producto sin detalle';var name=o.customerName||o.customer_name||'Sin nombre';var orderRef=o.orderNumber||o.name||o.id||'';var firstName=String(name).split(' ')[0]||'';var msg='Hola '+firstName+' 👋 Te escribimos de '+(o.store==='danna'?'Danna':'Rooze')+' para confirmar tu pedido '+(orderRef?('#'+orderRef):'')+'. ¿Nos confirmas tus datos por favor?';var waUrl=cel?('https://wa.me/'+cel+'?text='+encodeURIComponent(msg)):'';
     var states=[{key:'pending',label:'Pendiente',cls:'pending'},{key:'confirmed',label:'Confirmado',cls:'confirmed'},{key:'cancelled',label:'Cancelado',cls:'cancelled'}];
     var actions='<div class="shopify-status-actions">'+states.map(function(s){var active=meta.key===s.key?' active':'';return '<button class="shopify-status-btn '+s.cls+active+'" onclick="setShopifyOrderStatus(\''+shopifyJs(o.id)+'\',\''+s.key+'\')">'+s.label+'</button>';}).join('')+'</div>';
     var note=o.manualStatusUpdatedAt?'<div class="shopify-manual-note">↻ Estado actualizado</div>':'';
-    return '<tr><td><div class="shopify-main-name">'+shopifyHtml(name)+'</div><div class="shopify-sub-line">Pedido '+shopifyHtml(orderRef)+(province?' | '+shopifyHtml(province):'')+(fecha?' | '+shopifyHtml(fecha):'')+'</div>'+addressBlock+note+'</td><td><div class="shopify-product-line">'+shopifyHtml(product)+'</div></td><td><span class="shopify-badge '+meta.cls+'"><span>'+meta.icon+'</span>'+meta.label+'</span>'+(o.store?'<span class="shopify-store-pill">'+(o.store==='rooze'?'ROOZE':'DANNA')+'</span>':'')+'</td><td>'+actions+'</td><td style="font-weight:850;color:var(--accent)">S/ '+shopifyMoney(o).toFixed(2)+'</td><td>'+shopifyWaLink(waUrl,'Escribir por WhatsApp')+'</td></tr>';
+    return '<tr><td><div class="shopify-main-name">'+shopifyHtml(name)+'</div><div class="shopify-sub-line">Pedido '+shopifyHtml(orderRef)+(province?' | '+shopifyHtml(province):'')+(fecha?' | '+shopifyHtml(fecha):'')+'</div>'+addressBlock+note+'</td><td><div class="shopify-product-line" style="white-space:normal;line-height:1.35">'+shopifyHtml(product)+'</div></td><td><span class="shopify-badge '+meta.cls+'"><span>'+meta.icon+'</span>'+meta.label+'</span>'+(o.store?'<span class="shopify-store-pill">'+(o.store==='rooze'?'ROOZE':'DANNA')+'</span>':'')+'</td><td>'+actions+'</td><td style="font-weight:850;color:var(--accent)">S/ '+shopifyMoney(o).toFixed(2)+'</td><td>'+shopifyWaLink(waUrl,'Escribir por WhatsApp')+'</td></tr>';
   }).join('')+'</tbody></table></div>';
 }
 function buildShopifyClientes(){
-  var clientes=filterByStore(shopifyData.customers);if(!clientes.length)return '<div class="empty">Sin clientes de Shopify</div>';
+  var base=filterByStore(shopifyData.customers);
+  if(!base.length)return '<div class="empty">Sin clientes de Shopify</div>';
   function cleanPhone(v){return String(v||'').replace(/\D/g,'');}
   function sameText(a,b){a=String(a||'').trim().toLowerCase();b=String(b||'').trim().toLowerCase();return !!a&&!!b&&a===b;}
   function ordersForClient(c){var cid=c.shopifyId||c.customerId||'',email=c.email||c.customerEmail||'',phone=cleanPhone(c.phone);return filterByStore(shopifyData.orders).filter(function(o){var oid=o.customerId||(o.payload&&o.payload.customer&&o.payload.customer.id)||'',oemail=o.customerEmail||o.email||(o.payload&&o.payload.customer&&o.payload.customer.email)||'',ophone=cleanPhone(o.phone||(o.payload&&o.payload.customer&&o.payload.customer.phone)||'');return (!!cid&&!!oid&&String(cid)===String(oid))||sameText(email,oemail)||(!!phone&&!!ophone&&phone===ophone);});}
-  return '<div class="card" style="margin-bottom:12px"><input oninput="filterShopifyClients(this.value)" placeholder="Buscar cliente..." style="width:100%;padding:10px 12px;background:var(--bg2);border:1px solid var(--bo2);border-radius:8px;font-size:13px;color:var(--tx);font-family:inherit;outline:none"></div><div id="shopify-clients-list" class="grid-3">'+clientes.slice(0,120).map(function(c){var tel=cleanPhone(c.phone||''),cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;var ords=ordersForClient(c);var spent=ords.filter(function(o){return shopifyEffectiveStatus(o)==='confirmed';}).reduce(function(s,o){return s+shopifyMoney(o);},0);var full=((c.firstName||'')+(c.lastName?' '+c.lastName:'')).trim()||c.customerName||c.name||c.email||'Cliente sin nombre';var addressBlock=shopifyAddressBlock(c,'shopify-sub-line');return '<div class="shopify-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div style="min-width:0"><div class="shopify-main-name">'+shopifyHtml(full)+'</div>'+(c.email?'<div class="shopify-sub-line">'+shopifyHtml(c.email)+'</div>':'')+(c.phone?'<div class="shopify-sub-line">📱 '+shopifyHtml(c.phone)+'</div>':'')+addressBlock+'<div style="font-size:11px;color:var(--tx3);margin-top:6px;font-weight:700">'+ords.length+' pedido'+(ords.length!==1?'s':'')+' · S/ '+spent.toFixed(0)+' gastado</div></div>'+(cel?shopifyWaLink('https://wa.me/'+cel,'Abrir WhatsApp del cliente'):'')+'</div></div>';}).join('')+'</div>';
+  var q=shopifyPlain(curShopifySearch||'').trim();
+  var clientes=q?base.filter(function(c){var related=ordersForClient(c).map(function(o){return shopifySearchText(o,'pedido cliente');}).join(' ');return (shopifySearchText(c,'cliente')+' '+related).indexOf(q)!==-1;}):base;
+  if(!clientes.length)return shopifyEmptySearchMsg('clientes');
+  return '<div id="shopify-clients-list" class="grid-3">'+clientes.slice(0,120).map(function(c){var tel=cleanPhone(c.phone||''),cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;var ords=ordersForClient(c);var spent=ords.filter(function(o){return shopifyEffectiveStatus(o)==='confirmed';}).reduce(function(s,o){return s+shopifyMoney(o);},0);var full=((c.firstName||'')+(c.lastName?' '+c.lastName:'')).trim()||c.customerName||c.name||c.email||'Cliente sin nombre';var addressBlock=shopifyAddressBlock(c,'shopify-sub-line');return '<div class="shopify-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div style="min-width:0"><div class="shopify-main-name">'+shopifyHtml(full)+'</div>'+(c.email?'<div class="shopify-sub-line">'+shopifyHtml(c.email)+'</div>':'')+(c.phone?'<div class="shopify-sub-line">📱 '+shopifyHtml(c.phone)+'</div>':'')+addressBlock+'<div style="font-size:11px;color:var(--tx3);margin-top:6px;font-weight:700">'+ords.length+' pedido'+(ords.length!==1?'s':'')+' · S/ '+spent.toFixed(0)+' gastado</div></div>'+(cel?shopifyWaLink('https://wa.me/'+cel,'Abrir WhatsApp del cliente'):'')+'</div></div>';}).join('')+'</div>';
 }
 function filterShopifyClients(q){q=String(q||'').toLowerCase();var list=document.getElementById('shopify-clients-list');if(!list)return;list.querySelectorAll('.shopify-card').forEach(function(card){card.style.display=card.textContent.toLowerCase().includes(q)?'':'none';});}
 function buildShopifyAbandoned(){
-  var abandoned=filterByStore(shopifyData.abandoned);if(!abandoned.length)return '<div class="empty">Sin checkouts abandonados</div>';
-  return '<div class="grid-3">'+abandoned.slice(0,80).map(function(a){var tel=(a.phone||a.shippingPhone||'').replace(/\D/g,'');var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;var fecha=shopifyDateTime(a);var addressBlock=shopifyAddressBlock(a,'shopify-sub-line');var msg='Hola '+(a.firstName||a.customerName||'')+' 👋 Notamos que dejaste artículos en tu carrito. ¿Te podemos ayudar a completar tu compra? 🛍️';var waUrl=cel?'https://wa.me/'+cel+'?text='+encodeURIComponent(msg):'';return '<div class="shopify-card"><div style="display:flex;justify-content:space-between;gap:10px"><div><div class="shopify-main-name">'+shopifyHtml(a.firstName||a.customerName||a.email||'Visitante')+(a.lastName?' '+shopifyHtml(a.lastName):'')+'</div>'+(a.email?'<div class="shopify-sub-line">'+shopifyHtml(a.email)+'</div>':'')+(a.phone?'<div class="shopify-sub-line">📱 '+shopifyHtml(a.phone)+'</div>':'')+addressBlock+'<div class="shopify-sub-line">'+shopifyHtml(fecha)+'</div></div><span class="shopify-badge sh-abandoned">Abandonado</span></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px"><div style="font-size:17px;font-weight:850;color:#dc2626">S/ '+shopifyMoney(a).toFixed(2)+'</div>'+shopifyWaLink(waUrl,'Recuperar venta')+'</div></div>';}).join('')+'</div>';
+  var base=filterByStore(shopifyData.abandoned);
+  var abandoned=filterShopifySearch(base,'abandonados');
+  if(!base.length)return '<div class="empty">Sin checkouts abandonados</div>';
+  if(!abandoned.length)return shopifyEmptySearchMsg('abandonados');
+  return '<div class="grid-3">'+abandoned.slice(0,80).map(function(a){var tel=(a.phone||a.shippingPhone||'').replace(/\D/g,'');var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;var fecha=shopifyDateTime(a);var addressBlock=shopifyAddressBlock(a,'shopify-sub-line');var product=a.items||shopifyLineItems(a.payload)||'';var msg='Hola '+(a.firstName||a.customerName||'')+' 👋 Notamos que dejaste artículos en tu carrito. ¿Te podemos ayudar a completar tu compra? 🛍️';var waUrl=cel?'https://wa.me/'+cel+'?text='+encodeURIComponent(msg):'';return '<div class="shopify-card"><div style="display:flex;justify-content:space-between;gap:10px"><div><div class="shopify-main-name">'+shopifyHtml(a.firstName||a.customerName||a.email||'Visitante')+(a.lastName?' '+shopifyHtml(a.lastName):'')+'</div>'+(a.email?'<div class="shopify-sub-line">'+shopifyHtml(a.email)+'</div>':'')+(a.phone?'<div class="shopify-sub-line">📱 '+shopifyHtml(a.phone)+'</div>':'')+addressBlock+'<div class="shopify-sub-line">'+shopifyHtml(fecha)+'</div>'+(product?'<div class="shopify-product-line" style="white-space:normal;margin-top:7px">'+shopifyHtml(product)+'</div>':'')+'</div><span class="shopify-badge sh-abandoned">Abandonado</span></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px"><div style="font-size:17px;font-weight:850;color:#dc2626">S/ '+shopifyMoney(a).toFixed(2)+'</div>'+shopifyWaLink(waUrl,'Recuperar venta')+'</div></div>';}).join('')+'</div>';
 }
 function buildShopifyDrafts(){
-  var drafts=filterByStore(shopifyData.drafts);
-  if(!drafts.length)return '<div class="empty">Sin pedidos preliminares</div>';
+  var base=filterByStore(shopifyData.drafts);
+  var drafts=filterShopifySearch(base,'preliminares');
+  if(!base.length)return '<div class="empty">Sin pedidos preliminares</div>';
+  if(!drafts.length)return shopifyEmptySearchMsg('preliminares');
   return '<div class="grid-3">'+drafts.slice(0,80).map(function(d){
     var tel=(d.phone||d.shippingPhone||'').replace(/\D/g,'');
     var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;
     var fecha=shopifyDateTime(d);
     var province=shopifyProvince(d);
     var addressBlock=shopifyAddressBlock(d,'shopify-sub-line');
+    var product=d.items||shopifyLineItems(d.payload)||'';
     return '<div class="shopify-card">'+
       '<div style="display:flex;justify-content:space-between;gap:10px">'+
         '<div>'+
           '<div class="shopify-main-name">'+shopifyHtml(d.customerName||d.name||'Sin nombre')+'</div>'+
-          '<div class="shopify-sub-line">'+shopifyHtml(d.orderNumber||d.id||'')+'</div>'+
-          '<div class="shopify-sub-line">'+shopifyHtml(fecha)+'</div>'+
-          addressBlock+
-        '</div>'+
-        '<span class="shopify-badge sh-draft">Preliminar</span>'+
-      '</div>'+
+          '<div class="shopify-sub-line">'+shopifyHtml(d.orderNumber||d.id||'')+(province?' · '+shopifyHtml(province):'')+'</div>'+
+          '<div class="shopify-sub-line">'+shopifyHtml(fecha)+'</div>'+addressBlock+
+        '</div>'+ '<span class="shopify-badge sh-draft">Preliminar</span>'+ '</div>'+ 
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">'+
-        '<div>'+
-          '<div style="font-size:17px;font-weight:850;color:#6366f1">S/ '+shopifyMoney(d).toFixed(2)+'</div>'+
-          (d.items?'<div class="shopify-product-line">'+shopifyHtml(d.items)+'</div>':'')+
-        '</div>'+
-        (cel?shopifyWaLink('https://wa.me/'+cel,'Escribir por WhatsApp'):'')+
-      '</div>'+
-    '</div>';
+        '<div>'+ '<div style="font-size:17px;font-weight:850;color:#6366f1">S/ '+shopifyMoney(d).toFixed(2)+'</div>'+ (product?'<div class="shopify-product-line" style="white-space:normal">'+shopifyHtml(product)+'</div>':'')+ '</div>'+ (cel?shopifyWaLink('https://wa.me/'+cel,'Escribir por WhatsApp'):'')+ '</div>'+ '</div>';
   }).join('')+'</div>';
 }
 
