@@ -629,6 +629,26 @@ details.bizm-week.bizm-week-details-mobile[open]{border-color:rgba(45,122,79,.35
 .bizm-editor-card-mobile > .bizm-save{margin-top:2px}
 @media(max-width:380px){.bizm-week-details-mobile .bizm-week-right{max-width:100%;justify-content:flex-start}.bizm-week-details-mobile summary{flex-direction:column}.bizm-week-details-mobile .bizm-chip{font-size:9px}}
 
+
+.store-analysis-list{display:flex;flex-direction:column;gap:10px}
+.store-analysis-card{background:#fff;border:1px solid var(--bo);border-radius:14px;padding:13px 14px;box-shadow:0 2px 8px rgba(0,0,0,.025)}
+.store-analysis-card.missing{border-style:dashed;background:#fffaf5}
+.store-analysis-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:9px}
+.store-analysis-name{font-size:14px;font-weight:850;color:var(--tx);letter-spacing:-.01em}.store-analysis-sub{font-size:11px;color:var(--tx3);font-weight:700;margin-top:2px}.store-analysis-head strong{font-size:15px;color:var(--accent);white-space:nowrap}.store-progress{height:6px;background:var(--bg2);border-radius:999px;overflow:hidden;margin-bottom:10px}.store-progress span{display:block;height:100%;background:var(--accent);border-radius:999px}.store-channel-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.store-channel-box{border-radius:11px;border:1px solid var(--bo);background:var(--bg2);padding:10px}.store-channel-box.whatsapp{background:#ecfdf5;border-color:#bbf7d0}.store-channel-box.shopify{background:#eef2ff;border-color:#c7d2fe}.store-channel-box.sin_via{background:#f8fafc;border-color:#e2e8f0}.store-channel-label{font-size:10px;text-transform:uppercase;letter-spacing:.04em;font-weight:850;color:var(--tx3)}.store-channel-main{font-size:16px;font-weight:850;color:var(--tx);margin-top:3px}.store-channel-sub{font-size:11px;font-weight:700;color:var(--tx2);margin-top:1px}.store-role-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.store-role-pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--bo);border-radius:999px;background:#fff;padding:5px 8px;font-size:10.5px;color:var(--tx2)}.store-role-pill strong{color:var(--accent);font-weight:850}.store-role-pill span{font-weight:700}.store-people-list{margin-top:8px;border-top:1px dashed var(--bo);padding-top:7px}.store-person-row{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--tx2);padding:3px 0}.store-person-row small{color:var(--tx3);font-weight:700}.store-person-row strong{color:var(--tx);white-space:nowrap}
+@media(max-width:900px){.store-channel-grid{grid-template-columns:1fr}}
+
+
+/* ── Ventas por tienda desplegable ───────────────────────── */
+.store-analysis-detail{padding:0!important;overflow:hidden}
+.store-analysis-summary{display:block;cursor:pointer;padding:13px 14px;list-style:none;user-select:none}
+.store-analysis-summary::-webkit-details-marker{display:none}
+.store-analysis-summary .store-analysis-head{margin-bottom:9px}
+.store-analysis-arrow{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--bg2);color:var(--tx3);font-size:16px;font-weight:800;line-height:1;transition:transform .18s ease;flex-shrink:0}
+.store-analysis-detail[open] .store-analysis-arrow{transform:rotate(180deg);background:var(--accent2);color:var(--accent)}
+.store-analysis-body{padding:0 14px 13px}
+.store-detail-hint{color:var(--accent);font-weight:800}
+.store-analysis-detail[open] .store-detail-hint{color:var(--tx3)}
+
 </style>
 </head>
 <body>
@@ -835,6 +855,7 @@ details.bizm-week.bizm-week-details-mobile[open]{border-color:rgba(45,122,79,.35
       <button onclick="setShopifyTab('drafts')" id="sht-drafts" class="sht">📝 Preliminares</button>
     </div>
     <div class="shopify-date-filter">
+      <div id="shopify-count-chip" style="display:none;align-items:center;justify-content:center;background:var(--accent2);color:var(--accent);border:0.5px solid rgba(45,122,79,.22);border-radius:999px;padding:8px 11px;font-size:11.5px;font-weight:800;white-space:nowrap">0 pedidos</div>
       <button class="shopify-date-btn" onclick="toggleShopifyDateDrop()">Filtrar: <span id="shopify-date-label">Todo</span> ▼</button>
       <div class="shopify-date-menu" id="shopify-date-drop">
         <div class="di on" onclick="setShopifyDatePeriod('all','Todo',this)">Todo</div>
@@ -882,6 +903,8 @@ details.bizm-week.bizm-week-details-mobile[open]{border-color:rgba(45,122,79,.35
       <div class="fld"><label>Cliente</label><input id="nv-cliente" placeholder="Nombre completo"></div>
       <div class="fld"><label>Celular</label><input id="nv-celular" type="tel" placeholder="+51 9XX XXX XXX"></div>
       <div class="fld"><label>DNI <span style="font-weight:400;color:var(--tx2)">(opcional)</span></label><input id="nv-dni" placeholder="12345678" maxlength="12"></div>
+      <div class="fld"><label>Tienda de venta</label><select id="nv-tienda" style="background:var(--bg2);border:0.5px solid var(--bo2);border-radius:8px;padding:11px 12px;font-size:14px;color:var(--tx);font-family:var(--fs);width:100%;outline:none"></select></div>
+      <div class="fld"><label>Vía de venta</label><input id="nv-venta-via" readonly style="color:var(--accent);font-weight:700"></div>
       <div class="fld"><label>Cobrar / Total (S/)</label><input id="nv-cobrar" type="number" step="0.50" placeholder="0.00" oninput="calcSaldo()"></div>
       <div class="fld"><label>Adelanto recibido (S/) <span style="font-weight:400;color:var(--tx2)">(opcional)</span></label><input id="nv-adelanto" type="number" step="0.50" placeholder="0.00" value="0" oninput="calcSaldo()"></div>
       <div id="saldo-preview" style="display:none;background:var(--bg2);border-radius:9px;padding:10px 12px;font-size:13px;border:0.5px solid rgba(0,0,0,0.1)">
@@ -951,6 +974,8 @@ details.bizm-week.bizm-week-details-mobile[open]{border-color:rgba(45,122,79,.35
       <div class="fld"><label>Cliente</label><input id="eo-cliente" placeholder="Nombre completo"></div>
       <div class="fld"><label>Celular</label><input id="eo-celular" type="tel" placeholder="+51 9XX XXX XXX"></div>
       <div class="fld"><label>DNI <span style="font-weight:400;color:var(--tx2)">(opcional)</span></label><input id="eo-dni" placeholder="12345678" maxlength="12"></div>
+      <div class="fld"><label>Tienda de venta</label><select id="eo-tienda" style="background:var(--bg2);border:0.5px solid var(--bo2);border-radius:8px;padding:11px 12px;font-size:14px;color:var(--tx);font-family:var(--fs);width:100%;outline:none"></select></div>
+      <div class="fld"><label>Vía de venta</label><input id="eo-venta-via" readonly style="color:var(--accent);font-weight:700"></div>
       <div class="fld"><label>Producto</label>
         <select id="eo-producto" style="background:var(--bg2);border:0.5px solid var(--bo2);border-radius:8px;padding:11px 12px;font-size:14px;color:var(--tx);font-family:var(--fs);width:100%;outline:none"></select>
       </div>
@@ -1108,6 +1133,7 @@ async function loadApp(fbUser){
     if(!ud.exists){await auth.signOut();showSc('sc-login');return;}
     cu={id:ud.id,...ud.data()};
     await loadConfig();
+    await loadUsersCacheForAnalysis();
     buildNav();
     startListeners();
     showSc('sc-app');
@@ -1189,7 +1215,7 @@ function normalizeShopifyStoreName(v){
   v=String(v||'').toLowerCase().trim();
   if(v==='rooze'||v==='rooza')return'rooze';
   if(v==='danna'||v==='dana')return'danna';
-  return'';
+  return v.replace(/[^a-z0-9_-]/g,'');
 }
 function getAllowedShopifyStores(user){
   user=user||cu||{};
@@ -1209,6 +1235,234 @@ function hasShopifyStoreAccess(store,user){
   store=normalizeShopifyStoreName(store);
   return getAllowedShopifyStores(user).indexOf(store)!==-1;
 }
+
+function shopifyStoreDisplayName(store){
+  var id=normalizeShopifyStoreName(store);
+  var names={rooze:'ROOZE',danna:'DANNA'};
+  if(Array.isArray((typeof cfg!=='undefined'&&cfg&&cfg.tiendas)?cfg.tiendas:[])){
+    (cfg.tiendas||[]).forEach(function(t){
+      var tid=normalizeShopifyStoreName(t.id||t.key||t.slug||t.name);
+      if(tid)names[tid]=t.name||String(tid).toUpperCase();
+    });
+  }
+  return names[id]||String(store||id||'Tienda').toUpperCase();
+}
+function getAllSalesStores(){
+  var byId={}, order=[];
+  function addStore(id,name){
+    id=normalizeShopifyStoreName(id);
+    name=String(name||id||'').trim();
+    if(!id||!name)return;
+    var nameKey=normalizeShopifyStoreName(name);
+    // Si la tienda configurada usa ids genéricos como default/t123, pero el nombre es ROOZE/DANNA,
+    // usamos el nombre normalizado para evitar duplicados visuales y permisos inconsistentes.
+    if((id==='default'||/^t\d+$/i.test(id)||id==='tienda'||id==='store')&&nameKey)id=nameKey;
+    var existsId=byId[id];
+    if(existsId){
+      if(!existsId.name||existsId.name===existsId.id.toUpperCase())existsId.name=name;
+      return;
+    }
+    var duplicatedByName=order.find(function(s){return normalizeShopifyStoreName(s.name)===nameKey||s.id===nameKey;});
+    if(duplicatedByName){
+      if(!duplicatedByName.name||duplicatedByName.name===duplicatedByName.id.toUpperCase())duplicatedByName.name=name;
+      byId[id]=duplicatedByName;
+      return;
+    }
+    byId[id]={id:id,name:name};
+    order.push(byId[id]);
+  }
+  addStore('rooze','ROOZE');
+  addStore('danna','DANNA');
+  if(Array.isArray((typeof cfg!=='undefined'&&cfg&&cfg.tiendas)?cfg.tiendas:[])){
+    (cfg.tiendas||[]).forEach(function(t){
+      var rawId=t.shopifyStore||t.shopifyId||t.storeId||t.key||t.slug||t.id||t.name;
+      var rawName=t.name||t.nombre||t.label||rawId;
+      addStore(rawId,rawName);
+    });
+  }
+  return order;
+}
+function getUserSalesStores(user){
+  user=user||cu||{};
+  var all=getAllSalesStores();
+  if(user.role==='superuser')return all;
+  var allowed=getAllowedShopifyStores(user);
+  if(!allowed.length)return all; // evita bloquear ventas existentes hasta que se asignen permisos
+  var out=all.filter(function(s){return allowed.indexOf(s.id)!==-1;});
+  return out.length?out:all;
+}
+function buildSalesStoreOptions(selected,user){
+  var stores=getUserSalesStores(user);
+  var sel=normalizeShopifyStoreName(selected||((stores[0]&&stores[0].id)||''));
+  return stores.map(function(s){return '<option value="'+shopifyHtml(s.id)+'" '+(s.id===sel?'selected':'')+'>'+shopifyHtml(s.name)+'</option>';}).join('');
+}
+function getDefaultSalesStore(user){
+  var stores=getUserSalesStores(user);
+  return (stores[0]&&stores[0].id)||'rooze';
+}
+function getSalesChannelByRole(user){
+  user=user||cu||{};
+  if(user.role==='admin'||user.role==='superuser')return 'shopify';
+  return 'whatsapp';
+}
+function salesChannelLabel(ch){
+  ch=String(ch||'').toLowerCase();
+  if(ch==='shopify')return 'Shopify';
+  if(ch==='whatsapp')return 'WhatsApp';
+  return 'Sin vía';
+}
+function orderSalesChannel(o){
+  o=o||{};
+  var ch=String(o.ventaVia||o.canalVenta||o.salesChannel||o.origenVenta||'').toLowerCase().trim();
+  if(ch==='wa')ch='whatsapp';
+  if(ch==='shopify'||ch==='whatsapp')return ch;
+  var r=String(o.vendedorRole||o.role||'').toLowerCase();
+  if(r==='admin'||r==='superuser')return 'shopify';
+  if(r==='vendedor')return 'whatsapp';
+  return 'sin_via';
+}
+function getOrderStoreId(o){
+  return normalizeShopifyStoreName((o||{}).tienda||(o||{}).store||(o||{}).shopifyStore||(o||{}).marca||(o||{}).origenTienda||(o||{}).storeName||'');
+}
+
+
+// ═══ ANÁLISIS POR TIENDA / CANAL / ROL ═════════════════════
+function normalizeRoleForAnalysis(role){
+  role=String(role||'').toLowerCase().trim();
+  if(role==='superadmin'||role==='super_admin')role='superuser';
+  if(role==='administrator')role='admin';
+  if(role==='seller')role='vendedor';
+  return role||'sin_rol';
+}
+function userAnalysisKeyFromOrder(o){
+  return String((o&&o.vendedorId)||'').trim();
+}
+function getCachedUserForOrder(o){
+  o=o||{};
+  var uid=userAnalysisKeyFromOrder(o);
+  if(uid&&window._usersCacheById&&window._usersCacheById[uid])return window._usersCacheById[uid];
+  if(window._usersCacheByName){
+    var k=normalizeSearchText(o.vendedor||'');
+    if(k&&window._usersCacheByName[k])return window._usersCacheByName[k];
+  }
+  return null;
+}
+async function loadUsersCacheForAnalysis(){
+  window._usersCacheById=window._usersCacheById||{};
+  window._usersCacheByName=window._usersCacheByName||{};
+  try{
+    var snap=await db.collection('users').get();
+    var byId={}, byName={};
+    snap.forEach(function(doc){
+      var u=Object.assign({id:doc.id},doc.data()||{});
+      byId[doc.id]=u;
+      var nk=normalizeSearchText(u.name||u.displayName||u.email||'');
+      if(nk)byName[nk]=u;
+    });
+    window._usersCacheById=byId;
+    window._usersCacheByName=byName;
+  }catch(e){
+    console.warn('No se pudo cargar usuarios para análisis por tienda',e&&e.message?e.message:e);
+  }
+}
+function inferOrderRoleForAnalysis(o){
+  var u=getCachedUserForOrder(o);
+  var role=normalizeRoleForAnalysis((u&&u.role)||o.vendedorRole||o.role||'');
+  if(role&&role!=='sin_rol')return role;
+  var ch=orderSalesChannel(o);
+  if(ch==='shopify')return 'admin';
+  if(ch==='whatsapp')return 'vendedor';
+  return 'sin_rol';
+}
+function inferOrderSalesChannelForAnalysis(o){
+  var ch=orderSalesChannel(o);
+  if(ch&&ch!=='sin_via')return ch;
+  var role=inferOrderRoleForAnalysis(o);
+  if(role==='admin'||role==='superuser')return 'shopify';
+  if(role==='vendedor')return 'whatsapp';
+  return 'sin_via';
+}
+function inferOrderStoreForAnalysis(o){
+  o=o||{};
+  var raw=getOrderStoreId(o);
+  if(raw)return raw;
+  var u=getCachedUserForOrder(o);
+  if(u){
+    var stores=getAllowedShopifyStores(u);
+    if(stores.length===1)return stores[0];
+  }
+  return 'sin_tienda';
+}
+function roleLabelForAnalysis(role){
+  role=normalizeRoleForAnalysis(role);
+  if(role==='superuser')return 'Super Admin';
+  if(role==='admin')return 'Administrador';
+  if(role==='vendedor')return 'Vendedor';
+  return 'Sin rol';
+}
+function channelIconForAnalysis(ch){
+  ch=String(ch||'').toLowerCase();
+  if(ch==='whatsapp')return '🟢';
+  if(ch==='shopify')return '🛍️';
+  return '⚪';
+}
+function channelLabelForAnalysis(ch){return salesChannelLabel(ch);}
+function buildStoreChannelAnalysis(list){
+  var storesMap={};
+  getAllSalesStores().forEach(function(s){
+    storesMap[s.id]={id:s.id,name:s.name,count:0,ingresos:0,ganancia:0,unidades:0,channels:{whatsapp:{count:0,ingresos:0,unidades:0},shopify:{count:0,ingresos:0,unidades:0},sin_via:{count:0,ingresos:0,unidades:0}},roles:{vendedor:{count:0,ingresos:0,unidades:0},admin:{count:0,ingresos:0,unidades:0},superuser:{count:0,ingresos:0,unidades:0},sin_rol:{count:0,ingresos:0,unidades:0}},people:{}};
+  });
+  list.filter(function(o){return o&&o.estado!=='anulado';}).forEach(function(o){
+    var storeId=inferOrderStoreForAnalysis(o)||'sin_tienda';
+    var storeName=storeId==='sin_tienda'?'Sin tienda':shopifyStoreDisplayName(storeId);
+    if(!storesMap[storeId])storesMap[storeId]={id:storeId,name:storeName,count:0,ingresos:0,ganancia:0,unidades:0,channels:{whatsapp:{count:0,ingresos:0,unidades:0},shopify:{count:0,ingresos:0,unidades:0},sin_via:{count:0,ingresos:0,unidades:0}},roles:{vendedor:{count:0,ingresos:0,unidades:0},admin:{count:0,ingresos:0,unidades:0},superuser:{count:0,ingresos:0,unidades:0},sin_rol:{count:0,ingresos:0,unidades:0}},people:{}};
+    var s=storesMap[storeId];
+    var amount=Number(o.cobrar||0)||0;
+    var units=Number(o.totalCantidad||1)||1;
+    var ch=inferOrderSalesChannelForAnalysis(o);
+    var role=inferOrderRoleForAnalysis(o);
+    var gan=0;try{gan=getCostoReal(o).ganancia||0;}catch(e){}
+    s.count++;s.ingresos+=amount;s.ganancia+=gan;s.unidades+=units;
+    if(!s.channels[ch])s.channels[ch]={count:0,ingresos:0,unidades:0};
+    s.channels[ch].count++;s.channels[ch].ingresos+=amount;s.channels[ch].unidades+=units;
+    if(!s.roles[role])s.roles[role]={count:0,ingresos:0,unidades:0};
+    s.roles[role].count++;s.roles[role].ingresos+=amount;s.roles[role].unidades+=units;
+    var person=o.vendedor||((getCachedUserForOrder(o)||{}).name)||'Sin vendedor';
+    if(!s.people[person])s.people[person]={count:0,ingresos:0,unidades:0,role:role,channels:{whatsapp:0,shopify:0,sin_via:0}};
+    s.people[person].count++;s.people[person].ingresos+=amount;s.people[person].unidades+=units;s.people[person].channels[ch]=(s.people[person].channels[ch]||0)+1;
+  });
+  return Object.keys(storesMap).map(function(k){return storesMap[k];}).filter(function(s){return s.count>0||s.id!=='sin_tienda';}).sort(function(a,b){
+    if(a.id==='sin_tienda')return 1;
+    if(b.id==='sin_tienda')return -1;
+    return (b.ingresos||0)-(a.ingresos||0);
+  });
+}
+function renderStoreChannelCards(list,compact){
+  var arr=buildStoreChannelAnalysis(list||[]);
+  if(!arr.length)return '<div class="analysis-empty">Sin ventas por tienda en este período</div>';
+  var total=arr.reduce(function(s,x){return s+(x.ingresos||0);},0)||1;
+  return '<div class="store-analysis-list collapsible">'+arr.map(function(s,idx){
+    var pct=Math.max(4,Math.round((s.ingresos/total)*100));
+    var channels=['whatsapp','shopify','sin_via'].filter(function(ch){return s.channels&&s.channels[ch]&&s.channels[ch].count>0;});
+    if(!channels.length)channels=['whatsapp','shopify'];
+    var channelHtml=channels.map(function(ch){var c=s.channels[ch]||{count:0,ingresos:0,unidades:0};return '<div class="store-channel-box '+ch+'"><div class="store-channel-label">'+channelIconForAnalysis(ch)+' '+channelLabelForAnalysis(ch)+'</div><div class="store-channel-main">'+c.count+' pedidos</div><div class="store-channel-sub">'+(c.unidades||0)+' un. · '+fmtC0(c.ingresos||0)+'</div></div>';}).join('');
+    var roleHtml=['vendedor','admin','superuser','sin_rol'].filter(function(r){return s.roles&&s.roles[r]&&s.roles[r].count>0;}).map(function(r){var rr=s.roles[r];return '<div class="store-role-pill"><strong>'+roleLabelForAnalysis(r)+'</strong><span>'+rr.count+' · '+fmtC0(rr.ingresos||0)+'</span></div>';}).join('');
+    var people=Object.keys(s.people||{}).map(function(k){return Object.assign({name:k},s.people[k]);}).sort(function(a,b){return b.count-a.count;}).slice(0,compact?4:7).map(function(p){var chs=[];if(p.channels){if(p.channels.whatsapp)chs.push('WhatsApp '+p.channels.whatsapp);if(p.channels.shopify)chs.push('Shopify '+p.channels.shopify);if(p.channels.sin_via)chs.push('Sin vía '+p.channels.sin_via);}return '<div class="store-person-row"><span>'+shopifyHtml(p.name)+' <small>'+roleLabelForAnalysis(p.role)+(chs.length?' · '+chs.join(' / '):'')+'</small></span><strong>'+p.count+' · '+fmtC0(p.ingresos||0)+'</strong></div>';}).join('');
+    var detailHint='<span class="store-detail-hint">Ver detalle</span>';
+    return '<details class="store-analysis-card store-analysis-detail '+(s.id==='sin_tienda'?'missing':'')+'">'+
+      '<summary class="store-analysis-summary">'+
+        '<div class="store-analysis-head"><div><div class="store-analysis-name">'+shopifyHtml(s.name)+'</div><div class="store-analysis-sub">'+s.count+' pedidos · '+s.unidades+' un. · '+detailHint+'</div></div><strong>'+fmtC0(s.ingresos)+'</strong><span class="store-analysis-arrow">⌄</span></div>'+
+        '<div class="store-progress"><span style="width:'+pct+'%"></span></div>'+
+      '</summary>'+
+      '<div class="store-analysis-body">'+
+        '<div class="store-channel-grid">'+channelHtml+'</div>'+ 
+        (roleHtml?'<div class="store-role-grid">'+roleHtml+'</div>':'')+
+        (people?'<div class="store-people-list">'+people+'</div>':'')+
+      '</div>'+ 
+    '</details>';
+  }).join('')+'</div>';
+}
+
 
 // ═══ LISTENERS ═══
 function startListeners(){
@@ -1572,6 +1826,8 @@ function openNueva(){
   if($('nv-zona'))$('nv-zona').value='Lima';
   if($('nv-err'))$('nv-err').style.display='none';
   if(document.getElementById('nv-nota'))document.getElementById('nv-nota').value='';
+  if(document.getElementById('nv-tienda'))document.getElementById('nv-tienda').innerHTML=buildSalesStoreOptions(getDefaultSalesStore(cu),cu);
+  if(document.getElementById('nv-venta-via'))document.getElementById('nv-venta-via').value=salesChannelLabel(getSalesChannelByRole(cu));
   // Reset product lines
   prodLineCount=0;
   var list=$('nv-productos-list');
@@ -1637,12 +1893,21 @@ $('btn-nueva').onclick=async function(){
     const _dni=(document.getElementById('nv-dni')?.value||'').trim();
     const _contra=document.getElementById('nv-contraentrega')?.checked||false;
     const _saldo=Math.max(0,cobrar-_adelanto);
+    const _tienda=normalizeShopifyStoreName(document.getElementById('nv-tienda')?.value)||getDefaultSalesStore(cu);
+    const _tiendaNombre=shopifyStoreDisplayName(_tienda);
+    const _ventaVia=getSalesChannelByRole(cu);
     const orderData={
       vendedorId:cu.id,
       vendedor:cu.name||cu.email,
       cliente:cliente,
       celular:celular,
       dni:_dni,
+      tienda:_tienda,
+      store:_tienda,
+      tiendaNombre:_tiendaNombre,
+      ventaVia:_ventaVia,
+      canalVenta:_ventaVia,
+      vendedorRole:(cu&&cu.role)||'',
       cobrar:cobrar,
       adelanto:_adelanto,
       saldo:_saldo,
@@ -2296,6 +2561,8 @@ function renderResumen(){
     '<div class="dr"><span class="dl">✗ Anulado</span><span class="dv red">'+byStatus.anulado+'</span></div>'+
   '</div>';
 
+  hh+='<div class="card"><div class="section-label">Ventas por tienda y canal</div>'+renderStoreChannelCards(filtered,true)+'</div>';
+
   // ── PUNTO 2: Bloque acordeón por vendedor ──────────────────────────────
   var vendEntries=Object.entries(vendMap).sort(function(a,b){return b[1].ventas-a[1].ventas;});
   if(!vendEntries.length){
@@ -2552,13 +2819,13 @@ async function renderConfig(){
     <div class="card">
       <div onclick="toggleConfigSection('shopify-admin-perms-body','shopify-admin-perms-arrow')" style="display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer">
         <div>
-          <div class="section-label" style="margin-bottom:2px">Permisos Shopify · Administradores</div>
-          <div style="font-size:12px;color:var(--tx2);font-weight:600">Asignar ROOZE / DANNA</div>
+          <div class="section-label" style="margin-bottom:2px">Permisos de tienda · Usuarios</div>
+          <div style="font-size:12px;color:var(--tx2);font-weight:600">Asignar tiendas a admins y vendedores</div>
         </div>
         <span id="shopify-admin-perms-arrow" style="font-size:14px;color:var(--tx3);transition:transform .2s">▼</span>
       </div>
       <div id="shopify-admin-perms-body" style="display:none;padding-top:10px">
-        <p style="font-size:12px;color:var(--tx2);margin-bottom:10px">Asigna qué tienda puede ver cada administrador. El admin no verá “Todas”, solo sus tiendas asignadas.</p>
+        <p style="font-size:12px;color:var(--tx2);margin-bottom:10px">Asigna a qué tienda pertenece cada vendedor o administrador. Si marcas todas, podrá trabajar con todas las tiendas configuradas.</p>
         <div id="shopify-admin-perms"><div class="spin" style="margin:16px auto"></div></div>
       </div>
     </div>
@@ -2740,37 +3007,43 @@ async function saveUserRole(uid){
 function renderShopifyAdminPerms(){
   var el=document.getElementById('shopify-admin-perms');
   if(!el||!isSuper())return;
-  db.collection('users').where('role','==','admin').get().then(function(snap){
-    if(snap.empty){el.innerHTML='<div style="font-size:12px;color:var(--tx3);padding:8px 0">No hay administradores registrados.</div>';return;}
-    el.innerHTML=snap.docs.map(function(doc){
-      var u=Object.assign({id:doc.id},doc.data());
+  db.collection('users').get().then(function(snap){
+    var docs=[];
+    snap.forEach(function(doc){
+      var u=doc.data()||{};
+      if(u.role!=='superuser')docs.push({id:doc.id,data:u});
+    });
+    if(!docs.length){el.innerHTML='<div style="font-size:12px;color:var(--tx3);padding:8px 0">No hay administradores ni vendedores registrados.</div>';return;}
+    var storeOptions=getAllSalesStores();
+    el.innerHTML=docs.map(function(row){
+      var u=Object.assign({id:row.id},row.data);
       var stores=getAllowedShopifyStores(u);
-      var name=u.name||u.email||doc.id;
+      var name=u.name||u.email||row.id;
       var email=u.email?'<div style="font-size:10px;color:var(--tx3);margin-top:1px">'+shopifyHtml(u.email)+'</div>':'';
-      var checkedR=stores.indexOf('rooze')!==-1?'checked':'';
-      var checkedD=stores.indexOf('danna')!==-1?'checked':'';
       return '<div style="background:var(--bg2);border:0.5px solid var(--bo2);border-radius:12px;padding:11px 12px;margin-bottom:8px">'
-        +'<div style="font-size:13px;font-weight:750;color:var(--tx)">'+shopifyHtml(name)+'</div>'+email
-        +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">'
-          +'<label style="display:flex;align-items:center;gap:6px;background:var(--bg);border:0.5px solid var(--bo);border-radius:999px;padding:7px 10px;font-size:12px;font-weight:700;color:var(--tx2)"><input type="checkbox" id="perm-'+doc.id+'-rooze" '+checkedR+' style="accent-color:var(--accent)"> ROOZE</label>'
-          +'<label style="display:flex;align-items:center;gap:6px;background:var(--bg);border:0.5px solid var(--bo);border-radius:999px;padding:7px 10px;font-size:12px;font-weight:700;color:var(--tx2)"><input type="checkbox" id="perm-'+doc.id+'-danna" '+checkedD+' style="accent-color:var(--accent)"> DANNA</label>'
-          +'<button onclick="saveAdminShopifyStores(\''+doc.id+'\')" style="margin-left:auto;background:var(--accent);color:#fff;border:none;border-radius:999px;padding:7px 12px;font-size:12px;font-weight:750;font-family:inherit">Guardar</button>'
+        +'<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">'
+          +'<div><div style="font-size:13px;font-weight:750;color:var(--tx)">'+shopifyHtml(name)+'</div>'+email+'</div>'
+          +'<span style="font-size:10px;font-weight:800;color:var(--accent);background:var(--accent2);border-radius:999px;padding:5px 8px;white-space:nowrap">'+roleLabel(u.role||'vendedor')+'</span>'
         +'</div>'
+        +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">'
+          +storeOptions.map(function(st){var checked=stores.indexOf(st.id)!==-1?'checked':'';return '<label style="display:flex;align-items:center;gap:6px;background:var(--bg);border:0.5px solid var(--bo);border-radius:999px;padding:7px 10px;font-size:12px;font-weight:700;color:var(--tx2)"><input type="checkbox" id="perm-'+row.id+'-'+st.id+'" '+checked+' style="accent-color:var(--accent)"> '+shopifyHtml(st.name)+'</label>';}).join('')
+          +'<button onclick="saveAdminShopifyStores(\''+row.id+'\')" style="margin-left:auto;background:var(--accent);color:#fff;border:none;border-radius:999px;padding:7px 12px;font-size:12px;font-weight:750;font-family:inherit">Guardar</button>'
+        +'</div>'
+        +'<div style="font-size:10.5px;color:var(--tx3);margin-top:7px;line-height:1.35">Vendedor: ventas como WhatsApp. Administrador: ventas como Shopify.</div>'
       +'</div>';
     }).join('');
-  }).catch(function(e){el.innerHTML='<div class="err" style="display:block">Error cargando administradores: '+shopifyHtml(e.message)+'</div>';});
+  }).catch(function(e){el.innerHTML='<div class="err" style="display:block">Error cargando permisos de tienda: '+shopifyHtml(e.message)+'</div>';});
 }
-
 async function saveAdminShopifyStores(uid){
   if(!isSuper())return toast('Solo Super Admin');
   var stores=[];
-  var r=document.getElementById('perm-'+uid+'-rooze');
-  var d=document.getElementById('perm-'+uid+'-danna');
-  if(r&&r.checked)stores.push('rooze');
-  if(d&&d.checked)stores.push('danna');
+  getAllSalesStores().forEach(function(st){
+    var el=document.getElementById('perm-'+uid+'-'+st.id);
+    if(el&&el.checked)stores.push(st.id);
+  });
   try{
     await db.collection('users').doc(uid).set({shopifyStores:stores},{merge:true});
-    toast('✓ Permisos Shopify guardados');
+    toast('✓ Permisos de tienda guardados');
   }catch(e){toast('Error: '+e.message);}
 }
 
@@ -3090,6 +3363,8 @@ function openEditOrder(id){
   document.getElementById('eo-cliente').value=o.cliente||'';
   document.getElementById('eo-celular').value=o.celular||'';
   document.getElementById('eo-dni').value=o.dni||'';
+  if(document.getElementById('eo-tienda'))document.getElementById('eo-tienda').innerHTML=buildSalesStoreOptions(getOrderStoreId(o)||getDefaultSalesStore(cu),cu);
+  if(document.getElementById('eo-venta-via'))document.getElementById('eo-venta-via').value=salesChannelLabel(orderSalesChannel(o)==='sin_via'?getSalesChannelByRole(cu):orderSalesChannel(o));
   document.getElementById('eo-cobrar').value=o.cobrar||'';
   document.getElementById('eo-zona').value=o.zona||'Lima';
   document.getElementById('eo-ciudad').value=o.ciudad||'';
@@ -3112,6 +3387,10 @@ document.getElementById('btn-edit-order').onclick=async function(){
   var dni=(document.getElementById('eo-dni').value||'').trim();
   var cobrar=parseFloat(document.getElementById('eo-cobrar').value)||0;
   var producto=document.getElementById('eo-producto').value;
+  var tienda=normalizeShopifyStoreName(document.getElementById('eo-tienda')?.value)||getDefaultSalesStore(cu);
+  var tiendaNombre=shopifyStoreDisplayName(tienda);
+  var existingOrder=orders.find(function(x){return x.id===id;})||{};
+  var ventaVia=(orderSalesChannel(existingOrder)!=='sin_via')?orderSalesChannel(existingOrder):getSalesChannelByRole(cu);
   var zona=document.getElementById('eo-zona').value||'Lima';
   var ciudad=(document.getElementById('eo-ciudad').value||'').trim();
   var fechaVenta=document.getElementById('eo-fecha').value||new Date().toISOString().split('T')[0];
@@ -3122,7 +3401,7 @@ document.getElementById('btn-edit-order').onclick=async function(){
   btn.disabled=true;btn.textContent='Guardando...';
   try{
     await db.collection('orders').doc(id).update({
-      cliente:cliente, celular:celular, dni:dni, cobrar:cobrar,
+      cliente:cliente, celular:celular, dni:dni, tienda:tienda, store:tienda, tiendaNombre:tiendaNombre, ventaVia:ventaVia, canalVenta:ventaVia, vendedorRole:existingOrder.vendedorRole||((cu&&cu.role)||''), cobrar:cobrar,
       producto:producto, zona:zona, ciudad:ciudad,
       fechaVenta:fechaVenta, fechaMs:fechaMs
     });
@@ -3803,6 +4082,136 @@ function filterByStore(arr){
   return list.filter(shopifyPassesDate);
 }
 
+
+function filterByStoreOnly(list){
+  list=list||[];
+  var out=list;
+  if(!isSuper()){
+    var allowed=getAllowedShopifyStores();
+    if(curShopifyStore==='all')return out.filter(function(x){return allowed.indexOf(normalizeShopifyStoreName(x.store||'rooze'))!==-1;});
+    if(allowed.indexOf(curShopifyStore)===-1)return [];
+  }
+  if(curShopifyStore!=='all')out=out.filter(function(x){return normalizeShopifyStoreName(x.store||'rooze')===curShopifyStore;});
+  return out;
+}
+function shopifyDateValue(v){
+  if(!v)return 0;
+  if(v&&typeof v.toMillis==='function')return v.toMillis();
+  if(v&&typeof v.seconds==='number')return v.seconds*1000;
+  if(typeof v==='number')return v;
+  if(typeof v==='string'){var t=Date.parse(v);return isNaN(t)?0:t;}
+  return 0;
+}
+function shopifyDraftRecovered(d){
+  d=d||{};var p=d.payload||{};
+  var st=String(d.manualDraftStatus||d.draftStatus||d.status||p.status||'').toLowerCase();
+  return d.draftRecovered===true||d.recovered===true||d.preliminarComprado===true||st==='recovered'||st==='comprado'||st==='purchased'||st==='completed'||!!d.completedAt||!!p.completed_at;
+}
+function shopifyDraftRecoveredTime(d){
+  d=d||{};var p=d.payload||{};
+  return shopifyDateValue(d.draftRecoveredAt)||shopifyDateValue(d.recoveredAt)||shopifyDateValue(d.completedAt)||shopifyDateValue(p.completed_at)||shopifyDateValue(d.manualDraftStatusUpdatedAt)||shopifyTime(d);
+}
+function shopifyDraftRecoveredInRange(d){
+  if(!shopifyDraftRecovered(d))return false;
+  if(curShopifyDatePeriod==='all')return true;
+  var t=shopifyDraftRecoveredTime(d);if(!t)return false;
+  var r=getShopifyDateRange();return t>=r.start&&t<=r.end;
+}
+function shopifyCurrentTabListForCount(){
+  if(curShopifyTab==='orders')return filterShopifySearch(filterByStore(shopifyData.orders),'pedidos');
+  if(curShopifyTab==='clientes')return filterShopifySearch(filterByStore(shopifyData.customers),'clientes');
+  if(curShopifyTab==='abandoned')return filterShopifySearch(filterByStore(shopifyData.abandoned),'abandonados');
+  if(curShopifyTab==='drafts')return filterShopifySearch(filterByStore(shopifyData.drafts),'preliminares');
+  return [];
+}
+function shopifyTabCountLabel(){
+  var map={orders:'pedidos',clientes:'clientes',abandoned:'abandonados',drafts:'preliminares'};
+  return map[curShopifyTab]||'registros';
+}
+function updateShopifyCountUI(){
+  var el=document.getElementById('shopify-count-chip');if(!el)return;
+  if(curShopifyTab==='analytics'){el.style.display='none';return;}
+  var n=shopifyCurrentTabListForCount().length;
+  el.textContent=n+' '+shopifyTabCountLabel();
+  el.style.display='inline-flex';
+}
+function shopifyCustomerSummaryHTML(o, cls){
+  o=o||{};cls=cls||'sc-sub';
+  var name=o.customerName||o.customer_name||o.firstName||o.name||o.email||'Sin nombre';
+  if(o.lastName&&String(name).indexOf(o.lastName)===-1)name=(name+' '+o.lastName).trim();
+  var t=shopifyTime(o),hour=t?new Date(t).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'}):'';
+  var fecha=shopifyDateTime(o),province=shopifyProvince(o),tel=o.phone||o.customer_phone||o.shippingPhone||'';
+  var orderRef=o.orderNumber||o.name||o.id||'';
+  var addressBlock=shopifyAddressBlock(o,cls);
+  return '<details style="border:0.5px solid var(--bo);border-radius:11px;padding:8px 10px;background:var(--bg2);width:100%">'+
+    '<summary style="cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:8px;align-items:center;font-weight:750;color:var(--tx);font-size:13px">'+
+      '<span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+shopifyHtml(name)+'</span>'+(hour?'<span style="color:var(--accent);font-size:11px;white-space:nowrap">'+shopifyHtml(hour)+'</span>':'')+
+    '</summary>'+
+    '<div style="margin-top:7px;border-top:0.5px solid var(--bo);padding-top:7px">'+
+      (tel?'<div class="'+cls+'">📱 '+shopifyHtml(tel)+'</div>':'')+
+      (orderRef?'<div class="'+cls+'">Pedido '+shopifyHtml(orderRef)+'</div>':'')+
+      (province?'<div class="'+cls+'">Provincia/Ciudad: '+shopifyHtml(province)+'</div>':'')+
+      (fecha?'<div class="'+cls+'">Hora: '+shopifyHtml(fecha)+'</div>':'')+addressBlock+
+    '</div></details>';
+}
+async function setShopifyDraftRecovered(draftId,recovered){
+  if(!draftId||!db)return;
+  var localDraft=(shopifyData.drafts||[]).find(function(d){return d.id===draftId;});
+  if(!isSuper()&&localDraft&&!hasShopifyStoreAccess(localDraft.store)){toast('No tienes permiso para modificar esta tienda');return;}
+  try{
+    await db.collection('shopify_drafts').doc(draftId).update({
+      draftRecovered:!!recovered,
+      manualDraftStatus:recovered?'recovered':'pending',
+      manualDraftStatusUpdatedAt:firebase.firestore.FieldValue.serverTimestamp(),
+      manualDraftStatusUpdatedBy:(cu&&cu.id)||(auth.currentUser&&auth.currentUser.uid)||'',
+      manualDraftStatusUpdatedByName:(cu&&cu.name)||'',
+      draftRecoveredAt:recovered?firebase.firestore.FieldValue.serverTimestamp():null,
+      draftRecoveredBy:recovered?((cu&&cu.id)||(auth.currentUser&&auth.currentUser.uid)||''):null,
+      draftRecoveredByName:recovered?((cu&&cu.name)||''):null
+    });
+    toast(recovered?'Preliminar marcado como compra recuperada':'Preliminar marcado como pendiente');
+  }catch(e){console.error(e);toast('No se pudo actualizar preliminar: '+e.message);}
+}
+function shopifyDraftRecoveredActions(d){
+  var rec=shopifyDraftRecovered(d);
+  return '<div class="shopify-status-actions" style="margin-top:9px">'+
+    '<button class="shopify-status-btn confirmed'+(rec?' active':'')+'" onclick="event.stopPropagation();setShopifyDraftRecovered(\''+shopifyJs(d.id)+'\',true)">Compró</button>'+ 
+    '<button class="shopify-status-btn pending'+(!rec?' active':'')+'" onclick="event.stopPropagation();setShopifyDraftRecovered(\''+shopifyJs(d.id)+'\',false)">Pendiente</button>'+ 
+  '</div>';
+}
+function shopifyAbandonedRecovered(a){
+  a=a||{};var st=String(a.manualAbandonedStatus||a.abandonedStatus||a.status||'').toLowerCase();
+  return a.abandonedRecovered===true||a.recovered===true||a.checkoutRecovered===true||st==='recovered'||st==='recuperado'||st==='completed'||!!a.completedAt||!!((a.payload||{}).completed_at);
+}
+async function setShopifyAbandonedRecovered(abandonedId,recovered){
+  if(!abandonedId||!db)return;
+  var local=(shopifyData.abandoned||[]).find(function(a){return a.id===abandonedId;});
+  if(!isSuper()&&local&&!hasShopifyStoreAccess(local.store)){toast('No tienes permiso para modificar esta tienda');return;}
+  try{
+    await db.collection('shopify_abandoned').doc(abandonedId).update({
+      abandonedRecovered:!!recovered,
+      manualAbandonedStatus:recovered?'recovered':'pending',
+      manualAbandonedStatusUpdatedAt:firebase.firestore.FieldValue.serverTimestamp(),
+      manualAbandonedStatusUpdatedBy:(cu&&cu.id)||(auth.currentUser&&auth.currentUser.uid)||'',
+      manualAbandonedStatusUpdatedByName:(cu&&cu.name)||'',
+      abandonedRecoveredAt:recovered?firebase.firestore.FieldValue.serverTimestamp():null,
+      abandonedRecoveredBy:recovered?((cu&&cu.id)||(auth.currentUser&&auth.currentUser.uid)||''):null,
+      abandonedRecoveredByName:recovered?((cu&&cu.name)||''):null
+    });
+    toast(recovered?'Abandonado marcado como recuperado':'Abandonado marcado como pendiente');
+  }catch(e){console.error(e);toast('No se pudo actualizar abandonado: '+e.message);}
+}
+function shopifyAbandonedRecoveredActions(a){
+  var rec=shopifyAbandonedRecovered(a);
+  return '<div class="shopify-status-actions" style="margin-top:9px">'+
+    '<button class="shopify-status-btn confirmed'+(rec?' active':'')+'" onclick="event.stopPropagation();setShopifyAbandonedRecovered(\''+shopifyJs(a.id)+'\',true)">Recuperado</button>'+
+    '<button class="shopify-status-btn pending'+(!rec?' active':'')+'" onclick="event.stopPropagation();setShopifyAbandonedRecovered(\''+shopifyJs(a.id)+'\',false)">Pendiente</button>'+
+  '</div>';
+}
+function shopifyWaButtonOrDisabled(url,label){
+  if(url)return shopifyWaLink(url,label);
+  return '<span class="shopify-wa" title="Sin celular" style="background:#d1d5db;box-shadow:none;opacity:.65;cursor:not-allowed">'+shopifyWaIcon()+'</span>';
+}
 var shopifyData = {
   orders:[],
   customers:[],
@@ -4216,6 +4625,7 @@ function renderShopifyContent(){
   var el = document.getElementById('shopify-content');
   if(!el) return;
   updateShopifySearchUI();
+  updateShopifyCountUI();
   if(curShopifyTab === 'analytics') el.innerHTML = buildShopifyAnalytics();
   else if(curShopifyTab === 'orders')   el.innerHTML = buildShopifyOrders();
   else if(curShopifyTab === 'clientes') el.innerHTML = buildShopifyClientes();
@@ -4291,7 +4701,9 @@ function buildShopifyAnalytics(){
   var orders    = filterByStore(shopifyData.orders);
   var _abandoned = filterByStore(shopifyData.abandoned);
   var _drafts    = filterByStore(shopifyData.drafts);
-  var storeLabel = curShopifyStore==='rooze'?' — ROOZE':curShopifyStore==='danna'?' — DANNA':'';
+  var allDraftsForRecovered = filterByStoreOnly(shopifyData.drafts);
+  var recoveredDrafts = allDraftsForRecovered.filter(shopifyDraftRecoveredInRange);
+  var recoveredRevenue = recoveredDrafts.reduce(function(s,d){return s+shopifyMoney(d);},0);
   var total = orders.length;
   var confirmed = orders.filter(function(o){return shopifyEffectiveStatus(o)==='confirmed';}).length;
   var pending   = orders.filter(function(o){return shopifyEffectiveStatus(o)==='pending';}).length;
@@ -4303,7 +4715,6 @@ function buildShopifyAnalytics(){
   var abandoned = _abandoned.length;
   var drafts    = _drafts.length;
 
-  // Revenue last 7 days
   var now = Date.now();
   var week = 7*86400000;
   var revWeek = orders.filter(function(o){
@@ -4324,14 +4735,14 @@ function buildShopifyAnalytics(){
     +'</div>' : '';
 
   return '<div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px">'+(curShopifyStore==="all"?"📊 Todas las tiendas":curShopifyStore==="rooze"?"📊 ROOZE":"📊 DANNA")+"</div>"+'<div class="shopify-kpi-grid">'
-    +'<div class="shopify-kpi"><div class="lbl">Total pedidos</div><div class="val">'+total+'</div><div class="sub">Shopify + Manual</div></div>'
+    +'<div class="shopify-kpi"><div class="lbl">Total pedidos</div><div class="val">'+total+'</div><div class="sub">Según filtro de fecha</div></div>'
     +'<div class="shopify-kpi"><div class="lbl">Confirmados</div><div class="val" style="color:#059669">'+confirmed+'</div><div class="sub">Pagados</div></div>'
     +'<div class="shopify-kpi"><div class="lbl">Por confirmar</div><div class="val" style="color:#d97706">'+pending+'</div><div class="sub">Pendientes</div></div>'
     +'<div class="shopify-kpi"><div class="lbl">% Cierre</div><div class="val" style="color:var(--accent)">'+closePct+'%</div><div class="sub">Tasa de conversión</div></div>'
     +'<div class="shopify-kpi"><div class="lbl">Ticket promedio</div><div class="val">S/ '+avgTicket.toFixed(0)+'</div><div class="sub">Por pedido pagado</div></div>'
     +'<div class="shopify-kpi"><div class="lbl">Ingresos (7 días)</div><div class="val" style="color:var(--accent)">S/ '+revWeek.toFixed(0)+'</div><div class="sub">Esta semana</div></div>'
-    +'<div class="shopify-kpi"><div class="lbl">Abandonados</div><div class="val" style="color:#dc2626">'+abandoned+'</div><div class="sub">Checkouts sin pagar</div></div>'
-    +'<div class="shopify-kpi"><div class="lbl">Preliminares</div><div class="val" style="color:#6366f1">'+drafts+'</div><div class="sub">Draft orders</div></div>'
+    +'<div class="shopify-kpi"><div class="lbl">Preliminares recuperados</div><div class="val" style="color:#059669">'+recoveredDrafts.length+'</div><div class="sub">S/ '+recoveredRevenue.toFixed(0)+' recuperados</div></div>'
+    +'<div class="shopify-kpi"><div class="lbl">Abandonados / preliminares</div><div class="val">'+abandoned+' / '+drafts+'</div><div class="sub">Según fecha filtrada</div></div>'
   +'</div>'
   + buildShopifyRevenueBar(orders)
   + errorMsg
@@ -4370,16 +4781,13 @@ function buildShopifyRevenueBar(orders){
 // ── ORDERS TAB ────────────────────────────────────────────────────────────
 function buildShopifyOrders(){
   var base = filterByStore(shopifyData.orders);
-  var orders = filterShopifySearch(base,'pedidos');
-  if(!base.length) return '<div class="empty"><p>Sin pedidos de Shopify</p><p style="font-size:12px">Los pedidos aparecerán aquí cuando se configuren las webhooks</p></div>';
+  var orders=filterShopifySearch(base,'pedidos');
+  if(!base.length) return '<div class="empty"><p>Sin pedidos de Shopify</p><p style="font-size:12px">Cuando Shopify envíe pedidos, aparecerán aquí</p></div>';
   if(!orders.length) return shopifyEmptySearchMsg('pedidos');
   return orders.slice(0,50).map(function(o){
     var meta = shopifyStatusMeta(o);
-    var tel = (o.phone||o.customer_phone||'').replace(/\D/g,'');
+    var tel = (o.phone || o.customer_phone || '').replace(/\D/g,'');
     var cel = tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;
-    var fecha = shopifyDateTime(o);
-    var province = shopifyProvince(o);
-    var addressBlock = shopifyAddressBlock(o,'sc-sub');
     var product = o.items || shopifyLineItems(o.payload) || 'Producto sin detalle';
     var name = o.customerName || o.customer_name || 'Sin nombre';
     var orderRef = o.orderNumber || o.name || o.id || '';
@@ -4398,10 +4806,7 @@ function buildShopifyOrders(){
     var note = o.manualStatusUpdatedAt ? '<div class="shopify-manual-note">↻ Estado actualizado manualmente</div>' : '';
     return '<div class="shopify-card">'
       +'<div class="shopify-order-head">'
-        +'<div class="shopify-order-left">'
-          +'<div class="sc-name">'+shopifyHtml(name)+'</div>'
-          +'<div class="sc-sub">Pedido '+shopifyHtml(orderRef)+(province?' | '+shopifyHtml(province):'')+(fecha?' | '+shopifyHtml(fecha):'')+'</div>'
-          +addressBlock+note+'</div>'
+        +'<div class="shopify-order-left">'+shopifyCustomerSummaryHTML(o,'sc-sub')+note+'</div>'
         +'<div class="shopify-order-tags">'
           +'<span class="shopify-badge '+meta.cls+'"><span>'+meta.icon+'</span>'+meta.label+'</span>'
           +(o.store?'<span class="shopify-store-pill">'+(o.store==='rooze'?'ROOZE':'DANNA')+'</span>':'')
@@ -4483,20 +4888,22 @@ function buildShopifyAbandoned(){
     var fecha=shopifyDateTime(a);
     var addressBlock=shopifyAddressBlock(a,'sc-sub');
     var product=a.items||shopifyLineItems(a.payload)||'';
+    var rec=shopifyAbandonedRecovered(a);
     var msg='Hola '+(a.firstName||a.customerName||'')+' 👋 Notamos que dejaste artículos en tu carrito. ¿Te podemos ayudar a completar tu compra? 🛍️';
     var waUrl=cel?'https://wa.me/'+cel+'?text='+encodeURIComponent(msg):'';
     return '<div class="shopify-card">'
-      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">'
-        +'<div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px">'
+        +'<div style="min-width:0;flex:1">'
           +'<div class="sc-name">'+shopifyHtml(a.firstName||a.customerName||a.email||'Visitante')+(a.lastName?' '+shopifyHtml(a.lastName):'')+'</div>'
           +(a.email?'<div class="sc-sub">'+shopifyHtml(a.email)+'</div>':'')
           +(a.phone?'<div class="sc-sub">📱 '+shopifyHtml(a.phone)+'</div>':'')
           +addressBlock+'<div style="font-size:11px;color:var(--tx3)">'+shopifyHtml(fecha)+'</div>'
           +(product?'<div class="shopify-order-product" style="font-size:12px;margin-top:7px;white-space:normal">'+shopifyHtml(product)+'</div>':'')
-        +'</div><span class="shopify-badge sh-abandoned">Abandonado</span></div>'
+          +shopifyAbandonedRecoveredActions(a)
+        +'</div><span class="shopify-badge '+(rec?'sh-confirmed':'sh-abandoned')+'">'+(rec?'Recuperado':'Abandonado')+'</span></div>'
       +'<div style="display:flex;justify-content:space-between;align-items:center">'
-        +'<div style="font-size:15px;font-weight:700;color:#dc2626">S/ '+shopifyMoney(a).toFixed(2)+'</div>'
-        +(waUrl?'<a href="'+waUrl+'" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:#25D366;color:#fff;border-radius:8px;text-decoration:none;font-size:12px;font-weight:600">Recuperar venta</a>':'')
+        +'<div style="font-size:15px;font-weight:700;color:'+(rec?'#059669':'#dc2626')+'">S/ '+shopifyMoney(a).toFixed(2)+'</div>'
+        +shopifyWaButtonOrDisabled(waUrl,'Recuperar venta')
       +'</div></div>';
   }).join('');
 }
@@ -4510,20 +4917,15 @@ function buildShopifyDrafts(){
   return drafts.slice(0,50).map(function(d){
     var tel=(d.phone||d.shippingPhone||'').replace(/\D/g,'');
     var cel=tel.length===9?'51'+tel:tel.length===11&&tel.slice(0,2)==='51'?tel:tel;
-    var fecha=shopifyDateTime(d);
-    var province=shopifyProvince(d);
-    var addressBlock=shopifyAddressBlock(d,'sc-sub');
     var product=d.items||shopifyLineItems(d.payload)||'';
+    var rec=shopifyDraftRecovered(d);
     return '<div class="shopify-card">'
-      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">'
-        +'<div>'
-          +'<div class="sc-name">'+shopifyHtml(d.customerName||d.name||'Sin nombre')+'</div>'
-          +'<div class="sc-sub">'+shopifyHtml(d.orderNumber||d.id||'')+(province?' · '+shopifyHtml(province):'')+'</div>'
-          +'<div style="font-size:11px;color:var(--tx3)">'+shopifyHtml(fecha)+'</div>'+addressBlock+'</div>'
-        +'<span class="shopify-badge sh-draft">Preliminar</span></div>'
-      +'<div style="display:flex;justify-content:space-between;align-items:center">'
-        +'<div><div style="font-size:15px;font-weight:700;color:#6366f1">S/ '+shopifyMoney(d).toFixed(2)+'</div>'
-          +(product?'<div class="shopify-order-product" style="font-size:12px;color:var(--tx3);white-space:normal">'+shopifyHtml(product)+'</div>':'')+'</div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:8px">'
+        +'<div style="flex:1;min-width:0">'+shopifyCustomerSummaryHTML(d,'sc-sub')+'</div>'
+        +'<span class="shopify-badge '+(rec?'sh-confirmed':'sh-draft')+'">'+(rec?'Compró':'Preliminar')+'</span></div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">'
+        +'<div style="min-width:0;flex:1"><div style="font-size:15px;font-weight:700;color:'+(rec?'#059669':'#6366f1')+'">S/ '+shopifyMoney(d).toFixed(2)+'</div>'
+          +(product?'<div class="shopify-order-product" style="font-size:12px;color:var(--tx3);white-space:normal">'+shopifyHtml(product)+'</div>':'')+shopifyDraftRecoveredActions(d)+'</div>'
         +(cel?'<a href="https://wa.me/'+cel+'" target="_blank" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;background:#25D366;border-radius:50%;text-decoration:none">'+shopifyWaIcon()+'</a>':'')
       +'</div></div>';
   }).join('');
