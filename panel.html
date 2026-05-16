@@ -902,7 +902,7 @@ tbody tr:hover{background:var(--bg2)}
       <div class="fld"><label>Tienda de venta</label><select id="vf-tienda"></select></div>
     </div>
     <div class="fld-row">
-      <div class="fld"><label>Vía de venta</label><input id="vf-venta-via" readonly style="color:var(--accent);font-weight:700"></div>
+      <div class="fld"><label>Canal de venta</label><select id="vf-venta-via" style="color:var(--accent);font-weight:700"><option value="whatsapp">WhatsApp</option></select></div>
       <div class="fld"><label>Producto</label>
         <select id="vf-producto"></select>
       </div>
@@ -1100,20 +1100,66 @@ function getSalesChannelByRole(user){
   if(user.role==='admin'||user.role==='superuser')return 'shopify';
   return 'whatsapp';
 }
+function canChooseSalesChannel(user){
+  user=user||cu||{};
+  return user.role==='admin'||user.role==='superuser';
+}
+function buildSalesChannelOptions(selected,user){
+  selected=normalizeSalesChannel(selected)||getSalesChannelByRole(user);
+  if(!canChooseSalesChannel(user)){
+    return '<option value="whatsapp" selected>WhatsApp</option>';
+  }
+  return '<option value="shopify" '+(selected==='shopify'?'selected':'')+'>Shopify</option><option value="whatsapp" '+(selected==='whatsapp'?'selected':'')+'>WhatsApp</option>';
+}
+function configureSalesChannelSelect(id,selected,user){
+  var el=document.getElementById(id);
+  if(!el)return;
+  user=user||cu||{};
+  selected=normalizeSalesChannel(selected)||getSalesChannelByRole(user);
+  el.innerHTML=buildSalesChannelOptions(selected,user);
+  if(!canChooseSalesChannel(user)){
+    el.value='whatsapp';
+    el.disabled=true;
+    el.title='Los vendedores registran sus ventas como WhatsApp';
+    el.style.opacity='0.9';
+    el.style.cursor='not-allowed';
+  }else{
+    el.disabled=false;
+    el.title='';
+    el.style.opacity='1';
+    el.style.cursor='pointer';
+  }
+}
+function readSalesChannelFromSelect(id,user,existingOrder){
+  user=user||cu||{};
+  if(!canChooseSalesChannel(user))return 'whatsapp';
+  var val=normalizeSalesChannel(document.getElementById(id)?.value);
+  if(val)return val;
+  if(existingOrder && orderSalesChannel(existingOrder)!=='sin_via')return orderSalesChannel(existingOrder);
+  return getSalesChannelByRole(user);
+}
+
+function normalizeSalesChannel(ch){
+  ch=String(ch||'').toLowerCase().trim();
+  if(ch==='wa'||ch==='wsp'||ch==='whatssap'||ch==='whatsaap'||ch==='whatsapp')return 'whatsapp';
+  if(ch==='shopify'||ch==='shopi'||ch==='shop')return 'shopify';
+  return '';
+}
 function salesChannelLabel(ch){
-  ch=String(ch||'').toLowerCase();
+  ch=normalizeSalesChannel(ch);
   if(ch==='shopify')return 'Shopify';
   if(ch==='whatsapp')return 'WhatsApp';
-  return 'Sin vía';
+  return 'Sin canal';
 }
 function orderSalesChannel(o){
   o=o||{};
-  var ch=String(o.ventaVia||o.canalVenta||o.salesChannel||o.origenVenta||'').toLowerCase().trim();
-  if(ch==='wa')ch='whatsapp';
-  if(ch==='shopify'||ch==='whatsapp')return ch;
   var r=String(o.vendedorRole||o.role||'').toLowerCase();
+  // Regla de control: todo pedido creado por rol vendedor siempre cuenta como WhatsApp.
+  // Así evitamos que una venta manual de vendedor contamine las estadísticas de Shopify.
+  if(r==='vendedor'||r==='seller')return 'whatsapp';
+  var ch=normalizeSalesChannel(o.ventaVia||o.canalVenta||o.salesChannel||o.origenVenta||'');
+  if(ch==='shopify'||ch==='whatsapp')return ch;
   if(r==='admin'||r==='superuser')return 'shopify';
-  if(r==='vendedor')return 'whatsapp';
   return 'sin_via';
 }
 function getOrderStoreId(o){
@@ -1242,7 +1288,7 @@ function renderStoreChannelCards(list,compact){
     if(!channels.length)channels=['whatsapp','shopify'];
     var channelHtml=channels.map(function(ch){var c=s.channels[ch]||{count:0,ingresos:0,unidades:0};return '<div class="store-channel-box '+ch+'"><div class="store-channel-label">'+channelIconForAnalysis(ch)+' '+channelLabelForAnalysis(ch)+'</div><div class="store-channel-main">'+c.count+' pedidos</div><div class="store-channel-sub">'+(c.unidades||0)+' un. · '+fmtC0(c.ingresos||0)+'</div></div>';}).join('');
     var roleHtml=['vendedor','admin','superuser','sin_rol'].filter(function(r){return s.roles&&s.roles[r]&&s.roles[r].count>0;}).map(function(r){var rr=s.roles[r];return '<div class="store-role-pill"><strong>'+roleLabelForAnalysis(r)+'</strong><span>'+rr.count+' · '+fmtC0(rr.ingresos||0)+'</span></div>';}).join('');
-    var people=Object.keys(s.people||{}).map(function(k){return Object.assign({name:k},s.people[k]);}).sort(function(a,b){return b.count-a.count;}).slice(0,compact?4:7).map(function(p){var chs=[];if(p.channels){if(p.channels.whatsapp)chs.push('WhatsApp '+p.channels.whatsapp);if(p.channels.shopify)chs.push('Shopify '+p.channels.shopify);if(p.channels.sin_via)chs.push('Sin vía '+p.channels.sin_via);}return '<div class="store-person-row"><span>'+shopifyHtml(p.name)+' <small>'+roleLabelForAnalysis(p.role)+(chs.length?' · '+chs.join(' / '):'')+'</small></span><strong>'+p.count+' · '+fmtC0(p.ingresos||0)+'</strong></div>';}).join('');
+    var people=Object.keys(s.people||{}).map(function(k){return Object.assign({name:k},s.people[k]);}).sort(function(a,b){return b.count-a.count;}).slice(0,compact?4:7).map(function(p){var chs=[];if(p.channels){if(p.channels.whatsapp)chs.push('WhatsApp '+p.channels.whatsapp);if(p.channels.shopify)chs.push('Shopify '+p.channels.shopify);if(p.channels.sin_via)chs.push('Sin canal '+p.channels.sin_via);}return '<div class="store-person-row"><span>'+shopifyHtml(p.name)+' <small>'+roleLabelForAnalysis(p.role)+(chs.length?' · '+chs.join(' / '):'')+'</small></span><strong>'+p.count+' · '+fmtC0(p.ingresos||0)+'</strong></div>';}).join('');
     var detailHint='<span class="store-detail-hint">Ver detalle</span>';
     return '<details class="store-analysis-card store-analysis-detail '+(s.id==='sin_tienda'?'missing':'')+'">'+
       '<summary class="store-analysis-summary">'+
@@ -1975,7 +2021,7 @@ function openNuevaVenta(){
   const today=new Date();
   $('vf-fecha').value=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
   if($('vf-tienda'))$('vf-tienda').innerHTML=buildSalesStoreOptions(getDefaultSalesStore(cu),cu);
-  if($('vf-venta-via'))$('vf-venta-via').value=salesChannelLabel(getSalesChannelByRole(cu));
+  configureSalesChannelSelect('vf-venta-via', getSalesChannelByRole(cu), cu);
   $('vf-producto').innerHTML='<option value="">Selecciona...</option>'+(cfg.productos||[]).map(p=>`<option value="${p.nombre}">${p.nombre}</option>`).join('');
   vfStatus='pendiente';
   document.querySelectorAll('#ov-venta-form .sopt').forEach(b=>b.classList.remove('on'));
@@ -2000,7 +2046,7 @@ function openEditVenta(id){
   $('vf-zona').value=o.zona||'Lima';
   $('vf-fecha').value=o.fechaVenta||'';
   if($('vf-tienda'))$('vf-tienda').innerHTML=buildSalesStoreOptions(getOrderStoreId(o)||getDefaultSalesStore(cu),cu);
-  if($('vf-venta-via'))$('vf-venta-via').value=salesChannelLabel(orderSalesChannel(o)==='sin_via'?getSalesChannelByRole(cu):orderSalesChannel(o));
+  configureSalesChannelSelect('vf-venta-via', (orderSalesChannel(o)==='sin_via'?getSalesChannelByRole(cu):orderSalesChannel(o)), cu);
   $('vf-producto').innerHTML='<option value="">Selecciona...</option>'+(cfg.productos||[]).map(p=>`<option value="${p.nombre}"${p.nombre===o.producto?' selected':''}>${p.nombre}</option>`).join('');
   vfStatus=o.estado||'pendiente';
   document.querySelectorAll('#ov-venta-form .sopt').forEach(b=>b.classList.remove('on'));
@@ -2042,7 +2088,7 @@ $('btn-vf-save').onclick=async function(){
   const tienda=normalizeShopifyStoreName(document.getElementById('vf-tienda')?.value)||getDefaultSalesStore(cu);
   const tiendaNombre=shopifyStoreDisplayName(tienda);
   const existingOrder=editOrderId?orders.find(x=>x.id===editOrderId):null;
-  const ventaVia=(existingOrder&&orderSalesChannel(existingOrder)!=='sin_via')?orderSalesChannel(existingOrder):getSalesChannelByRole(cu);
+  const ventaVia=readSalesChannelFromSelect('vf-venta-via', cu, existingOrder);
   const zona=$('vf-zona').value||'Lima';
   const ciudad=($('vf-ciudad').value||'').trim();
   const fechaVenta=$('vf-fecha').value||new Date().toISOString().split('T')[0];

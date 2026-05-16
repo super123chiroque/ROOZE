@@ -906,7 +906,7 @@ details.bizm-week.bizm-week-details-mobile[open]{border-color:rgba(45,122,79,.35
       <div class="fld"><label>Celular</label><input id="nv-celular" type="tel" placeholder="+51 9XX XXX XXX"></div>
       <div class="fld"><label>DNI <span style="font-weight:400;color:var(--tx2)">(opcional)</span></label><input id="nv-dni" placeholder="12345678" maxlength="12"></div>
       <div class="fld"><label>Tienda de venta</label><select id="nv-tienda" style="background:var(--bg2);border:0.5px solid var(--bo2);border-radius:8px;padding:11px 12px;font-size:14px;color:var(--tx);font-family:var(--fs);width:100%;outline:none"></select></div>
-      <div class="fld"><label>Vía de venta</label><input id="nv-venta-via" readonly style="color:var(--accent);font-weight:700"></div>
+      <div class="fld"><label>Canal de venta</label><select id="nv-venta-via" style="background:var(--bg2);border:0.5px solid var(--bo2);border-radius:8px;padding:11px 12px;font-size:14px;color:var(--accent);font-family:var(--fs);width:100%;outline:none;font-weight:700"><option value="whatsapp">WhatsApp</option></select></div>
       <div class="fld"><label>Cobrar / Total (S/)</label><input id="nv-cobrar" type="number" step="0.50" placeholder="0.00" oninput="calcSaldo()"></div>
       <div class="fld"><label>Adelanto recibido (S/) <span style="font-weight:400;color:var(--tx2)">(opcional)</span></label><input id="nv-adelanto" type="number" step="0.50" placeholder="0.00" value="0" oninput="calcSaldo()"></div>
       <div id="saldo-preview" style="display:none;background:var(--bg2);border-radius:9px;padding:10px 12px;font-size:13px;border:0.5px solid rgba(0,0,0,0.1)">
@@ -977,7 +977,7 @@ details.bizm-week.bizm-week-details-mobile[open]{border-color:rgba(45,122,79,.35
       <div class="fld"><label>Celular</label><input id="eo-celular" type="tel" placeholder="+51 9XX XXX XXX"></div>
       <div class="fld"><label>DNI <span style="font-weight:400;color:var(--tx2)">(opcional)</span></label><input id="eo-dni" placeholder="12345678" maxlength="12"></div>
       <div class="fld"><label>Tienda de venta</label><select id="eo-tienda" style="background:var(--bg2);border:0.5px solid var(--bo2);border-radius:8px;padding:11px 12px;font-size:14px;color:var(--tx);font-family:var(--fs);width:100%;outline:none"></select></div>
-      <div class="fld"><label>Vía de venta</label><input id="eo-venta-via" readonly style="color:var(--accent);font-weight:700"></div>
+      <div class="fld"><label>Canal de venta</label><select id="eo-venta-via" style="background:var(--bg2);border:0.5px solid var(--bo2);border-radius:8px;padding:11px 12px;font-size:14px;color:var(--accent);font-family:var(--fs);width:100%;outline:none;font-weight:700"><option value="whatsapp">WhatsApp</option></select></div>
       <div class="fld"><label>Producto</label>
         <select id="eo-producto" style="background:var(--bg2);border:0.5px solid var(--bo2);border-radius:8px;padding:11px 12px;font-size:14px;color:var(--tx);font-family:var(--fs);width:100%;outline:none"></select>
       </div>
@@ -1307,20 +1307,66 @@ function getSalesChannelByRole(user){
   if(user.role==='admin'||user.role==='superuser')return 'shopify';
   return 'whatsapp';
 }
+function canChooseSalesChannel(user){
+  user=user||cu||{};
+  return user.role==='admin'||user.role==='superuser';
+}
+function buildSalesChannelOptions(selected,user){
+  selected=normalizeSalesChannel(selected)||getSalesChannelByRole(user);
+  if(!canChooseSalesChannel(user)){
+    return '<option value="whatsapp" selected>WhatsApp</option>';
+  }
+  return '<option value="shopify" '+(selected==='shopify'?'selected':'')+'>Shopify</option><option value="whatsapp" '+(selected==='whatsapp'?'selected':'')+'>WhatsApp</option>';
+}
+function configureSalesChannelSelect(id,selected,user){
+  var el=document.getElementById(id);
+  if(!el)return;
+  user=user||cu||{};
+  selected=normalizeSalesChannel(selected)||getSalesChannelByRole(user);
+  el.innerHTML=buildSalesChannelOptions(selected,user);
+  if(!canChooseSalesChannel(user)){
+    el.value='whatsapp';
+    el.disabled=true;
+    el.title='Los vendedores registran sus ventas como WhatsApp';
+    el.style.opacity='0.9';
+    el.style.cursor='not-allowed';
+  }else{
+    el.disabled=false;
+    el.title='';
+    el.style.opacity='1';
+    el.style.cursor='pointer';
+  }
+}
+function readSalesChannelFromSelect(id,user,existingOrder){
+  user=user||cu||{};
+  if(!canChooseSalesChannel(user))return 'whatsapp';
+  var val=normalizeSalesChannel(document.getElementById(id)?.value);
+  if(val)return val;
+  if(existingOrder && orderSalesChannel(existingOrder)!=='sin_via')return orderSalesChannel(existingOrder);
+  return getSalesChannelByRole(user);
+}
+
+function normalizeSalesChannel(ch){
+  ch=String(ch||'').toLowerCase().trim();
+  if(ch==='wa'||ch==='wsp'||ch==='whatssap'||ch==='whatsaap'||ch==='whatsapp')return 'whatsapp';
+  if(ch==='shopify'||ch==='shopi'||ch==='shop')return 'shopify';
+  return '';
+}
 function salesChannelLabel(ch){
-  ch=String(ch||'').toLowerCase();
+  ch=normalizeSalesChannel(ch);
   if(ch==='shopify')return 'Shopify';
   if(ch==='whatsapp')return 'WhatsApp';
-  return 'Sin vía';
+  return 'Sin canal';
 }
 function orderSalesChannel(o){
   o=o||{};
-  var ch=String(o.ventaVia||o.canalVenta||o.salesChannel||o.origenVenta||'').toLowerCase().trim();
-  if(ch==='wa')ch='whatsapp';
-  if(ch==='shopify'||ch==='whatsapp')return ch;
   var r=String(o.vendedorRole||o.role||'').toLowerCase();
+  // Regla de control: todo pedido creado por rol vendedor siempre cuenta como WhatsApp.
+  // Así evitamos que una venta manual de vendedor contamine las estadísticas de Shopify.
+  if(r==='vendedor'||r==='seller')return 'whatsapp';
+  var ch=normalizeSalesChannel(o.ventaVia||o.canalVenta||o.salesChannel||o.origenVenta||'');
+  if(ch==='shopify'||ch==='whatsapp')return ch;
   if(r==='admin'||r==='superuser')return 'shopify';
-  if(r==='vendedor')return 'whatsapp';
   return 'sin_via';
 }
 function getOrderStoreId(o){
@@ -1449,7 +1495,7 @@ function renderStoreChannelCards(list,compact){
     if(!channels.length)channels=['whatsapp','shopify'];
     var channelHtml=channels.map(function(ch){var c=s.channels[ch]||{count:0,ingresos:0,unidades:0};return '<div class="store-channel-box '+ch+'"><div class="store-channel-label">'+channelIconForAnalysis(ch)+' '+channelLabelForAnalysis(ch)+'</div><div class="store-channel-main">'+c.count+' pedidos</div><div class="store-channel-sub">'+(c.unidades||0)+' un. · '+fmtC0(c.ingresos||0)+'</div></div>';}).join('');
     var roleHtml=['vendedor','admin','superuser','sin_rol'].filter(function(r){return s.roles&&s.roles[r]&&s.roles[r].count>0;}).map(function(r){var rr=s.roles[r];return '<div class="store-role-pill"><strong>'+roleLabelForAnalysis(r)+'</strong><span>'+rr.count+' · '+fmtC0(rr.ingresos||0)+'</span></div>';}).join('');
-    var people=Object.keys(s.people||{}).map(function(k){return Object.assign({name:k},s.people[k]);}).sort(function(a,b){return b.count-a.count;}).slice(0,compact?4:7).map(function(p){var chs=[];if(p.channels){if(p.channels.whatsapp)chs.push('WhatsApp '+p.channels.whatsapp);if(p.channels.shopify)chs.push('Shopify '+p.channels.shopify);if(p.channels.sin_via)chs.push('Sin vía '+p.channels.sin_via);}return '<div class="store-person-row"><span>'+shopifyHtml(p.name)+' <small>'+roleLabelForAnalysis(p.role)+(chs.length?' · '+chs.join(' / '):'')+'</small></span><strong>'+p.count+' · '+fmtC0(p.ingresos||0)+'</strong></div>';}).join('');
+    var people=Object.keys(s.people||{}).map(function(k){return Object.assign({name:k},s.people[k]);}).sort(function(a,b){return b.count-a.count;}).slice(0,compact?4:7).map(function(p){var chs=[];if(p.channels){if(p.channels.whatsapp)chs.push('WhatsApp '+p.channels.whatsapp);if(p.channels.shopify)chs.push('Shopify '+p.channels.shopify);if(p.channels.sin_via)chs.push('Sin canal '+p.channels.sin_via);}return '<div class="store-person-row"><span>'+shopifyHtml(p.name)+' <small>'+roleLabelForAnalysis(p.role)+(chs.length?' · '+chs.join(' / '):'')+'</small></span><strong>'+p.count+' · '+fmtC0(p.ingresos||0)+'</strong></div>';}).join('');
     var detailHint='<span class="store-detail-hint">Ver detalle</span>';
     return '<details class="store-analysis-card store-analysis-detail '+(s.id==='sin_tienda'?'missing':'')+'">'+
       '<summary class="store-analysis-summary">'+
@@ -1829,7 +1875,7 @@ function openNueva(){
   if($('nv-err'))$('nv-err').style.display='none';
   if(document.getElementById('nv-nota'))document.getElementById('nv-nota').value='';
   if(document.getElementById('nv-tienda'))document.getElementById('nv-tienda').innerHTML=buildSalesStoreOptions(getDefaultSalesStore(cu),cu);
-  if(document.getElementById('nv-venta-via'))document.getElementById('nv-venta-via').value=salesChannelLabel(getSalesChannelByRole(cu));
+  configureSalesChannelSelect('nv-venta-via', getSalesChannelByRole(cu), cu);
   // Reset product lines
   prodLineCount=0;
   var list=$('nv-productos-list');
@@ -1897,7 +1943,7 @@ $('btn-nueva').onclick=async function(){
     const _saldo=Math.max(0,cobrar-_adelanto);
     const _tienda=normalizeShopifyStoreName(document.getElementById('nv-tienda')?.value)||getDefaultSalesStore(cu);
     const _tiendaNombre=shopifyStoreDisplayName(_tienda);
-    const _ventaVia=getSalesChannelByRole(cu);
+    const _ventaVia=readSalesChannelFromSelect('nv-venta-via', cu, null);
     const orderData={
       vendedorId:cu.id,
       vendedor:cu.name||cu.email,
@@ -3031,7 +3077,7 @@ function renderShopifyAdminPerms(){
           +storeOptions.map(function(st){var checked=stores.indexOf(st.id)!==-1?'checked':'';return '<label style="display:flex;align-items:center;gap:6px;background:var(--bg);border:0.5px solid var(--bo);border-radius:999px;padding:7px 10px;font-size:12px;font-weight:700;color:var(--tx2)"><input type="checkbox" id="perm-'+row.id+'-'+st.id+'" '+checked+' style="accent-color:var(--accent)"> '+shopifyHtml(st.name)+'</label>';}).join('')
           +'<button onclick="saveAdminShopifyStores(\''+row.id+'\')" style="margin-left:auto;background:var(--accent);color:#fff;border:none;border-radius:999px;padding:7px 12px;font-size:12px;font-weight:750;font-family:inherit">Guardar</button>'
         +'</div>'
-        +'<div style="font-size:10.5px;color:var(--tx3);margin-top:7px;line-height:1.35">Vendedor: ventas como WhatsApp. Administrador: ventas como Shopify.</div>'
+        +'<div style="font-size:10.5px;color:var(--tx3);margin-top:7px;line-height:1.35">Vendedor: sus ventas se registran siempre como WhatsApp. Administrador y Super Admin: pueden elegir Shopify o WhatsApp.</div>'
       +'</div>';
     }).join('');
   }).catch(function(e){el.innerHTML='<div class="err" style="display:block">Error cargando permisos de tienda: '+shopifyHtml(e.message)+'</div>';});
@@ -3366,7 +3412,7 @@ function openEditOrder(id){
   document.getElementById('eo-celular').value=o.celular||'';
   document.getElementById('eo-dni').value=o.dni||'';
   if(document.getElementById('eo-tienda'))document.getElementById('eo-tienda').innerHTML=buildSalesStoreOptions(getOrderStoreId(o)||getDefaultSalesStore(cu),cu);
-  if(document.getElementById('eo-venta-via'))document.getElementById('eo-venta-via').value=salesChannelLabel(orderSalesChannel(o)==='sin_via'?getSalesChannelByRole(cu):orderSalesChannel(o));
+  configureSalesChannelSelect('eo-venta-via', (orderSalesChannel(o)==='sin_via'?getSalesChannelByRole(cu):orderSalesChannel(o)), cu);
   document.getElementById('eo-cobrar').value=o.cobrar||'';
   document.getElementById('eo-zona').value=o.zona||'Lima';
   document.getElementById('eo-ciudad').value=o.ciudad||'';
@@ -3392,7 +3438,7 @@ document.getElementById('btn-edit-order').onclick=async function(){
   var tienda=normalizeShopifyStoreName(document.getElementById('eo-tienda')?.value)||getDefaultSalesStore(cu);
   var tiendaNombre=shopifyStoreDisplayName(tienda);
   var existingOrder=orders.find(function(x){return x.id===id;})||{};
-  var ventaVia=(orderSalesChannel(existingOrder)!=='sin_via')?orderSalesChannel(existingOrder):getSalesChannelByRole(cu);
+  var ventaVia=readSalesChannelFromSelect('eo-venta-via', cu, existingOrder);
   var zona=document.getElementById('eo-zona').value||'Lima';
   var ciudad=(document.getElementById('eo-ciudad').value||'').trim();
   var fechaVenta=document.getElementById('eo-fecha').value||new Date().toISOString().split('T')[0];
