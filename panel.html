@@ -2794,6 +2794,7 @@ function roleLabel(role){
 }
 
 
+
 function renderUsersRoleListPC(){
   var el=document.getElementById('users-role-list-pc');
   if(!el||!isSuper())return;
@@ -2805,34 +2806,136 @@ function renderUsersRoleListPC(){
       var bn=(b.data.name||b.data.email||'').toLowerCase();
       return an.localeCompare(bn);
     });
-    if(!docs.length){el.innerHTML='<div style="font-size:12px;color:var(--tx3);padding:8px 0">No hay usuarios registrados.</div>';return;}
-    el.innerHTML=docs.map(function(row){
-      var u=row.data, uid=row.id, role=u.role||'vendedor';
-      return '<div class="shopify-admin-perm-row">'
-        +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px">'
-          +'<div style="min-width:0">'
-            +'<div style="font-size:13px;font-weight:750;color:var(--tx)">'+shopifyHtml(u.name||u.displayName||u.email||uid)+'</div>'
-            +(u.email?'<div style="font-size:10px;color:var(--tx3);margin-top:1px">'+shopifyHtml(u.email)+'</div>':'')
+    var createBox=buildCreateUserBoxPC();
+    var listHtml='';
+    if(!docs.length){
+      listHtml='<div style="font-size:12px;color:var(--tx3);padding:8px 0">No hay usuarios registrados.</div>';
+    }else{
+      listHtml=docs.map(function(row){
+        var u=row.data, uid=row.id, role=u.role||'vendedor';
+        var isMe=uid===cu.id;
+        return '<div class="shopify-admin-perm-row">'
+          +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px">'
+            +'<div style="min-width:0">'
+              +'<div style="font-size:13px;font-weight:750;color:var(--tx)">'+shopifyHtml(u.name||u.displayName||u.email||uid)+'</div>'
+              +(u.email?'<div style="font-size:10px;color:var(--tx3);margin-top:1px">'+shopifyHtml(u.email)+'</div>':'')
+            +'</div>'
+            +'<span style="font-size:10px;font-weight:800;color:var(--accent);background:var(--accent2);border-radius:999px;padding:5px 8px;white-space:nowrap">'+roleLabel(role)+'</span>'
           +'</div>'
-          +'<span style="font-size:10px;font-weight:800;color:var(--accent);background:var(--accent2);border-radius:999px;padding:5px 8px;white-space:nowrap">'+roleLabel(role)+'</span>'
-        +'</div>'
-        +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'
-          +'<input id="uname-pc-'+uid+'" value="'+shopifyHtml(u.name||u.displayName||'')+'" placeholder="Nombre de usuario" style="background:var(--bg);border:1px solid var(--bo);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--tx);font-family:inherit">'
-          +'<input id="uemail-pc-'+uid+'" value="'+shopifyHtml(u.email||'')+'" placeholder="Correo visible" style="background:var(--bg);border:1px solid var(--bo);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--tx);font-family:inherit">'
-        +'</div>'
-        +'<div class="shopify-admin-perm-actions">'
-          +'<select id="role-pc-'+uid+'" style="flex:1;min-width:160px;background:var(--bg);border:1px solid var(--bo);border-radius:999px;padding:7px 12px;font-size:12px;color:var(--tx);font-family:inherit">'
-            +'<option value="superuser" '+(role==='superuser'?'selected':'')+'>Super Admin</option>'
-            +'<option value="admin" '+(role==='admin'?'selected':'')+'>Administrador</option>'
-            +'<option value="vendedor" '+(role==='vendedor'?'selected':'')+'>Vendedor</option>'
-          +'</select>'
-          +'<button onclick="saveUserRolePC(\''+uid+'\')">Guardar</button>'
-        +'</div>'
-      +'</div>';
-    }).join('');
+          +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'
+            +'<input id="uname-pc-'+uid+'" value="'+shopifyHtml(u.name||u.displayName||'')+'" placeholder="Nombre de usuario" style="background:var(--bg);border:1px solid var(--bo);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--tx);font-family:inherit">'
+            +'<input id="uemail-pc-'+uid+'" value="'+shopifyHtml(u.email||'')+'" placeholder="Correo visible" style="background:var(--bg);border:1px solid var(--bo);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--tx);font-family:inherit">'
+          +'</div>'
+          +'<div class="shopify-admin-perm-actions">'
+            +'<select id="role-pc-'+uid+'" style="flex:1;min-width:160px;background:var(--bg);border:1px solid var(--bo);border-radius:999px;padding:7px 12px;font-size:12px;color:var(--tx);font-family:inherit">'
+              +'<option value="superuser" '+(role==='superuser'?'selected':'')+'>Super Admin</option>'
+              +'<option value="admin" '+(role==='admin'?'selected':'')+'>Administrador</option>'
+              +'<option value="vendedor" '+(role==='vendedor'?'selected':'')+'>Vendedor</option>'
+            +'</select>'
+            +'<button onclick="saveUserRolePC(\''+uid+'\')">Guardar</button>'
+            +'<button onclick="deleteUserAccessPC(\''+uid+'\')" '+(isMe?'disabled title="No puedes eliminar tu propio usuario"':'')+' style="background:#fee2e2;color:#991b1b">Eliminar</button>'
+          +'</div>'
+        +'</div>';
+      }).join('');
+    }
+    el.innerHTML=createBox+listHtml;
   }).catch(function(e){
     el.innerHTML='<div class="err" style="display:block">Error cargando usuarios: '+shopifyHtml(e.message)+'</div>';
   });
+}
+
+function buildCreateUserBoxPC(){
+  var stores=getAllSalesStores();
+  var storesHtml=stores.map(function(st){
+    return '<label style="display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--bo);border-radius:999px;padding:7px 10px;font-size:12px;font-weight:700;color:var(--tx2)"><input type="checkbox" id="new-user-store-pc-'+st.id+'" style="accent-color:var(--accent)"> '+shopifyHtml(st.name)+'</label>';
+  }).join('');
+  return '<div class="shopify-admin-perm-row" style="border:1px dashed var(--accent);background:var(--accent2);margin-bottom:12px">'
+    +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px">'
+      +'<div><div style="font-size:13px;font-weight:850;color:var(--accent)">Agregar nuevo usuario</div><div style="font-size:11px;color:var(--tx2);margin-top:2px">Crea su acceso de login y perfil interno de la app.</div></div>'
+      +'<span style="font-size:18px">👤</span>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'
+      +'<input id="new-user-name-pc" placeholder="Nombre" style="background:var(--bg);border:1px solid var(--bo);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--tx);font-family:inherit">'
+      +'<input id="new-user-email-pc" type="email" placeholder="correo@empresa.com" style="background:var(--bg);border:1px solid var(--bo);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--tx);font-family:inherit">'
+      +'<input id="new-user-pass-pc" type="text" placeholder="Contraseña inicial mínimo 6" style="background:var(--bg);border:1px solid var(--bo);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--tx);font-family:inherit">'
+      +'<select id="new-user-role-pc" style="background:var(--bg);border:1px solid var(--bo);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--tx);font-family:inherit">'
+        +'<option value="vendedor">Vendedor</option><option value="admin">Administrador</option><option value="superuser">Super Admin</option>'
+      +'</select>'
+    +'</div>'
+    +'<div style="font-size:10.5px;color:var(--tx3);font-weight:800;text-transform:uppercase;margin:6px 0 6px">Tiendas asignadas</div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">'+storesHtml+'</div>'
+    +'<div style="display:flex;gap:8px;align-items:center">'
+      +'<button onclick="createUserAccessPC()" style="background:var(--accent);color:#fff;border:none;border-radius:999px;padding:8px 14px;font-size:12px;font-weight:800;font-family:inherit;cursor:pointer">Agregar usuario</button>'
+      +'<div style="font-size:10.5px;color:var(--tx2);line-height:1.35">Si el correo ya existe en la app, se actualiza ese usuario y no se duplica.</div>'
+    +'</div>'
+  +'</div>';
+}
+
+function getNewUserStoresPC(role){
+  var stores=[];
+  getAllSalesStores().forEach(function(st){
+    var el=document.getElementById('new-user-store-pc-'+st.id);
+    if(el&&el.checked)stores.push(st.id);
+  });
+  if(role==='superuser'&&!stores.length)stores=getAllSalesStores().map(function(st){return st.id;});
+  return stores;
+}
+
+function getSecondaryUserAuthPC(){
+  var app;
+  try{app=firebase.app('roozeUserCreatePC');}
+  catch(e){app=firebase.initializeApp(FBCFG,'roozeUserCreatePC');}
+  return app.auth();
+}
+
+async function findUserDocByEmailPC(email){
+  email=String(email||'').trim().toLowerCase();
+  if(!email)return null;
+  var snap=await db.collection('users').get();
+  var found=null;
+  snap.forEach(function(doc){
+    var u=doc.data()||{};
+    if(String(u.email||'').trim().toLowerCase()===email&&!found)found={id:doc.id,data:u};
+  });
+  return found;
+}
+
+async function createUserAccessPC(){
+  if(!isSuper())return toast('Solo Super Admin');
+  var name=(document.getElementById('new-user-name-pc')||{}).value||'';
+  var email=(document.getElementById('new-user-email-pc')||{}).value||'';
+  var pass=(document.getElementById('new-user-pass-pc')||{}).value||'';
+  var role=((document.getElementById('new-user-role-pc')||{}).value)||'vendedor';
+  name=name.trim(); email=email.trim().toLowerCase(); pass=pass.trim();
+  if(!name||!email)return toast('Completa nombre y correo');
+  if(!/^\S+@\S+\.\S+$/.test(email))return toast('Correo no válido');
+  var stores=getNewUserStoresPC(role);
+  var payload={name:name,displayName:name,email:email,role:role,ini:(name||email).substring(0,1).toUpperCase(),shopifyStores:stores,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:cu.id,updatedByName:cu.name||cu.email||''};
+  try{
+    var existing=await findUserDocByEmailPC(email);
+    if(existing){
+      await db.collection('users').doc(existing.id).set(payload,{merge:true});
+      toast('✓ Usuario existente actualizado');
+    }else{
+      if(pass.length<6)return toast('La contraseña debe tener mínimo 6 caracteres');
+      var secondaryAuth=getSecondaryUserAuthPC();
+      var cred=await secondaryAuth.createUserWithEmailAndPassword(email,pass);
+      var uid=cred.user.uid;
+      try{await cred.user.updateProfile({displayName:name});}catch(_e){}
+      payload.createdAt=firebase.firestore.FieldValue.serverTimestamp();
+      payload.createdBy=cu.id;
+      payload.createdByName=cu.name||cu.email||'';
+      await db.collection('users').doc(uid).set(payload,{merge:true});
+      try{await secondaryAuth.signOut();}catch(_e){}
+      toast('✓ Usuario creado');
+    }
+    renderUsersRoleListPC();
+    renderShopifyAdminPerms();
+    await loadUsersCacheForAnalysis();
+  }catch(e){
+    var msg=e&&e.code==='auth/email-already-in-use'?'Ese correo ya existe en Authentication. Crea o corrige su documento users con el UID correcto desde Firebase.':(e.message||e);
+    toast('Error: '+msg);
+  }
 }
 
 async function saveUserRolePC(uid){
@@ -2843,18 +2946,43 @@ async function saveUserRolePC(uid){
   if(!sel)return;
   var newRole=sel.value;
   var newName=(nameEl&&nameEl.value||'').trim();
-  var newEmail=(emailEl&&emailEl.value||'').trim();
+  var newEmail=(emailEl&&emailEl.value||'').trim().toLowerCase();
+  if(!newName||!newEmail)return toast('Completa nombre y correo');
   if(uid===cu.id && newRole!=='superuser'){
     if(!confirm('Estás cambiando tu propio rol de Super Admin. Podrías perder acceso a configuración. ¿Continuar?'))return;
   }
   try{
-    var payload={role:newRole,name:newName,email:newEmail};
-    await db.collection('users').doc(uid).set(payload,{merge:true});
-    if(uid===cu.id){cu.name=newName;cu.email=newEmail;cu.role=newRole;}
-    toast('✓ Usuario actualizado');
+    var existing=await findUserDocByEmailPC(newEmail);
+    if(existing&&existing.id!==uid){
+      if(!confirm('Ya existe otro usuario con este mismo correo. Para evitar duplicados, se actualizará ese usuario. Este registro seguirá visible hasta que lo elimines manualmente. ¿Continuar?'))return;
+      await db.collection('users').doc(existing.id).set({role:newRole,name:newName,displayName:newName,email:newEmail,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:cu.id},{merge:true});
+      toast('✓ Usuario existente actualizado por correo');
+    }else{
+      await db.collection('users').doc(uid).set({role:newRole,name:newName,displayName:newName,email:newEmail,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:cu.id},{merge:true});
+      if(uid===cu.id){cu.name=newName;cu.email=newEmail;cu.role=newRole;}
+      toast('✓ Usuario actualizado');
+    }
     renderUsersRoleListPC();
     renderShopifyAdminPerms();
+    await loadUsersCacheForAnalysis();
     applyRoleNav();
+  }catch(e){toast('Error: '+e.message);}
+}
+
+async function deleteUserAccessPC(uid){
+  if(!isSuper())return toast('Solo Super Admin');
+  if(uid===cu.id)return toast('No puedes eliminar tu propio usuario');
+  var ref=db.collection('users').doc(uid);
+  try{
+    var doc=await ref.get();
+    var u=doc.exists?(doc.data()||{}):{};
+    var label=u.name||u.email||uid;
+    if(!confirm('¿Eliminar el acceso de '+label+'?\n\nEsto elimina su perfil dentro de la app. Sus ventas históricas se mantienen.'))return;
+    await ref.delete();
+    toast('✓ Usuario eliminado de la app');
+    renderUsersRoleListPC();
+    renderShopifyAdminPerms();
+    await loadUsersCacheForAnalysis();
   }catch(e){toast('Error: '+e.message);}
 }
 
