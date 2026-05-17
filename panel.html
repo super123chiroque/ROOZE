@@ -1083,18 +1083,21 @@ function getUserSalesStores(user){
   var all=getAllSalesStores();
   if(user.role==='superuser')return all;
   var allowed=getAllowedShopifyStores(user);
-  if(!allowed.length)return all; // evita bloquear ventas existentes hasta que se asignen permisos
-  var out=all.filter(function(s){return allowed.indexOf(s.id)!==-1;});
-  return out.length?out:all;
+  // Seguridad por permisos: si el usuario no tiene tiendas asignadas, no se muestran tiendas.
+  // Así evitamos que genere ventas/notas con ROOZE, DANNA u otra tienda sin permiso.
+  if(!allowed.length)return [];
+  return all.filter(function(s){return allowed.indexOf(s.id)!==-1;});
 }
 function buildSalesStoreOptions(selected,user){
   var stores=getUserSalesStores(user);
+  if(!stores.length)return '<option value="" selected disabled>Sin tienda asignada</option>';
   var sel=normalizeShopifyStoreName(selected||((stores[0]&&stores[0].id)||''));
+  if(!stores.some(function(s){return s.id===sel;}))sel=(stores[0]&&stores[0].id)||'';
   return stores.map(function(s){return '<option value="'+shopifyHtml(s.id)+'" '+(s.id===sel?'selected':'')+'>'+shopifyHtml(s.name)+'</option>';}).join('');
 }
 function getDefaultSalesStore(user){
   var stores=getUserSalesStores(user);
-  return (stores[0]&&stores[0].id)||'rooze';
+  return (stores[0]&&stores[0].id)||'';
 }
 function getSalesChannelByRole(user){
   user=user||cu||{};
@@ -4362,6 +4365,44 @@ function buildShopifyDrafts(){
 }
 
 
+
+function orderNotaStoreId(o){
+  return normalizeShopifyStoreName((o||{}).tienda||(o||{}).store||(o||{}).shopifyStore||(o||{}).storeId||(o||{}).marca||(o||{}).origenTienda||(o||{}).tiendaNombre||(o||{}).storeName||'');
+}
+function notaTiendaStoreId(t){
+  t=t||{};
+  var rawId=t.shopifyStore||t.shopifyId||t.storeId||t.key||t.slug||t.id||t.name||'';
+  var rawName=t.name||t.nombre||t.label||rawId||'';
+  var id=normalizeShopifyStoreName(rawId);
+  var nameKey=normalizeShopifyStoreName(rawName);
+  if((id==='default'||/^t\d+$/i.test(id)||id==='tienda'||id==='store')&&nameKey)id=nameKey;
+  return id||nameKey;
+}
+function getNotaTiendasForUserPC(order,user){
+  user=user||cu||{};
+  var base=getNotaTiendasPC();
+  var byId={}, out=[];
+  base.forEach(function(t){
+    var id=notaTiendaStoreId(t);
+    if(!id)return;
+    if(byId[id])return;
+    var clone=Object.assign({},t,{_noteStoreId:id});
+    byId[id]=clone;out.push(clone);
+  });
+  if(user.role==='superuser')return out;
+  var allowed=getAllowedShopifyStores(user);
+  if(!allowed.length)return [];
+  return out.filter(function(t){return allowed.indexOf(t._noteStoreId)!==-1;});
+}
+function getPreferredNotaTiendaIdPC(order,tiendas){
+  tiendas=tiendas||[];
+  var orderId=orderNotaStoreId(order);
+  if(orderId&&tiendas.some(function(t){return t._noteStoreId===orderId;}))return orderId;
+  var active=normalizeShopifyStoreName(cfg.activeTiendaId||'');
+  if(active&&tiendas.some(function(t){return t._noteStoreId===active;}))return active;
+  return (tiendas[0]&&tiendas[0]._noteStoreId)||'';
+}
+
 // ═══ NOTA DE VENTA PC ═══════════════════════════════════════
 var _notaCurrentOrder=null;
 
@@ -4382,8 +4423,9 @@ function getNotaTiendasPC(){
   return tiendas;
 }
 function buildNotaCfgFromTiendaPC(tiendaId){
-  var tiendas=getNotaTiendasPC();
-  var t=tiendas.find(function(x){return String(x.id)===String(tiendaId);})||tiendas[0]||{};
+  var tiendas=getNotaTiendasForUserPC(_notaCurrentOrder,cu);
+  var id=normalizeShopifyStoreName(tiendaId);
+  var t=tiendas.find(function(x){return x._noteStoreId===id;})||{};
   return {storeName:t.name||'Rooze',storePhone:t.phone||'',notaFooter:t.notaFooter||'',logoUrl:t.logoUrl||'',
     notaAccent:t.color||'#2d7a4f',notaCouponBg:t.couponBg||'#1a1a2e',notaHeaderBg:t.headerBg||'dark',
     notaFontSize:t.fontSize||13,notaCouponDisc:t.couponDisc||10,notaCouponDays:t.couponDays||90,notaShowCoupon:t.showCoupon!==false,
@@ -4542,10 +4584,15 @@ function openNotaModal(orderId){
   }
   var sel=document.getElementById('nota-tienda-sel');
   if(sel){
-    var tiendas=getNotaTiendasPC();
-    var activeId=cfg.activeTiendaId||(tiendas[0]&&tiendas[0].id)||'default';
-    sel.innerHTML=tiendas.map(function(t){return '<option value="'+notaEsc(t.id)+'"'+(String(t.id)===String(activeId)?' selected':'')+'>'+notaEsc(t.name||'Tienda')+'</option>';}).join('');
-    sel.value=activeId;
+    var tiendas=getNotaTiendasForUserPC(o,cu);
+    var activeId=getPreferredNotaTiendaIdPC(o,tiendas);
+    if(!tiendas.length){
+      sel.innerHTML='<option value="" selected disabled>Sin tienda asignada</option>';
+      sel.value='';
+    }else{
+      sel.innerHTML=tiendas.map(function(t){return '<option value="'+notaEsc(t._noteStoreId)+'"'+(t._noteStoreId===activeId?' selected':'')+'>'+notaEsc(t.name||'Tienda')+'</option>';}).join('');
+      sel.value=activeId;
+    }
     sel.onchange=updateTiendaPreviewPC;
     updateTiendaPreviewPC();
   }
@@ -4555,8 +4602,8 @@ function openNotaModal(orderId){
 function updateTiendaPreviewPC(){
   var sel=document.getElementById('nota-tienda-sel'),prev=document.getElementById('nota-tienda-preview');
   if(!sel||!prev)return;
-  var tiendas=getNotaTiendasPC();
-  var t=tiendas.find(function(x){return String(x.id)===String(sel.value);})||tiendas[0];
+  var tiendas=getNotaTiendasForUserPC(_notaCurrentOrder,cu);
+  var t=tiendas.find(function(x){return x._noteStoreId===normalizeShopifyStoreName(sel.value);})||null;
   if(!t){prev.style.display='none';return;}
   prev.style.display='block';
   prev.innerHTML='<div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;border-radius:9px;background:'+(t.color||'#2d7a4f')+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;overflow:hidden;flex-shrink:0">'+(t.logoUrl?'<img src="'+notaEsc(t.logoUrl)+'" style="width:100%;height:100%;object-fit:cover">':notaEsc((t.name||'TI').slice(0,2).toUpperCase()))+'</div><div><strong style="font-size:13px;color:var(--tx)">'+notaEsc(t.name||'Tienda')+'</strong><div style="font-size:11px;color:var(--tx2)">'+notaEsc(t.phone||'Sin teléfono configurado')+'</div></div></div>';
@@ -4567,7 +4614,7 @@ async function confirmSendNota(){
   var sel=document.getElementById('nota-tienda-sel');
   var tiendaId=sel?sel.value:'';
   var err=document.getElementById('nota-confirm-err');
-  if(!tiendaId){if(err){err.textContent='Selecciona una tienda antes de continuar';err.style.display='block';}return;}
+  if(!tiendaId){if(err){err.textContent='Este usuario no tiene permiso para generar nota con una tienda. Asigna una tienda en Configuración.';err.style.display='block';}return;}
   if(err)err.style.display='none';
   var btn=document.getElementById('btn-nota-wa');
   if(btn){btn.disabled=true;btn.textContent='Generando...';}

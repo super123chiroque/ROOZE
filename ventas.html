@@ -1291,18 +1291,21 @@ function getUserSalesStores(user){
   var all=getAllSalesStores();
   if(user.role==='superuser')return all;
   var allowed=getAllowedShopifyStores(user);
-  if(!allowed.length)return all; // evita bloquear ventas existentes hasta que se asignen permisos
-  var out=all.filter(function(s){return allowed.indexOf(s.id)!==-1;});
-  return out.length?out:all;
+  // Seguridad por permisos: si el usuario no tiene tiendas asignadas, no se muestran tiendas.
+  // Así evitamos que genere ventas/notas con ROOZE, DANNA u otra tienda sin permiso.
+  if(!allowed.length)return [];
+  return all.filter(function(s){return allowed.indexOf(s.id)!==-1;});
 }
 function buildSalesStoreOptions(selected,user){
   var stores=getUserSalesStores(user);
+  if(!stores.length)return '<option value="" selected disabled>Sin tienda asignada</option>';
   var sel=normalizeShopifyStoreName(selected||((stores[0]&&stores[0].id)||''));
+  if(!stores.some(function(s){return s.id===sel;}))sel=(stores[0]&&stores[0].id)||'';
   return stores.map(function(s){return '<option value="'+shopifyHtml(s.id)+'" '+(s.id===sel?'selected':'')+'>'+shopifyHtml(s.name)+'</option>';}).join('');
 }
 function getDefaultSalesStore(user){
   var stores=getUserSalesStores(user);
-  return (stores[0]&&stores[0].id)||'rooze';
+  return (stores[0]&&stores[0].id)||'';
 }
 function getSalesChannelByRole(user){
   user=user||cu||{};
@@ -1990,6 +1993,7 @@ $('btn-nueva').onclick=async function(){
     const _contra=document.getElementById('nv-contraentrega')?.checked||false;
     const _saldo=Math.max(0,cobrar-_adelanto);
     const _tienda=normalizeShopifyStoreName(document.getElementById('nv-tienda')?.value)||getDefaultSalesStore(cu);
+    if(!_tienda){err.textContent='Este usuario no tiene tienda asignada. Asigna una tienda antes de registrar ventas.';err.style.display='block';btn.disabled=false;btn.textContent='Registrar venta';return;}
     const _tiendaNombre=shopifyStoreDisplayName(_tienda);
     const _ventaVia=readSalesChannelFromSelect('nv-venta-via', cu, null);
     const orderData={
@@ -4033,6 +4037,47 @@ function closeOv(id){
 function backToNotaConfirm(){var ov=document.getElementById('ov-nota-wa');if(ov)ov.remove();openOv('ov-nota-confirm');}
 
 
+
+function orderNotaStoreId(o){
+  return normalizeShopifyStoreName((o||{}).tienda||(o||{}).store||(o||{}).shopifyStore||(o||{}).storeId||(o||{}).marca||(o||{}).origenTienda||(o||{}).tiendaNombre||(o||{}).storeName||'');
+}
+function notaTiendaStoreId(t){
+  t=t||{};
+  var rawId=t.shopifyStore||t.shopifyId||t.storeId||t.key||t.slug||t.id||t.name||'';
+  var rawName=t.name||t.nombre||t.label||rawId||'';
+  var id=normalizeShopifyStoreName(rawId);
+  var nameKey=normalizeShopifyStoreName(rawName);
+  if((id==='default'||/^t\d+$/i.test(id)||id==='tienda'||id==='store')&&nameKey)id=nameKey;
+  return id||nameKey;
+}
+function getNotaTiendasForUser(order,user){
+  user=user||cu||{};
+  var base=Array.isArray(cfg.tiendas)?cfg.tiendas.slice():[];
+  if(!base.length){
+    base=[{id:'default',name:cfg.storeName||'Mi Tienda',color:cfg.notaAccent||'#2d7a4f',phone:cfg.storePhone||''}];
+  }
+  var byId={}, out=[];
+  base.forEach(function(t){
+    var id=notaTiendaStoreId(t);
+    if(!id)return;
+    if(byId[id])return;
+    var clone=Object.assign({},t,{_noteStoreId:id});
+    byId[id]=clone;out.push(clone);
+  });
+  if(user.role==='superuser')return out;
+  var allowed=getAllowedShopifyStores(user);
+  if(!allowed.length)return [];
+  return out.filter(function(t){return allowed.indexOf(t._noteStoreId)!==-1;});
+}
+function getPreferredNotaTiendaId(order,tiendas){
+  tiendas=tiendas||[];
+  var orderId=orderNotaStoreId(order);
+  if(orderId&&tiendas.some(function(t){return t._noteStoreId===orderId;}))return orderId;
+  var active=normalizeShopifyStoreName(cfg.activeTiendaId||'');
+  if(active&&tiendas.some(function(t){return t._noteStoreId===active;}))return active;
+  return (tiendas[0]&&tiendas[0]._noteStoreId)||'';
+}
+
 // ── NOTA MODAL (openNotaModal + confirmSendNota) ─────────────────────────────
 var _notaCurrentOrder=null;
 
@@ -4069,12 +4114,15 @@ function openNotaModal(orderId){
   }
   var sel=document.getElementById('nota-tienda-sel');
   if(sel){
-    var tiendas=cfg.tiendas||[];
-    if(!tiendas.length)tiendas=[{id:'default',name:cfg.storeName||'Mi Tienda',color:cfg.notaAccent||'#2d7a4f',phone:cfg.storePhone||''}];
-    var activeId=cfg.activeTiendaId||'default';
-    sel.innerHTML='<option value="">— Selecciona la tienda —</option>'
-      +tiendas.map(function(t){return '<option value="'+t.id+'"'+(t.id===activeId?' selected':'')+'>'+t.name+'</option>';}).join('');
-    sel.value=activeId;
+    var tiendas=getNotaTiendasForUser(o,cu);
+    var activeId=getPreferredNotaTiendaId(o,tiendas);
+    if(!tiendas.length){
+      sel.innerHTML='<option value="" selected disabled>Sin tienda asignada</option>';
+      sel.value='';
+    }else{
+      sel.innerHTML=tiendas.map(function(t){return '<option value="'+shopifyHtml(t._noteStoreId)+'"'+(t._noteStoreId===activeId?' selected':'')+'>'+shopifyHtml(t.name||'Tienda')+'</option>';}).join('');
+      sel.value=activeId;
+    }
     updateTiendaPreview();
     sel.onchange=updateTiendaPreview;
   }
@@ -4088,8 +4136,8 @@ function updateTiendaPreview(){
   var prev=document.getElementById('nota-tienda-preview');
   if(!sel||!prev)return;
   var id=sel.value;
-  var tiendas=cfg.tiendas||[];
-  var t=tiendas.find(function(x){return x.id===id;})||(id?{id:id,name:cfg.storeName||'Mi Tienda',phone:cfg.storePhone||'',color:cfg.notaAccent||'#2d7a4f'}:null);
+  var tiendas=getNotaTiendasForUser(_notaCurrentOrder,cu);
+  var t=tiendas.find(function(x){return x._noteStoreId===normalizeShopifyStoreName(id);})||null;
   if(!t||!id){prev.style.display='none';return;}
   prev.style.display='block';
   prev.innerHTML='<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg2);border-radius:10px">'
@@ -4099,8 +4147,9 @@ function updateTiendaPreview(){
 }
 
 function buildNotaCfgFromTienda(tiendaId){
-  var tiendas=cfg.tiendas||[];
-  var t=tiendas.find(function(x){return x.id===tiendaId;});
+  var tiendas=getNotaTiendasForUser(_notaCurrentOrder,cu);
+  var id=normalizeShopifyStoreName(tiendaId);
+  var t=tiendas.find(function(x){return x._noteStoreId===id;});
   if(!t)return {};
   return {storeName:t.name,storePhone:t.phone||'',notaFooter:t.notaFooter||'',logoUrl:t.logoUrl||'',
     notaAccent:t.color||'#2d7a4f',notaCouponBg:t.couponBg||'#1a1a2e',notaHeaderBg:t.headerBg||'dark',
@@ -4114,7 +4163,7 @@ async function confirmSendNota(){
   var tiendaId=sel?sel.value:'';
   var err=document.getElementById('nota-confirm-err');
   if(!tiendaId){
-    if(err){err.textContent='Selecciona una tienda antes de continuar';err.style.display='block';}
+    if(err){err.textContent='Este usuario no tiene permiso para generar nota con una tienda. Asigna una tienda en Configuración.';err.style.display='block';}
     if(sel)sel.style.borderColor='#dc2626';
     return;
   }
