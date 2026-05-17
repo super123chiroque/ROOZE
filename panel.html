@@ -545,6 +545,29 @@ tbody tr:hover{background:var(--bg2)}
 .store-detail-hint{color:var(--accent);font-weight:800}
 .store-analysis-detail[open] .store-detail-hint{color:var(--tx3)}
 
+
+
+/* ── Icono de llamada directa junto a WhatsApp ───────────── */
+.call-direct-btn{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:22px!important;
+  height:22px!important;
+  min-width:22px!important;
+  border-radius:50%!important;
+  background:#2563eb!important;
+  color:#fff!important;
+  text-decoration:none!important;
+  flex-shrink:0!important;
+  margin-left:4px!important;
+  box-shadow:0 3px 10px rgba(37,99,235,.20)!important;
+  vertical-align:middle!important;
+}
+.call-direct-btn svg{width:12px!important;height:12px!important;display:block!important;fill:none!important;stroke:#fff!important;stroke-width:2.4!important;stroke-linecap:round!important;stroke-linejoin:round!important;}
+.call-direct-btn:active{transform:scale(.94)!important;filter:brightness(.9)!important;}
+@media(max-width:430px){.call-direct-btn{width:20px!important;height:20px!important;min-width:20px!important;margin-left:2px!important}.call-direct-btn svg{width:11px!important;height:11px!important}}
+
 </style>
 </head>
 <body>
@@ -5047,6 +5070,71 @@ function pcBuildVendorSelect(){}  // no longer needed, built in renderMeta
   };
 
   setTimeout(injectVentasZonePC,50);
+})();
+</script>
+
+
+<script>
+/* ── Agrega botón de llamada directa junto al WhatsApp del cliente ── */
+(function(){
+  if(window.__roozeCallIconPatchApplied)return;
+  window.__roozeCallIconPatchApplied=true;
+  function onlyDigits(v){return String(v||'').replace(/\D/g,'');}
+  function extractPhoneFromWhatsappHref(href){
+    href=String(href||'');
+    var m=href.match(/wa\.me\/(\d+)/i);
+    if(m&&m[1])return m[1];
+    m=href.match(/[?&]phone=(\d+)/i);
+    if(m&&m[1])return m[1];
+    m=href.match(/phone%3D(\d+)/i);
+    if(m&&m[1])return m[1];
+    return '';
+  }
+  function telHrefFromDigits(d){
+    d=onlyDigits(d);
+    if(!d)return '';
+    if(d.length===9)return '+51'+d;
+    if(d.length===11&&d.slice(0,2)==='51')return '+'+d;
+    if(d.length>11&&d.slice(0,2)==='51')return '+'+d;
+    if(d.length>=7)return '+'+d;
+    return '';
+  }
+  function phoneSvg(){
+    return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.86 19.86 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.35 1.89.66 2.78a2 2 0 0 1-.45 2.11L8.05 9.88a16 16 0 0 0 6.07 6.07l1.27-1.27a2 2 0 0 1 2.11-.45c.89.31 1.82.53 2.78.66A2 2 0 0 1 22 16.92z"></path></svg>';
+  }
+  function addCallIconAfterWhatsappLinks(root){
+    try{
+      (root||document).querySelectorAll('a[href*="wa.me/"],a[href^="whatsapp://send"]').forEach(function(a){
+        if(a.dataset.callIconAdded==='1')return;
+        var phone=telHrefFromDigits(extractPhoneFromWhatsappHref(a.getAttribute('href')||a.href||''));
+        if(!phone)return;
+        a.dataset.callIconAdded='1';
+        var call=document.createElement('a');
+        call.className='call-direct-btn';
+        call.href='tel:'+phone;
+        call.title='Llamar al cliente';
+        call.setAttribute('aria-label','Llamar al cliente');
+        call.innerHTML=phoneSvg();
+        call.addEventListener('click',function(ev){ev.stopPropagation();});
+        a.insertAdjacentElement('afterend',call);
+      });
+    }catch(e){console.warn('No se pudo agregar icono de llamada',e);}
+  }
+  window.addCallIconAfterWhatsappLinks=addCallIconAfterWhatsappLinks;
+  function boot(){
+    addCallIconAfterWhatsappLinks(document);
+    var obs=new MutationObserver(function(muts){
+      for(var i=0;i<muts.length;i++){
+        for(var j=0;j<muts[i].addedNodes.length;j++){
+          var n=muts[i].addedNodes[j];
+          if(n&&n.nodeType===1)addCallIconAfterWhatsappLinks(n);
+        }
+      }
+    });
+    obs.observe(document.body,{childList:true,subtree:true});
+    setInterval(function(){addCallIconAfterWhatsappLinks(document);},2500);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 </script>
 
