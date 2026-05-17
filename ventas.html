@@ -981,6 +981,7 @@ details.bizm-week.bizm-week-details-mobile[open]{border-color:rgba(45,122,79,.35
       <div class="fld"><label>Producto</label>
         <select id="eo-producto" style="background:var(--bg2);border:0.5px solid var(--bo2);border-radius:8px;padding:11px 12px;font-size:14px;color:var(--tx);font-family:var(--fs);width:100%;outline:none"></select>
       </div>
+      <div class="fld"><label>Cantidad</label><input id="eo-cantidad" type="number" min="1" value="1" placeholder="1"></div>
       <div class="fld"><label>Cobrar (S/)</label><input id="eo-cobrar" type="number" step="0.50" placeholder="0.00"></div>
       <div class="fld"><label>Zona</label>
         <select id="eo-zona" style="background:var(--bg2);border:0.5px solid var(--bo2);border-radius:8px;padding:11px 12px;font-size:14px;color:var(--tx);font-family:var(--fs);width:100%;outline:none">
@@ -990,6 +991,7 @@ details.bizm-week.bizm-week-details-mobile[open]{border-color:rgba(45,122,79,.35
       </div>
       <div class="fld"><label>Ciudad / Distrito</label><input id="eo-ciudad" placeholder="Ej: Arequipa · Cercado"></div>
       <div class="fld"><label>Fecha de venta</label><input type="date" id="eo-fecha"></div>
+      <div class="fld"><label>Nota (opcional)</label><textarea id="eo-nota" placeholder="Observaciones del pedido..." rows="3" style="background:var(--bg2);border:0.5px solid var(--bo2);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--tx);font-family:inherit;resize:none;width:100%;outline:none"></textarea></div>
       <input type="hidden" id="eo-order-id">
       <div class="err" id="eo-err"></div>
       <button class="btn" id="btn-edit-order">Guardar cambios</button>
@@ -1398,21 +1400,67 @@ function getCachedUserForOrder(o){
 async function loadUsersCacheForAnalysis(){
   window._usersCacheById=window._usersCacheById||{};
   window._usersCacheByName=window._usersCacheByName||{};
+  window._usersCacheByEmail=window._usersCacheByEmail||{};
   try{
     var snap=await db.collection('users').get();
-    var byId={}, byName={};
+    var byId={}, byName={}, byEmail={};
     snap.forEach(function(doc){
       var u=Object.assign({id:doc.id},doc.data()||{});
       byId[doc.id]=u;
       var nk=normalizeSearchText(u.name||u.displayName||u.email||'');
       if(nk)byName[nk]=u;
+      var ek=normalizeSearchText(u.email||'');
+      if(ek)byEmail[ek]=u;
     });
     window._usersCacheById=byId;
     window._usersCacheByName=byName;
+    window._usersCacheByEmail=byEmail;
   }catch(e){
     console.warn('No se pudo cargar usuarios para análisis por tienda',e&&e.message?e.message:e);
   }
 }
+
+function vendedorUserFromOrder(o){
+  o=o||{};
+  var u=getCachedUserForOrder(o)||null;
+  if(!u&&window._usersCacheByEmail){
+    var ek=normalizeSearchText(o.vendedorEmail||o.emailVendedor||o.userEmail||'');
+    if(ek&&window._usersCacheByEmail[ek])u=window._usersCacheByEmail[ek];
+  }
+  return u;
+}
+function vendedorEmailFromOrder(o){
+  var u=vendedorUserFromOrder(o)||{};
+  return String(u.email||o.vendedorEmail||o.emailVendedor||o.userEmail||'').trim().toLowerCase();
+}
+function vendedorKeyFromOrder(o){
+  o=o||{};
+  var email=vendedorEmailFromOrder(o);
+  if(email)return 'email:'+email;
+  var uid=String(o.vendedorId||'').trim();
+  if(uid)return 'uid:'+uid;
+  var name=normalizeSearchText(o.vendedor||'');
+  return name?'name:'+name:'sin_vendedor';
+}
+function vendedorNameFromOrder(o){
+  var u=vendedorUserFromOrder(o)||{};
+  return String(u.name||u.displayName||o.vendedor||u.email||o.vendedorEmail||'Desconocido').trim()||'Desconocido';
+}
+function vendedorFinanceTotals(list){
+  var out={costoProductos:0,delivery:0,ganancia:0};
+  (list||[]).forEach(function(o){
+    var c=getCostoReal(o)||{};
+    out.costoProductos+=Number(c.costo||0);
+    out.delivery+=Number(c.delivery||0);
+    out.ganancia+=Number(c.ganancia||0);
+  });
+  return out;
+}
+function vendedorAliasNote(d){
+  if(!d||!d.aliases||d.aliases.length<2)return '';
+  return '<div style="font-size:10px;color:var(--tx3);margin-top:2px">También registrado como: '+d.aliases.slice(0,3).join(', ')+'</div>';
+}
+
 function inferOrderRoleForAnalysis(o){
   var u=getCachedUserForOrder(o);
   var role=normalizeRoleForAnalysis((u&&u.role)||o.vendedorRole||o.role||'');
@@ -2545,25 +2593,29 @@ function renderResumen(){
   var byStatus={pendiente:0,enviado:0,entregado:0,anulado:0};
   allPeriod.forEach(function(o){if(byStatus[o.estado]!==undefined)byStatus[o.estado]++;});
 
-  // Build vendedor map
+  // Build vendedor map. Se agrupa por correo/uid para evitar duplicados si cambia el nombre.
   var vendMap={};
   window._vendData={}; // reset for fresh render
   allPeriod.forEach(function(o){
-    var name=o.vendedor||'Desconocido';
-    if(!vendMap[name])vendMap[name]={ventas:0,cobrado:0,ganancia:0,productos:{},estados:{pendiente:0,enviado:0,entregado:0,anulado:0},allOrders:[]};
-    vendMap[name].ventas++;
-    vendMap[name].cobrado+=(o.cobrar||0);
-    vendMap[name].allOrders.push(o);
-    if(vendMap[name].estados[o.estado]!==undefined)vendMap[name].estados[o.estado]++;
+    var key=vendedorKeyFromOrder(o);
+    var name=vendedorNameFromOrder(o);
+    var email=vendedorEmailFromOrder(o);
+    if(!vendMap[key])vendMap[key]={name:name,email:email,aliases:[],ventas:0,cobrado:0,ganancia:0,costoProductos:0,delivery:0,productos:{},estados:{pendiente:0,enviado:0,entregado:0,anulado:0},allOrders:[]};
+    if(name&&vendMap[key].aliases.indexOf(name)===-1)vendMap[key].aliases.push(name);
+    vendMap[key].name=(vendedorUserFromOrder(o)||{}).name||vendMap[key].name||name;
+    vendMap[key].ventas++;
+    vendMap[key].cobrado+=(o.cobrar||0);
+    vendMap[key].allOrders.push(o);
+    if(vendMap[key].estados[o.estado]!==undefined)vendMap[key].estados[o.estado]++;
     if(o.estado!=='anulado'){
       var qty=o.totalCantidad||1;
       if(o.productos&&o.productos.length){
-        o.productos.forEach(function(p){vendMap[name].productos[p.nombre]=(vendMap[name].productos[p.nombre]||0)+(p.cantidad||1);});
+        o.productos.forEach(function(p){vendMap[key].productos[p.nombre]=(vendMap[key].productos[p.nombre]||0)+(p.cantidad||1);});
       } else if(o.producto){
-        vendMap[name].productos[o.producto]=(vendMap[name].productos[o.producto]||0)+qty;
+        vendMap[key].productos[o.producto]=(vendMap[key].productos[o.producto]||0)+qty;
       }
     }
-    if(isSuper())vendMap[name].ganancia+=getCostoReal(o).ganancia;
+    if(isSuper()){var fin=getCostoReal(o);vendMap[key].ganancia+=fin.ganancia;vendMap[key].costoProductos+=fin.costo;vendMap[key].delivery+=fin.delivery;}
   });
 
   var hh='';
@@ -2617,7 +2669,7 @@ function renderResumen(){
     hh+='<div class="empty"><p>Sin ventas en este período</p></div>';
   } else {
     vendEntries.forEach(function(entry,vi){
-      var name=entry[0], d=entry[1];
+      var d=entry[1], name=d.name||entry[0];
       // PUNTO 4: sueldo segun ventas del período filtrado (no anuladas)
       var ventasValidas=d.allOrders.filter(function(o){return o.estado!=='anulado';}).length;
       var sueldo=calcSueldo(ventasValidas);
@@ -2643,6 +2695,8 @@ function renderResumen(){
         sueldo:sueldo,
         ventasValidas:ventasValidas,
         ganancia:d.ganancia,
+        costoProductos:d.costoProductos||0,
+        delivery:d.delivery||0,
         showGan:isSuper()
       };
       hh+=
@@ -2651,7 +2705,7 @@ function renderResumen(){
           '<div onclick="toggleVcard(\''+bodyId+'\')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;user-select:none;gap:8px">'+
             '<div style="flex:1;min-width:0">'+
               '<div style="font-size:15px;font-weight:800;color:var(--accent)">'+name+'</div>'+
-              '<div style="font-size:11px;color:var(--tx3);margin-top:2px">'+d.ventas+' ventas · '+fmtC0(d.cobrado)+' cobrado'+(isSuper()?' · Gan: '+fmtC0(d.ganancia):'')+'</div>'+
+              '<div style="font-size:11px;color:var(--tx3);margin-top:2px">'+d.ventas+' ventas · '+fmtC0(d.cobrado)+' cobrado'+(isSuper()?' · Gan: '+fmtC0(d.ganancia):'')+'</div>'+vendedorAliasNote(d)+
             '</div>'+
             '<span id="'+bodyId+'-arrow" style="font-size:13px;color:var(--tx3);transition:transform .25s;flex-shrink:0">▶</span>'+
           '</div>'+
@@ -2716,6 +2770,14 @@ function toggleVcard(bodyId){
         (d.prodRows?
           '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Productos vendidos</div>'+
           '<div style="background:var(--bg2);border-radius:10px;padding:4px 10px;margin-bottom:14px">'+d.prodRows+'</div>'
+        :'')+
+        // Costos visibles solo para Super Admin
+        (d.showGan?
+          '<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Detalle de costos</div>'+
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">'+
+            '<div style="background:#fff7ed;border-radius:10px;padding:10px;text-align:center"><div style="font-size:10px;color:#c2410c;font-weight:700;text-transform:uppercase">Costo productos</div><div style="font-size:18px;font-weight:800;color:#c2410c;margin-top:3px">'+fmtC0(d.costoProductos||0)+'</div></div>'+
+            '<div style="background:#eff6ff;border-radius:10px;padding:10px;text-align:center"><div style="font-size:10px;color:#1e40af;font-weight:700;text-transform:uppercase">Delivery / envío</div><div style="font-size:18px;font-weight:800;color:#1e40af;margin-top:3px">'+fmtC0(d.delivery||0)+'</div></div>'+
+          '</div>'
         :'')+
         // Sueldo + Ganancia
         '<div style="display:flex;gap:8px">'+
@@ -3414,6 +3476,8 @@ function openEditOrder(id){
   if(document.getElementById('eo-tienda'))document.getElementById('eo-tienda').innerHTML=buildSalesStoreOptions(getOrderStoreId(o)||getDefaultSalesStore(cu),cu);
   configureSalesChannelSelect('eo-venta-via', (orderSalesChannel(o)==='sin_via'?getSalesChannelByRole(cu):orderSalesChannel(o)), cu);
   document.getElementById('eo-cobrar').value=o.cobrar||'';
+  if(document.getElementById('eo-cantidad'))document.getElementById('eo-cantidad').value=o.totalCantidad||((o.productos&&o.productos[0]&&o.productos[0].cantidad)||1);
+  if(document.getElementById('eo-nota'))document.getElementById('eo-nota').value=o.nota||'';
   document.getElementById('eo-zona').value=o.zona||'Lima';
   document.getElementById('eo-ciudad').value=o.ciudad||'';
   document.getElementById('eo-fecha').value=o.fechaVenta||new Date().toISOString().split('T')[0];
@@ -3435,6 +3499,8 @@ document.getElementById('btn-edit-order').onclick=async function(){
   var dni=(document.getElementById('eo-dni').value||'').trim();
   var cobrar=parseFloat(document.getElementById('eo-cobrar').value)||0;
   var producto=document.getElementById('eo-producto').value;
+  var cantidad=parseInt(document.getElementById('eo-cantidad')?.value||'1')||1;
+  var nota=(document.getElementById('eo-nota')?.value||'').trim();
   var tienda=normalizeShopifyStoreName(document.getElementById('eo-tienda')?.value)||getDefaultSalesStore(cu);
   var tiendaNombre=shopifyStoreDisplayName(tienda);
   var existingOrder=orders.find(function(x){return x.id===id;})||{};
@@ -3450,7 +3516,7 @@ document.getElementById('btn-edit-order').onclick=async function(){
   try{
     await db.collection('orders').doc(id).update({
       cliente:cliente, celular:celular, dni:dni, tienda:tienda, store:tienda, tiendaNombre:tiendaNombre, ventaVia:ventaVia, canalVenta:ventaVia, vendedorRole:existingOrder.vendedorRole||((cu&&cu.role)||''), cobrar:cobrar,
-      producto:producto, zona:zona, ciudad:ciudad,
+      producto:producto, totalCantidad:cantidad, productos:[{nombre:producto,cantidad:cantidad}], nota:nota, zona:zona, ciudad:ciudad,
       fechaVenta:fechaVenta, fechaMs:fechaMs
     });
     closeOv('ov-edit-order');

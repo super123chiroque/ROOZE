@@ -929,6 +929,7 @@ tbody tr:hover{background:var(--bg2)}
       <div class="fld"><label>Fecha de venta</label><input type="date" id="vf-fecha"></div>
       <div></div>
     </div>
+    <div class="fld"><label>Nota <span style="font-weight:400;color:var(--tx2)">(opcional)</span></label><textarea id="vf-nota" placeholder="Observaciones del pedido..." rows="3"></textarea></div>
     <div class="fld"><label>Estado</label>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
         <button class="sopt pendiente on" onclick="selectVfStatus('pendiente',this)">Pendiente</button>
@@ -1191,21 +1192,67 @@ function getCachedUserForOrder(o){
 async function loadUsersCacheForAnalysis(){
   window._usersCacheById=window._usersCacheById||{};
   window._usersCacheByName=window._usersCacheByName||{};
+  window._usersCacheByEmail=window._usersCacheByEmail||{};
   try{
     var snap=await db.collection('users').get();
-    var byId={}, byName={};
+    var byId={}, byName={}, byEmail={};
     snap.forEach(function(doc){
       var u=Object.assign({id:doc.id},doc.data()||{});
       byId[doc.id]=u;
       var nk=normalizeSearchText(u.name||u.displayName||u.email||'');
       if(nk)byName[nk]=u;
+      var ek=normalizeSearchText(u.email||'');
+      if(ek)byEmail[ek]=u;
     });
     window._usersCacheById=byId;
     window._usersCacheByName=byName;
+    window._usersCacheByEmail=byEmail;
   }catch(e){
     console.warn('No se pudo cargar usuarios para análisis por tienda',e&&e.message?e.message:e);
   }
 }
+
+function vendedorUserFromOrder(o){
+  o=o||{};
+  var u=getCachedUserForOrder(o)||null;
+  if(!u&&window._usersCacheByEmail){
+    var ek=normalizeSearchText(o.vendedorEmail||o.emailVendedor||o.userEmail||'');
+    if(ek&&window._usersCacheByEmail[ek])u=window._usersCacheByEmail[ek];
+  }
+  return u;
+}
+function vendedorEmailFromOrder(o){
+  var u=vendedorUserFromOrder(o)||{};
+  return String(u.email||o.vendedorEmail||o.emailVendedor||o.userEmail||'').trim().toLowerCase();
+}
+function vendedorKeyFromOrder(o){
+  o=o||{};
+  var email=vendedorEmailFromOrder(o);
+  if(email)return 'email:'+email;
+  var uid=String(o.vendedorId||'').trim();
+  if(uid)return 'uid:'+uid;
+  var name=normalizeSearchText(o.vendedor||'');
+  return name?'name:'+name:'sin_vendedor';
+}
+function vendedorNameFromOrder(o){
+  var u=vendedorUserFromOrder(o)||{};
+  return String(u.name||u.displayName||o.vendedor||u.email||o.vendedorEmail||'Desconocido').trim()||'Desconocido';
+}
+function vendedorFinanceTotals(list){
+  var out={costoProductos:0,delivery:0,ganancia:0};
+  (list||[]).forEach(function(o){
+    var c=getCostoReal(o)||{};
+    out.costoProductos+=Number(c.costo||0);
+    out.delivery+=Number(c.delivery||0);
+    out.ganancia+=Number(c.ganancia||0);
+  });
+  return out;
+}
+function vendedorAliasNote(d){
+  if(!d||!d.aliases||d.aliases.length<2)return '';
+  return '<div style="font-size:10px;color:var(--tx3);margin-top:2px">También registrado como: '+d.aliases.slice(0,3).join(', ')+'</div>';
+}
+
 function inferOrderRoleForAnalysis(o){
   var u=getCachedUserForOrder(o);
   var role=normalizeRoleForAnalysis((u&&u.role)||o.vendedorRole||o.role||'');
@@ -2014,6 +2061,7 @@ function openNuevaVenta(){
   $('vf-title').textContent='Nueva venta';
   $('vf-cliente').value='';$('vf-celular').value='';$('vf-dni').value='';
   $('vf-cobrar').value='';$('vf-ciudad').value='';
+  if($('vf-nota'))$('vf-nota').value='';
   if($('vf-adelanto'))$('vf-adelanto').value='0';
   if($('vf-contraentrega'))$('vf-contraentrega').checked=false;
   if($('vf-saldo-preview'))$('vf-saldo-preview').style.display='none';
@@ -2039,6 +2087,7 @@ function openEditVenta(id){
   $('vf-dni').value=o.dni||'';
   $('vf-cobrar').value=o.cobrar||'';
   $('vf-ciudad').value=o.ciudad||'';
+  if($('vf-nota'))$('vf-nota').value=o.nota||'';
   if($('vf-adelanto'))$('vf-adelanto').value=(o.adelanto!=null?o.adelanto:0);
   if($('vf-contraentrega'))$('vf-contraentrega').checked=!!o.contraEntrega;
   calcVfSaldo();
@@ -2093,13 +2142,14 @@ $('btn-vf-save').onclick=async function(){
   const ciudad=($('vf-ciudad').value||'').trim();
   const fechaVenta=$('vf-fecha').value||new Date().toISOString().split('T')[0];
   const cantidad=parseInt($('vf-cantidad').value)||1;
+  const nota=(document.getElementById('vf-nota')?.value||'').trim();
   if(!cliente||!celular||!cobrar){err.textContent='Completa cliente, celular y monto.';err.style.display='block';return;}
   const parts=fechaVenta.split('-');
   const fechaMs=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]),12,0,0).getTime();
   const btn=$('btn-vf-save'); btn.disabled=true; btn.textContent='Guardando...';
   try{
     const data={cliente,celular,dni,cobrar,adelanto,saldo,contraEntrega,producto,tienda,store:tienda,tiendaNombre,ventaVia,canalVenta:ventaVia,vendedorRole:(existingOrder&&existingOrder.vendedorRole)||((cu&&cu.role)||''),zona,ciudad,fechaVenta,fechaMs,
-      totalCantidad:cantidad,estado:vfStatus,
+      totalCantidad:cantidad,estado:vfStatus,nota,
       productos:[{nombre:producto,cantidad}]};
     if(editOrderId){
       await db.collection('orders').doc(editOrderId).update(data);
@@ -2551,17 +2601,21 @@ function renderHistorial(){
 
 window._vData={};
   all.forEach(o=>{
-    const name=o.vendedor||'Desconocido';
-    if(!vendMap[name])vendMap[name]={ventas:0,cobrado:0,ganancia:0,productos:{},estados:{pendiente:0,enviado:0,entregado:0,anulado:0},allOrders:[]};
-    vendMap[name].ventas++;vendMap[name].cobrado+=(o.cobrar||0);
-    vendMap[name].allOrders.push(o);
-    if(vendMap[name].estados[o.estado]!==undefined)vendMap[name].estados[o.estado]++;
+    const key=vendedorKeyFromOrder(o);
+    const name=vendedorNameFromOrder(o);
+    const email=vendedorEmailFromOrder(o);
+    if(!vendMap[key])vendMap[key]={name:name,email:email,aliases:[],ventas:0,cobrado:0,ganancia:0,costoProductos:0,delivery:0,productos:{},estados:{pendiente:0,enviado:0,entregado:0,anulado:0},allOrders:[]};
+    if(name&&vendMap[key].aliases.indexOf(name)===-1)vendMap[key].aliases.push(name);
+    vendMap[key].name=(vendedorUserFromOrder(o)||{}).name||vendMap[key].name||name;
+    vendMap[key].ventas++;vendMap[key].cobrado+=(o.cobrar||0);
+    vendMap[key].allOrders.push(o);
+    if(vendMap[key].estados[o.estado]!==undefined)vendMap[key].estados[o.estado]++;
     if(o.estado!=='anulado'){
       const qty=o.totalCantidad||1;
-      if(o.productos?.length){o.productos.forEach(p=>{vendMap[name].productos[p.nombre]=(vendMap[name].productos[p.nombre]||0)+(p.cantidad||1);});}
-      else if(o.producto){vendMap[name].productos[o.producto]=(vendMap[name].productos[o.producto]||0)+qty;}
+      if(o.productos?.length){o.productos.forEach(p=>{vendMap[key].productos[p.nombre]=(vendMap[key].productos[p.nombre]||0)+(p.cantidad||1);});}
+      else if(o.producto){vendMap[key].productos[o.producto]=(vendMap[key].productos[o.producto]||0)+qty;}
     }
-    if(isSuper())vendMap[name].ganancia+=getCostoReal(o).ganancia;
+    if(isSuper()){const fin=getCostoReal(o);vendMap[key].ganancia+=fin.ganancia;vendMap[key].costoProductos+=fin.costo;vendMap[key].delivery+=fin.delivery;}
   });
   const totalPedidos=valid.length;
   let hh=`<div class="kpi-row" style="margin-bottom:16px">
@@ -2571,7 +2625,7 @@ window._vData={};
   </div>`;
   const entries=Object.entries(vendMap).sort((a,b)=>b[1].ventas-a[1].ventas);
   entries.forEach((entry,vi)=>{
-    const name=entry[0],d=entry[1];
+    const d=entry[1], name=d.name||entry[0];
     const vid='vp-'+vi;
     const ventasV=d.allOrders.filter(o=>o.estado!=='anulado').length;
     const sueldo=calcSueldo(ventasV);
@@ -2583,12 +2637,12 @@ window._vData={};
     const prodRows=Object.entries(d.productos).sort((a,b)=>b[1]-a[1]).map(([n,qty])=>
       `<div class="dr"><span style="font-size:13px">${n}</span><span style="font-weight:700;color:var(--accent)">${qty} un.</span></div>`
     ).join('');
-    window._vData[vid]={estados:d.estados,cantRows,prodRows,sueldo,ventasValidas:ventasV,ganancia:d.ganancia,showGan:isSuper()};
+    window._vData[vid]={estados:d.estados,cantRows,prodRows,sueldo,ventasValidas:ventasV,ganancia:d.ganancia,costoProductos:d.costoProductos||0,delivery:d.delivery||0,showGan:isSuper()};
     hh+=`<div class="vcard">
       <div class="vcard-hdr" data-vid="${vid}" onclick="toggleVP(this.dataset.vid)">
         <div>
           <div class="vcard-name">${name}</div>
-          <div class="vcard-sub">${d.ventas} ventas · S/ ${d.cobrado.toFixed(0)} cobrado${isSuper()?' · Gan: S/ '+d.ganancia.toFixed(0):''}</div>
+          <div class="vcard-sub">${d.ventas} ventas · S/ ${d.cobrado.toFixed(0)} cobrado${isSuper()?' · Gan: S/ '+d.ganancia.toFixed(0):''}</div>${vendedorAliasNote(d)}
         </div>
         <div style="display:flex;align-items:center;gap:12px">
           <span style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;background:${next?'#fef3c7':'#dcfce7'};color:${next?'#92400e':'#166534'}">${next?'🎯 −'+(next.ventas-ventasV):'✅ Meta'}</span>
@@ -2620,6 +2674,7 @@ function toggleVP(vid){
         </div>
         ${d.cantRows?`<div class="section-lbl">Ventas por cantidad</div><div style="background:var(--bg2);border-radius:9px;padding:4px 10px;margin-bottom:12px">${d.cantRows}</div>`:''}
         ${d.prodRows?`<div class="section-lbl">Productos vendidos</div><div style="background:var(--bg2);border-radius:9px;padding:4px 10px;margin-bottom:12px">${d.prodRows}</div>`:''}
+        ${d.showGan?`<div class="section-lbl">Detalle de costos</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px"><div class="fin-box" style="background:#fff7ed"><div class="l" style="color:#c2410c">COSTO PRODUCTOS</div><div class="n" style="color:#c2410c">${fmtC0(d.costoProductos||0)}</div></div><div class="fin-box" style="background:#eff6ff"><div class="l" style="color:#1e40af">DELIVERY / ENVÍO</div><div class="n" style="color:#1e40af">${fmtC0(d.delivery||0)}</div></div></div>`:''}
         <div class="fin-row">
           <div class="fin-box" style="background:var(--accent2)"><div class="l" style="color:var(--accent)">SUELDO PERÍODO</div><div class="n" style="color:var(--accent)">S/ ${d.sueldo}</div><div style="font-size:11px;color:var(--tx3);margin-top:2px">${d.ventasValidas} ventas válidas</div></div>
           ${d.showGan?`<div class="fin-box" style="background:#f0fdf4"><div class="l" style="color:#166534">GANANCIA REAL</div><div class="n" style="color:#166534">S/ ${d.ganancia.toFixed(0)}</div></div>`:''}
